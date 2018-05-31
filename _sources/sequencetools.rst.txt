@@ -1,0 +1,1019 @@
+sequencetools
+
+This module implements tools for handling the sequences (time series)
+of hydrological models.
+
+Module
+
+sequencetools
+
+ implements the following members:
+
+   Sequences Handles all sequences of a specific model.
+
+   SubSequences Base class for handling subgroups of sequences.
+
+   IOSequences no description available
+
+   InputSequences Base class for handling input sequences.
+
+   FluxSequences Base class for handling flux sequences.
+
+   StateSequences Base class for handling state sequences.
+
+   LogSequences Base class for handling log sequences.
+
+   AideSequences Base class for handling aide sequences.
+
+   LinkSequences Base class for handling link sequences.
+
+   Sequence Base class for defining different kinds of sequences.
+
+   IOSequence Base class for sequences with input/output
+   functionalities.
+
+   ModelIOSequence Base class for sequences to be handled by Model
+   objects.
+
+   InputSequence Base class for input sequences of Model objects.
+
+   FluxSequence Base class for flux sequences of Model objects.
+
+   LeftRightSequence no description available
+
+   ConditionSequence no description available
+
+   StateSequence Base class for state sequences of Model objects.
+
+   LogSequence Base class for logging sequences of Model objects.
+
+   AideSequence Base class for aide sequences of Model objects.
+
+   LinkSequence Base class for link sequences of Model objects.
+
+   NodeSequence Base class for all sequences to be handled by Node
+   objects.
+
+   Sim Base class for simulation sequences of Node objects.
+
+   Obs Base class for observation sequences of Node objects.
+
+   NodeSequences Base class for handling node sequences.
+
+   FastAccess Provides fast access to the values of the sequences of a
+   sequence subgroup and supports the handling of internal data series
+   during simulations.
+
+
+class hydpy.core.sequencetools.Sequences(**kwargs)
+
+   Bases:
+
+   object
+
+   Handles all sequences of a specific model.
+
+   activate_disk(names=None)
+
+      Call method
+
+      activate_disk()
+
+       of all handled
+
+      IOSequences
+
+       objects.
+
+   deactivate_disk(names=None)
+
+      Call method
+
+      deactivate_disk()
+
+       of all handled
+
+      IOSequences
+
+       objects.
+
+   activate_ram(names=None)
+
+      Call method
+
+      activate_ram()
+
+       of all handled
+
+      IOSequences
+
+       objects.
+
+   deactivate_ram(names=None)
+
+      Call method
+
+      deactivate_ram()
+
+       of all handled
+
+      IOSequences
+
+       objects.
+
+   open_files(idx=0)
+
+      Call method
+
+      open_files()
+
+       of all handled
+
+      IOSequences
+
+       objects.
+
+   close_files()
+
+      Call method
+
+      close_files()
+
+       of all handled
+
+      IOSequences
+
+       objects.
+
+   load_data(idx)
+
+      Call method
+
+      load_data()
+
+       of all handled
+
+      InputSequences
+
+       objects.
+
+   save_data(idx)
+
+      Call method *save_data|* of all handled
+
+      IOSequences
+
+       objects registered under
+
+      OutputSequencesABC
+
+      .
+
+   reset()
+
+      Call method
+
+      reset()
+
+       of all handled
+
+      ConditionSequence
+
+       objects.
+
+   conditions
+
+      Generator object yielding all conditions (
+
+      StateSequence
+
+       and
+
+      LogSequence
+
+       objects).
+
+   hasconditions
+
+      True or False, whether the
+
+      Sequences
+
+       object "handles conditions" or not (at least one
+
+      StateSequence
+
+       or
+
+      LogSequence
+
+       object).
+
+   load_conditions(filename=None)
+
+      Read the initial conditions from a file and assign them to the
+      respective
+
+      StateSequence
+
+       and/or
+
+      LogSequence
+
+       objects handled by the actual
+
+      Sequences
+
+       object.
+
+      If no filename or dirname is passed, the ones defined by the
+
+      ConditionManager
+
+       stored in module "pub" are used.
+
+   save_conditions(filename=None)
+
+      Query the actual conditions of the
+
+      StateSequence
+
+       and/or
+
+      LogSequence
+
+       objects handled by the actual
+
+      Sequences
+
+       object and write them into a initial condition file.
+
+      If no filename or dirname is passed, the ones defined by the
+
+      ConditionManager
+
+       stored in module "pub" are used.
+
+   trim_conditions()
+
+      Call method
+
+      trim()
+
+       of each handled
+
+      ConditionSequence
+
+      .
+
+class hydpy.core.sequencetools.SubSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases: "hydpy.core.sequencetools._MetaSubSequencesClass"
+
+   Base class for handling subgroups of sequences.
+
+   Attributes:
+      seqs: The parent Sequences object.
+
+      fastaccess: The  FastAccess object allowing fast access to the
+      sequence values. In Cython mode, model specific cdef classes are
+      applied.
+
+   Additional attributes are the actual
+
+   Sequence
+
+    instances, representing the individual time series.  These need to
+   be defined in
+
+   SubSequences
+
+    subclasses.  Therefore, one needs to collect the appropriate
+
+   Sequence
+
+    subclasses in the (hidden) class attribute *_SEQCLASSES*, as shown
+   in the following example:
+
+   >>> from hydpy.core.sequencetools import *
+   >>> class Temperature(Sequence):
+   ...    NDIM, NUMERIC = 0, False
+   >>> class Precipitation(Sequence):
+   ...    NDIM, NUMERIC = 0, True
+   >>> class InputSequences(SubSequences):
+   ...     _SEQCLASSES = (Temperature, Precipitation)
+   >>> inputs = InputSequences(None) # Assign `None` for brevity.
+   >>> inputs
+   temperature(nan)
+   precipitation(nan)
+
+   The order within the tuple determines the order of iteration,
+   hence:
+
+   >>> for sequence in inputs:
+   ...     print(sequence)
+   temperature(nan)
+   precipitation(nan)
+
+   If one forgets to define a *_SEQCLASSES* tuple so (and maybe tries
+   to add the sequences in the constructor of the subclass of
+
+   SubSequences
+
+   , the following error is raised:
+
+   >>> class InputSequences(SubSequences):
+   ...     pass
+   Traceback (most recent call last):
+   ...
+   NotImplementedError: For class `InputSequences`, the required tuple `_SEQCLASSES` is not defined.  Please see the documentation of class `SubSequences` of module `sequencetools` for further information.
+
+   classmethod getname()
+
+   name
+
+class hydpy.core.sequencetools.IOSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.SubSequences
+
+   open_files(idx=0)
+
+   close_files()
+
+   activate_ram()
+
+   deactivate_ram()
+
+   activate_disk()
+
+   deactivate_disk()
+
+   ram2disk()
+
+   disk2ram()
+
+class hydpy.core.sequencetools.InputSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.IOSequences
+
+   Base class for handling input sequences.
+
+   load_data(idx)
+
+class hydpy.core.sequencetools.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.IOSequences
+
+   Base class for handling flux sequences.
+
+   classmethod getname()
+
+   save_data(idx)
+
+   numerics
+
+      Iterator for *numerical* flux sequences.
+
+      *numerical* means that the *NUMERIC* class attribute of the
+      respective sequence is *True*.
+
+class hydpy.core.sequencetools.StateSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.IOSequences
+
+   Base class for handling state sequences.
+
+   new2old()
+
+      Assign the new/final state values of the actual time step to the
+      new/initial state values of the next time step.
+
+   save_data(idx)
+
+   reset()
+
+class hydpy.core.sequencetools.LogSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.SubSequences
+
+   Base class for handling log sequences.
+
+   reset()
+
+class hydpy.core.sequencetools.AideSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.SubSequences
+
+   Base class for handling aide sequences.
+
+class hydpy.core.sequencetools.LinkSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.SubSequences
+
+   Base class for handling link sequences.
+
+class hydpy.core.sequencetools.Sequence
+
+   Bases:
+
+   hydpy.core.variabletools.Variable
+
+   Base class for defining different kinds of sequences.
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess')
+
+   connect(subseqs)
+
+   initvalue
+
+   value
+
+      The actual time series value(s) handled by the respective
+
+      Sequence
+
+       instance.  For consistency, *value* and *values* can always be
+      used interchangeably.
+
+   values
+
+      The actual time series value(s) handled by the respective
+
+      Sequence
+
+       instance.  For consistency, *value* and *values* can always be
+      used interchangeably.
+
+   shape
+
+      A tuple containing the lengths in all dimensions of the sequence
+      values at a specific time point.  Note that setting a new shape
+      results in a loss of the actual values of the respective
+      sequence. For 0-dimensional sequences an empty tuple is
+      returned.
+
+class hydpy.core.sequencetools.IOSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.Sequence
+
+   Base class for sequences with input/output functionalities.
+
+   filetype_ext
+
+      Ending of the external data file.
+
+   filename_ext
+
+      Complete filename of the external data file.
+
+   filename_int
+
+      Complete filename of the internal data file.
+
+   dirpath_ext
+
+      Absolute path of the directory of the external data file.
+
+   dirpath_int
+
+      Absolute path of the directory of the internal data file.
+
+   filepath_ext
+
+      Absolute path to the external data file.
+
+   filepath_int
+
+      Absolute path to the internal data file.
+
+   update_fastaccess()
+
+   diskflag
+
+   ramflag
+
+   memoryflag
+
+   seriesshape
+
+      Shape of the whole time series (time being the first dimension).
+
+   numericshape
+
+      Shape of the array of temporary values required for the
+      numerical solver actually being selected.
+
+   series
+
+   load_ext()
+
+      Load the external data series in accordance with
+      *pub.timegrids.init* and store it as internal data.
+
+   adjust_short_series(timegrid, values)
+
+      Adjust a short time series to a longer timegrid.
+
+      Normally, time series data to be read from a external data files
+      should span (at least) the whole initialization time period of a
+      HydPy project.  However, for some variables which are only used
+      for comparison (e.g. observed runoff used for calibration),
+      incomplete time series might also be helpful.  This method it
+      thought for adjusting such incomplete series to the public
+      initialization time grid stored in module "pub".  It is
+      automatically called in method
+
+      load_ext()
+
+       if necessary provided that the option
+
+      checkseries
+
+       is disabled.
+
+      Assume the initialization time period of a HydPy project spans
+      five day:
+
+      >>> from hydpy import pub, Timegrids, Timegrid
+      >>> pub.timegrids = Timegrids(Timegrid('2000.01.10',
+      ...                                    '2000.01.15',
+      ...                                    '1d'))
+
+      Prepare a node series object for observational data:
+
+      >>> from hydpy.core.sequencetools import Obs
+      >>> obs = Obs()
+
+      Prepare a test function that expects the timegrid of the data
+      and the data itself, which returns the ajdusted array by means
+      of calling method
+
+      adjust_short_series()
+
+      :
+
+      >>> import numpy
+      >>> def test(timegrid):
+      ...     values = numpy.ones(len(timegrid))
+      ...     return obs.adjust_short_series(timegrid, values)
+
+      The following calls to the test function shows the arrays
+      returned for different kinds misalignments:
+
+      >>> test(Timegrid('2000.01.05', '2000.01.20', '1d'))
+      array([ 1.,  1.,  1.,  1.,  1.])
+      >>> test(Timegrid('2000.01.12', '2000.01.15', '1d'))
+      array([ nan,  nan,   1.,   1.,   1.])
+      >>> test(Timegrid('2000.01.12', '2000.01.17', '1d'))
+      array([ nan,  nan,   1.,   1.,   1.])
+      >>> test(Timegrid('2000.01.10', '2000.01.13', '1d'))
+      array([  1.,   1.,   1.,  nan,  nan])
+      >>> test(Timegrid('2000.01.08', '2000.01.13', '1d'))
+      array([  1.,   1.,   1.,  nan,  nan])
+      >>> test(Timegrid('2000.01.12', '2000.01.13', '1d'))
+      array([ nan,  nan,   1.,  nan,  nan])
+      >>> test(Timegrid('2000.01.05', '2000.01.10', '1d'))
+      array([ nan,  nan,  nan,  nan,  nan])
+      >>> test(Timegrid('2000.01.05', '2000.01.08', '1d'))
+      array([ nan,  nan,  nan,  nan,  nan])
+      >>> test(Timegrid('2000.01.15', '2000.01.18', '1d'))
+      array([ nan,  nan,  nan,  nan,  nan])
+      >>> test(Timegrid('2000.01.16', '2000.01.18', '1d'))
+      array([ nan,  nan,  nan,  nan,  nan])
+
+      Through enabling option
+
+      usedefaultvalues
+
+       the missing values are initialized with zero instead of nan:
+
+      >>> pub.options.usedefaultvalues = True
+
+      >>> test(Timegrid('2000.01.12', '2000.01.17', '1d'))
+      array([ 0.,  0.,  1.,  1.,  1.])
+
+      >>> pub.options.usedefaultvalues = False
+
+   save_ext()
+
+      Write the internal data into an external data file.
+
+   zero_int()
+
+      Initialize the internal data series with zero values.
+
+   activate_disk()
+
+      Demand reading/writing internal data from/to hard disk.
+
+   deactivate_disk()
+
+      Prevent from reading/writing internal data from/to hard disk.
+
+   activate_ram()
+
+      Demand reading/writing internal data from/to hard disk.
+
+   deactivate_ram()
+
+      Prevent from reading/writing internal data from/to hard disk.
+
+   disk2ram()
+
+      Move internal data from disk to RAM.
+
+   ram2disk()
+
+      Move internal data from RAM to disk.
+
+   shape
+
+      A tuple containing the lengths in all dimensions of the sequence
+      values at a specific time point.  Note that setting a new shape
+      results in a loss of the actual values of the respective
+      sequence. For 0-dimensional sequences an empty tuple is
+      returned.
+
+class hydpy.core.sequencetools.ModelIOSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.IOSequence
+
+   Base class for sequences to be handled by
+
+   Model
+
+    objects.
+
+   rawfilename
+
+      Filename without ending for external and internal date files.
+
+class hydpy.core.sequencetools.InputSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.ModelIOSequence
+
+   Base class for input sequences of
+
+   Model
+
+    objects.
+
+class hydpy.core.sequencetools.FluxSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.ModelIOSequence
+
+   Base class for flux sequences of
+
+   Model
+
+    objects.
+
+   shape
+
+      A tuple containing the lengths in all dimensions of the sequence
+      values at a specific time point.  Note that setting a new shape
+      results in a loss of the actual values of the respective
+      sequence. For 0-dimensional sequences an empty tuple is
+      returned.
+
+class hydpy.core.sequencetools.LeftRightSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.ModelIOSequence
+
+   NDIM = 1
+
+   left
+
+      The "left" value of the actual parameter.
+
+   right
+
+      The "right" value of the actual parameter.
+
+class hydpy.core.sequencetools.ConditionSequence
+
+   Bases:
+
+   object
+
+   trim(lower=None, upper=None)
+
+      Apply
+
+      trim()
+
+       of module
+
+      variabletools
+
+      .
+
+   warn_trim()
+
+   reset()
+
+class hydpy.core.sequencetools.StateSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.ModelIOSequence
+
+   ,
+
+   hydpy.core.sequencetools.ConditionSequence
+
+   Base class for state sequences of
+
+   Model
+
+    objects.
+
+   NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess_old', 'fastaccess_new')
+
+   connect(subseqs)
+
+   shape
+
+      A tuple containing the lengths in all dimensions of the sequence
+      values at a specific time point.  Note that setting a new shape
+      results in a loss of the actual values of the respective
+      sequence. For 0-dimensional sequences an empty tuple is
+      returned.
+
+   new
+
+      Complete access to the state value(s), which will be used in the
+      next calculation steps.  Note that
+
+      new
+
+       is a synonym of
+
+      values
+
+      .  Use this property to modify the initial condition(s) of a
+      single
+
+      StateSequence
+
+       object.
+
+   old
+
+      Assess to the state value(s) at beginning of the time step,
+      which has been processed most recently.  When using
+
+      HydPy
+
+       in the normal manner.  But it can be helpful for demonstration
+      and debugging purposes.
+
+   new2old()
+
+class hydpy.core.sequencetools.LogSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.Sequence
+
+   ,
+
+   hydpy.core.sequencetools.ConditionSequence
+
+   Base class for logging sequences of
+
+   Model
+
+    objects.
+
+class hydpy.core.sequencetools.AideSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.Sequence
+
+   Base class for aide sequences of
+
+   Model
+
+    objects.
+
+class hydpy.core.sequencetools.LinkSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.Sequence
+
+   Base class for link sequences of
+
+   Model
+
+    objects.
+
+   set_pointer(double, idx=0)
+
+   value
+
+      ToDo
+
+   values
+
+      ToDo
+
+   shape
+
+class hydpy.core.sequencetools.NodeSequence
+
+   Bases:
+
+   hydpy.core.sequencetools.IOSequence
+
+   Base class for all sequences to be handled by
+
+   Node
+
+    objects.
+
+   rawfilename
+
+      Filename without ending for external and internal date files.
+
+   values
+
+      Actual value(s) handled by the sequence.  For consistency,
+      *value* and *values* can always be used interchangeably.
+
+   value
+
+      Actual value(s) handled by the sequence.  For consistency,
+      *value* and *values* can always be used interchangeably.
+
+class hydpy.core.sequencetools.Sim
+
+   Bases:
+
+   hydpy.core.sequencetools.NodeSequence
+
+   Base class for simulation sequences of
+
+   Node
+
+    objects.
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   activate_disk()
+
+      Demand reading/writing internal data from/to hard disk.
+
+   activate_ram()
+
+      Demand reading/writing internal data from/to hard disk.
+
+class hydpy.core.sequencetools.Obs
+
+   Bases:
+
+   hydpy.core.sequencetools.NodeSequence
+
+   Base class for observation sequences of
+
+   Node
+
+    objects.
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   activate_disk()
+
+      Demand reading/writing internal data from/to hard disk.
+
+   activate_ram()
+
+      Demand reading/writing internal data from/to hard disk.
+
+   series_complete
+
+class hydpy.core.sequencetools.NodeSequences(seqs, cls_fastaccess=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.IOSequences
+
+   Base class for handling node sequences.
+
+   The following sequence classes are selected:
+      Sim Base class for simulation sequences of Node objects.
+
+      Obs Base class for observation sequences of Node objects.
+
+   load_data(idx)
+
+   save_data(idx)
+
+class hydpy.core.sequencetools.FastAccess
+
+   Bases:
+
+   object
+
+   Provides fast access to the values of the sequences of a sequence
+   subgroup and supports the handling of internal data series during
+   simulations.
+
+   The following details are of relevance for
+
+   HydPy
+
+    developers only.
+
+   FastAccess
+
+    is applied in Python mode only.  In Cython mode, specialized and
+   more efficient cdef classes replace it.  For compatibility with
+   these cdef classes,
+
+   FastAccess
+
+    objects work with dynamically set instance members.  Suppose there
+   is a sequence named *seq1* which is 2-dimensional, then its
+   associated attributes are:
+
+      seq1 (ndarray): The actual sequence values.
+
+      _seq1_ndim (int): Number of dimensions.
+
+      _seq1_length_0 (int): Length in the first dimension.
+
+      _seq1_length_1 (int): Length in the second dimension.
+
+      _seq1_ramflag (bool): Handle internal data in RAM?
+
+      _seq1_diskflag (bool): Handle internal data on disk?
+
+      _seq1_path (str): Path of the internal data file.
+
+      _seq1_file (open()): Object handling the internal data file.
+
+   Note that all these dynamical attributes and the following methods
+   are initialised, changed or applied by the respective
+
+   SubSequences
+
+    and
+
+   Sequence
+
+    objects.  Handling them directly is error prone and thus not
+   recommended.
+
+   open_files(idx)
+
+      Open all files with an activated disk flag.
+
+   close_files()
+
+      Close all files with an activated disk flag.
+
+   load_data(idx)
+
+      Load the internal data of all sequences.  Load from file if the
+      corresponding disk flag is activated, otherwise load from RAM.
+
+   save_data(idx)
+
+      Save the internal data of all sequences with an activated flag.
+      Write to file if the corresponding disk flag is activated; store
+      in working memory if the corresponding ram flag is activated.

@@ -1,0 +1,25 @@
+modelimports
+
+This module bundles imports generally required for implementing new
+models.
+
+Module
+
+modelimports
+
+ is supposed to shorten the import section of base and application
+models implemented.  Just write:
+
+>>> from hydpy.core.modelimports import *
+
+Thereafter, the following objects are available:
+   module numpy
+
+   numpys nan and inf
+
+   functions parameterstep(), simulationstep(), and controlcheck() of
+   module importtools
+
+   class Tester of module testtools
+
+   class Cythonizer of module modelutils

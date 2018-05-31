@@ -1,0 +1,273 @@
+filetools
+
+This module implements tools for handling the folder structure of
+HydPy projects.
+
+Module
+
+filetools
+
+ implements the following members:
+
+   FileManager Base class for the more specific file managers
+   implemented in module filetools.
+
+   NetworkManager Manager for network files.
+
+   ControlManager Manager for control parameter files.
+
+   ConditionManager Manager for condition files.
+
+   SequenceManager Manager for sequence files.
+
+
+class hydpy.core.filetools.FileManager
+
+   Bases:
+
+   object
+
+   Base class for the more specific file managers implemented in
+   module
+
+   filetools
+
+   .
+
+   basepath
+
+      Absolute path pointing to the actual directories.
+
+   availabledirs
+
+      Available directories containing the respective files.
+
+   currentdir
+
+      Current directory containing the network files.
+
+   currentpath
+
+      Complete path of the directory containing the respective files.
+
+   filenames
+
+      Tuple of names of the respective files of the current directory.
+
+   filepaths
+
+      Tuple of paths of the respective files of the current directory.
+
+class hydpy.core.filetools.NetworkManager
+
+   Bases:
+
+   hydpy.core.filetools.FileManager
+
+   Manager for network files.
+
+   load_files()
+
+      Load nodes and elements from all network files and return them
+      in a
+
+      Selections
+
+       instance.  Each single network file defines a separate
+
+      Selection
+
+       instance.  Additionally, all
+
+      Element
+
+       and
+
+      Node
+
+       objects are bundled in a selection named *complete*.
+
+   save_files(selections)
+
+      Save the nodes and elements from each
+
+      Selection
+
+       object contained within the given
+
+      Selections
+
+       instance to a separate network file of the same name.
+
+   delete_files(selections)
+
+      Delete network files.  One or more filenames and/or
+
+      Selection
+
+       instances can serve as function arguments.
+
+class hydpy.core.filetools.ControlManager
+
+   Bases:
+
+   hydpy.core.filetools.FileManager
+
+   Manager for control parameter files.
+
+   load_file(element=None, filename=None, clear_registry=True)
+
+      Return the namespace of the given file (and eventually of its
+      corresponding auxiliary subfiles) as a
+
+      dict
+
+      .
+
+      By default, the internal registry is cleared when a control file
+      and all its corresponding auxiliary files have been loaded.  You
+      can change this behaviour by passing *False* for the
+      *clear_registry* argument.  This might decrease model
+      initialization times significantly.  But then it is your own
+      responsibility to call method
+
+      clear_registry()
+
+       when necessary (before reloading a changed control file).
+
+   classmethod read2dict(filename, info)
+
+      Read the control parameters from the given path (and its
+      auxiliary paths, where appropriate) and store them in the given
+
+      dict
+
+       object *info*.
+
+      Note that the
+
+      dict
+
+       *info* can be used to feed information into the execution of
+      control files.  Use this method only if you are completely sure
+      on how the control parameter import of HydPy works.  Otherwise,
+      you should most probably prefer to use
+
+      load_file()
+
+      .
+
+   classmethod clear_registry()
+
+      Clear the internal registry of read control files.
+
+   save_file(filename, text)
+
+      Save the given text under the given control filename and the
+      current path.
+
+class hydpy.core.filetools.ConditionManager
+
+   Bases:
+
+   hydpy.core.filetools.FileManager
+
+   Manager for condition files.
+
+   load_file(filename)
+
+      Read and return the content of the given file.
+
+      If the current directory is not defined explicitly, the
+      directory name is constructed with the actual simulation start
+      date.  If such an directory does not exist, it is created
+      immediately.
+
+   save_file(filename, text)
+
+      Save the given text under the given condition filename and the
+      current path.
+
+      If the current directory is not defined explicitly, the
+      directory name is constructed with the actual simulation end
+      date.  If such an directory does not exist, it is created
+      immediately.
+
+class hydpy.core.filetools.SequenceManager
+
+   Bases:
+
+   hydpy.core.filetools.FileManager
+
+   Manager for sequence files.
+
+   inputdir
+
+      Current directory containing the input sequence files.
+
+   outputdir
+
+      Current directory containing the output sequence files.
+
+   nodedir
+
+      Current directory containing the node sequence files.
+
+   tempdir
+
+      Current directory containing the temporary sequence files.
+
+   inputfiletype
+
+      Currently selected type of the input sequence files.
+
+   outputfiletype
+
+      Currently selected type of the output sequence files.
+
+   nodefiletype
+
+      Currently selected type of the node sequence files.
+
+   tempfiletype
+
+      Currently selected type of the temporary sequence files.
+
+   inputoverwrite
+
+      Currently selected overwrite flag of the input sequence files.
+
+   outputoverwrite
+
+      Currently selected overwrite flag of the output sequence files.
+
+   simoverwrite
+
+      Currently selected overwrite flag of the sim node sequence
+      files.
+
+   obsoverwrite
+
+      Currently selected overwrite flag of the obs node sequence
+      files.
+
+   tempoverwrite
+
+      Currently selected overwrite flag of the temporary sequence
+      files.
+
+   inputpath
+
+      Absolute paths of the input sequence directory.
+
+   outputpath
+
+      Absolute paths of the selected output sequence directory.
+
+   nodepath
+
+      Absolute paths of the selected node sequence directory.
+
+   temppath
+
+      Absolute paths of the selected temporary sequence directory.

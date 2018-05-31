@@ -1,0 +1,4 @@
+configutils
+
+This Cython module implements global configuration data for numerical
+tool, which must be available at Cython speed during simulations.

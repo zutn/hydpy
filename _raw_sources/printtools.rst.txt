@@ -1,0 +1,11 @@
+.. |progressbar| replace:: :func:`~hydpy.core.printtools.progressbar`
+.. |range| replace:: :class:`range`
+
+.. _printtools:
+
+printtools
+==========
+
+.. automodule:: hydpy.core.printtools
+    :members:
+    :show-inheritance:

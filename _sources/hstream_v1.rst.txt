@@ -1,0 +1,88 @@
+hstream_v1
+
+class hydpy.models.hstream_v1.Model
+
+   Bases:
+
+   hydpy.core.modeltools.Model
+
+   The HBV96 version of HydPy-H-Stream (hstream_v1).
+
+   The following "run methods" are called each simulation step run in
+   the given sequence:
+      calc_qjoints_v1() Apply the routing equation.
+
+   The following "inlet update methods" are called in the given
+   sequence immediately  before solving the differential equations of
+   the respective model:
+      pick_q_v1() Assign the actual value of the inlet sequence to the
+      upper joint of the subreach upstream.
+
+   The following "outlet update methods" are called in the given
+   sequence immediately  after solving the differential equations of
+   the respective model:
+      pass_q_v1() Assing the actual value of the lower joint of of the
+      subreach downstream to the outlet sequence.
+
+class hydpy.models.hstream_v1.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of hstream_v1, directly defined by the user.
+
+   The following parameter classes are selected:
+      Lag Time lag between inflow and outflow [T].
+
+      Damp Damping of the hydrograph [-].
+
+class hydpy.models.hstream_v1.DerivedParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Derived parameters of hstream_v1, indirectly defined by the user.
+
+   The following parameter classes are selected:
+      NmbSegments Number of river segments [-].
+
+      C1 First coefficient of the muskingum working formula [-].
+
+      C2 Second coefficient of the muskingum working formula [-].
+
+      C3 Third coefficient of the muskingum working formula [-].
+
+class hydpy.models.hstream_v1.StateSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequences
+
+   State sequences of hstream_v1.
+
+   The following sequence classes are selected:
+      QJoints Runoff at the segment junctions [m³/s].
+
+class hydpy.models.hstream_v1.InletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Upstream link sequences of stream_v1.
+
+   The following sequence classes are selected:
+      Q Runoff [m³/s].
+
+class hydpy.models.hstream_v1.OutletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Downstream link sequences of hstream_v1.
+
+   The following sequence classes are selected:
+      Q Runoff [m³/s].

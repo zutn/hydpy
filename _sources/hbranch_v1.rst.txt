@@ -1,0 +1,88 @@
+hbranch_v1
+
+class hydpy.models.hbranch_v1.Model
+
+   Bases:
+
+   hydpy.models.hbranch.hbranch_model.Model
+
+   The HBV96 version of HydPy-H-Stream (hbranch_v1).
+
+   The following "run methods" are called each simulation step run in
+   the given sequence:
+      calc_outputs_v1() Performs the actual interpolation or
+      extrapolation.
+
+   The following "inlet update methods" are called in the given
+   sequence immediately  before solving the differential equations of
+   the respective model:
+      pick_input_v1() Updates Input based on Total.
+
+   The following "outlet update methods" are called in the given
+   sequence immediately  after solving the differential equations of
+   the respective model:
+      pass_outputs_v1() Updates Branched based on Outputs.
+
+class hydpy.models.hbranch_v1.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of hbranch_v1, directly defined by the user.
+
+   The following parameter classes are selected:
+      XPoints Supporting points for the independent input variable
+      [eg. m³/s].
+
+      YPoints Supporting points for the dependent output variables
+      [eg. m³/s].
+
+class hydpy.models.hbranch_v1.DerivedParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Derived parameters of hbranch_v1, indirectly defined by the user.
+
+   The following parameter classes are selected:
+      NmbBranches Number of branches [-].
+
+      NmbPoints Number of supporting points for linear interpolation
+      [-].
+
+class hydpy.models.hbranch_v1.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequences
+
+   Flux sequences of hbranch_v1.
+
+   The following sequence classes are selected:
+      Input Total input [e.g. m³/s].
+
+      Outputs Branched outputs [e.g. m³/s].
+
+class hydpy.models.hbranch_v1.InletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Upstream link sequences of hbranch_v1.
+
+   The following sequence classes are selected:
+      Total Total input [e.g. m³/s].
+
+class hydpy.models.hbranch_v1.OutletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Downstream link sequences of hbranch_v1.
+
+   The following sequence classes are selected:
+      Branched Branched outputs [e.g. m³/s].

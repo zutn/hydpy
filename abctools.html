@@ -1,0 +1,564 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abctools &#8212; HydPy 2.1-dev documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="autodoctools" href="autodoctools.html" />
+    <link rel="prev" title="Core Modules" href="core.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="core.html" title="Core Modules"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Modules</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="abctools">
+<span id="id1"></span><h1>abctools<a class="headerlink" href="#abctools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.abctools"></span><p>This module provides some abstract base classes.</p>
+<p>There are some type checks within the HydPy framework relying on the
+build in  function <a class="reference external" href="https://docs.python.org/3/library/functions.html#isinstance" title="(in Python v3.6)"><code class="xref py py-func docutils literal notranslate"><span class="pre">isinstance()</span></code></a>.  In order to keep HydPy “pythonic”,
+the following abstract base classes are defined.  All calls to <a class="reference external" href="https://docs.python.org/3/library/functions.html#isinstance" title="(in Python v3.6)"><code class="xref py py-func docutils literal notranslate"><span class="pre">isinstance()</span></code></a>
+should rely these abstract base classes instead of the respective
+original classes.  This helps to build e.g. a new parameter class when
+one wants to avoid to inherit from <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>.</p>
+<p>At the moment, the provided classes do not provide things like abstract
+methods (should be added later).  Just use them to register new classes
+that are not actual subclasses of the respective HydPy classes, but
+should be handled as if they were.  See class <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> as an example.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.abctools" title="hydpy.core.abctools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">abctools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">DocABC</span></code></a> ABC base class automatically documenting is registered subclasses.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.IterableNonStringABC" title="hydpy.core.abctools.IterableNonStringABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterableNonStringABC</span></code></a> Abstract base class for checking if an object is iterable but not a string.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.ElementABC" title="hydpy.core.abctools.ElementABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElementABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.NodeABC" title="hydpy.core.abctools.NodeABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.VariableABC" title="hydpy.core.abctools.VariableABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">VariableABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.ParameterABC" title="hydpy.core.abctools.ParameterABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.ANNABC" title="hydpy.core.abctools.ANNABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANNABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.SeasonalANNABC" title="hydpy.core.abctools.SeasonalANNABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalANNABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.SeasonalANN" title="hydpy.auxs.anntools.SeasonalANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalANN</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.IOSequencesABC" title="hydpy.core.abctools.IOSequencesABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequencesABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequences" title="hydpy.core.sequencetools.IOSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequences</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.InputSequencesABC" title="hydpy.core.abctools.InputSequencesABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequencesABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.OutputSequencesABC" title="hydpy.core.abctools.OutputSequencesABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputSequencesABC</span></code></a> Abstract base class for registering custom “OutputSequences” classes like <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a>.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.SequenceABC" title="hydpy.core.abctools.SequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence" title="hydpy.core.sequencetools.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.InputSequenceABC" title="hydpy.core.abctools.InputSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequence" title="hydpy.core.sequencetools.InputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.FluxSequenceABC" title="hydpy.core.abctools.FluxSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.ConditionSequenceABC" title="hydpy.core.abctools.ConditionSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ConditionSequence" title="hydpy.core.sequencetools.ConditionSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.StateSequenceABC" title="hydpy.core.abctools.StateSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequence" title="hydpy.core.sequencetools.StateSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.LogSequenceABC" title="hydpy.core.abctools.LogSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequence" title="hydpy.core.sequencetools.LogSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.AideSequenceABC" title="hydpy.core.abctools.AideSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequence" title="hydpy.core.sequencetools.AideSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.LinkSequenceABC" title="hydpy.core.abctools.LinkSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.NodeSequenceABC" title="hydpy.core.abctools.NodeSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequenceABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.DateABC" title="hydpy.core.abctools.DateABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">DateABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.PeriodABC" title="hydpy.core.abctools.PeriodABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeriodABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.TimegridABC" title="hydpy.core.abctools.TimegridABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimegridABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.TimegridsABC" title="hydpy.core.abctools.TimegridsABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimegridsABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.TOYABC" title="hydpy.core.abctools.TOYABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">TOYABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.TOY" title="hydpy.core.timetools.TOY"><code class="xref py py-class docutils literal notranslate"><span class="pre">TOY</span></code></a> classes.</li>
+<li><a class="reference internal" href="#hydpy.core.abctools.ModelABC" title="hydpy.core.abctools.ModelABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelABC</span></code></a> Abstract base class for registering custom <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> classes.</li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="class">
+<dt id="hydpy.core.abctools.DocABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">DocABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#DocABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.DocABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>ABC base class automatically documenting is registered subclasses.</p>
+<dl class="classmethod">
+<dt id="hydpy.core.abctools.DocABC.register">
+<em class="property">classmethod </em><code class="descname">register</code><span class="sig-paren">(</span><em>subclass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/abctools.html#DocABC.register"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.DocABC.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add information to the documentation of the given abstract base
+class and register the subclass afterwards.</p>
+<p>Subclass the new abstract base class <cite>NewABC</cite> and define some new
+concrete classes (<cite>New1</cite>, <cite>New2</cite>, <cite>New3</cite>) which do not inherit
+from <cite>NewABC</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.abctools</span> <span class="k">import</span> <span class="n">DocABC</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">NewABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="s2">&quot;A new base class.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">New1</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="s2">&quot;First new class&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">New2</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="s2">&quot;Second new class&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">New3</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="s2">&quot;Third new class&quot;</span>
+</pre></div>
+</div>
+<p>The docstring <cite>NewABC</cite> is still the same as defined above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NewABC</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+<span class="go">A new base class.</span>
+</pre></div>
+</div>
+<p>Now we register the concrete classes <cite>New1</cite> and <cite>New2</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">NewABC</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">New2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NewABC</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">New1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NewABC</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">New2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now the docstring of <cite>NewABC</cite> includes the information about
+the concrete classes already registered:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">NewABC</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+<span class="go">A new base class.</span>
+
+<span class="go">At the moment, the following classes are registered:</span>
+<span class="go">     * :class:`~hydpy.core.abctools.New2`</span>
+<span class="go">     * :class:`~hydpy.core.abctools.New1`</span>
+</pre></div>
+</div>
+<p>Note that the docstring order is the registration order.
+Also note that the “accidental reregistration” of class
+<cite>New2</cite> does not modify the docstring.</p>
+<p>Now the concrete classes <cite>New1</cite> and <cite>New2</cite> are handled as
+if they were actual subclasses of <cite>NewABC</cite>, but class <cite>New3</cite>
+– which had not been registered – is not:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="n">New1</span><span class="p">,</span> <span class="n">NewABC</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">New1</span><span class="p">(),</span> <span class="n">NewABC</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="n">New2</span><span class="p">,</span> <span class="n">NewABC</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">New2</span><span class="p">(),</span> <span class="n">NewABC</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="n">New3</span><span class="p">,</span> <span class="n">NewABC</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">New3</span><span class="p">(),</span> <span class="n">NewABC</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.IterableNonStringABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">IterableNonStringABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#IterableNonStringABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.IterableNonStringABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract base class for checking if an object is iterable but not a
+string.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.ElementABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">ElementABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#ElementABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.ElementABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.NodeABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">NodeABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#NodeABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.NodeABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.VariableABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">VariableABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#VariableABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.VariableABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> classes.</p>
+<blockquote>
+<div><p>Usually, new classes should either be registered as a parameter
+or a sequence.  Afterwards, they are automatically handled as
+<a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> subclasses:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.abctools</span> <span class="k">import</span> <span class="n">VariableABC</span><span class="p">,</span> <span class="n">ParameterABC</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">New</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="n">New</span><span class="p">,</span> <span class="n">VariableABC</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ParameterABC</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">New</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="n">New</span><span class="p">,</span> <span class="n">VariableABC</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div></blockquote>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.ParameterABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">ParameterABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#ParameterABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.ParameterABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.VariableABC" title="hydpy.core.abctools.VariableABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.VariableABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> classes.
+* <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>
+* <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a>
+* <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.SeasonalANN" title="hydpy.auxs.anntools.SeasonalANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalANN</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.ANNABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">ANNABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#ANNABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.ANNABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.SeasonalANNABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">SeasonalANNABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#SeasonalANNABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.SeasonalANNABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<dl class="docutils">
+<dt>Abstract base class for registering custom <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.SeasonalANN" title="hydpy.auxs.anntools.SeasonalANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalANN</span></code></a></dt>
+<dd>classes.</dd>
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="anntools.html#hydpy.auxs.anntools.SeasonalANN" title="hydpy.auxs.anntools.SeasonalANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalANN</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.IOSequencesABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">IOSequencesABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#IOSequencesABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.IOSequencesABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequences" title="hydpy.core.sequencetools.IOSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequences</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequences" title="hydpy.core.sequencetools.IOSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequences</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.InputSequencesABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">InputSequencesABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#InputSequencesABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.InputSequencesABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.OutputSequencesABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">OutputSequencesABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#OutputSequencesABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.OutputSequencesABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<dl class="docutils">
+<dt>Abstract base class for registering custom “OutputSequences” classes</dt>
+<dd>like <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a>.</dd>
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.SequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">SequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#SequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.SequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.VariableABC" title="hydpy.core.abctools.VariableABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.VariableABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence" title="hydpy.core.sequencetools.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence" title="hydpy.core.sequencetools.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.InputSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">InputSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#InputSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.InputSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.SequenceABC" title="hydpy.core.abctools.SequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.SequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequence" title="hydpy.core.sequencetools.InputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequence" title="hydpy.core.sequencetools.InputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.FluxSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">FluxSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#FluxSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.FluxSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.SequenceABC" title="hydpy.core.abctools.SequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.SequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.ConditionSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">ConditionSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#ConditionSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.ConditionSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.SequenceABC" title="hydpy.core.abctools.SequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.SequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ConditionSequence" title="hydpy.core.sequencetools.ConditionSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionSequence</span></code></a> classes.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.StateSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">StateSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#StateSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.StateSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.ConditionSequenceABC" title="hydpy.core.abctools.ConditionSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.ConditionSequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequence" title="hydpy.core.sequencetools.StateSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequence" title="hydpy.core.sequencetools.StateSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.LogSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">LogSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#LogSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.LogSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.ConditionSequenceABC" title="hydpy.core.abctools.ConditionSequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.ConditionSequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequence" title="hydpy.core.sequencetools.LogSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequence" title="hydpy.core.sequencetools.LogSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.AideSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">AideSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#AideSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.AideSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.SequenceABC" title="hydpy.core.abctools.SequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.SequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequence" title="hydpy.core.sequencetools.AideSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequence" title="hydpy.core.sequencetools.AideSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.LinkSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">LinkSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#LinkSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.LinkSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.SequenceABC" title="hydpy.core.abctools.SequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.SequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.NodeSequenceABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">NodeSequenceABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#NodeSequenceABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.NodeSequenceABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.SequenceABC" title="hydpy.core.abctools.SequenceABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.SequenceABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a> classes.
+* <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.DateABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">DateABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#DateABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.DateABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.PeriodABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">PeriodABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#PeriodABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.PeriodABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.TimegridABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">TimegridABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#TimegridABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.TimegridABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.TimegridsABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">TimegridsABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#TimegridsABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.TimegridsABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.TOYABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">TOYABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#TOYABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.TOYABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="timetools.html#hydpy.core.timetools.TOY" title="hydpy.core.timetools.TOY"><code class="xref py py-class docutils literal notranslate"><span class="pre">TOY</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="timetools.html#hydpy.core.timetools.TOY" title="hydpy.core.timetools.TOY"><code class="xref py py-class docutils literal notranslate"><span class="pre">TOY</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.core.abctools.ModelABC">
+<em class="property">class </em><code class="descclassname">hydpy.core.abctools.</code><code class="descname">ModelABC</code><a class="reference internal" href="_modules/hydpy/core/abctools.html#ModelABC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.abctools.ModelABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.abctools.DocABC" title="hydpy.core.abctools.DocABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.abctools.DocABC</span></code></a></p>
+<p>Abstract base class for registering custom <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> classes.</p>
+<dl class="docutils">
+<dt>At the moment, the following classes are registered:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Modules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">abctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="connectiontools.html">connectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dummytools.html">dummytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modelimports.html">modelimports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cythons Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="core.html"
+                        title="previous chapter">Core Modules</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="autodoctools.html"
+                        title="next chapter">autodoctools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/abctools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="core.html" title="Core Modules"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Modules</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Christoph Tyralla.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

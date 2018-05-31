@@ -1,0 +1,457 @@
+testtools
+
+This module implements tools for making doctests more legible.
+
+Module
+
+testtools
+
+ implements the following members:
+
+   StdOutErr no description available
+
+   Tester Tests either a base or an application model.
+
+   Array Assures that attributes are ndarray objects.
+
+   ArrayDescriptor Descriptor for handling values of Array objects.
+
+   Test Base class for IntegrationTest and UnitTest.
+
+   PlottingOptions Plotting options of class IntegrationTest.
+
+   IntegrationTest Defines model integration doctests.
+
+   UnitTest Defines unit doctests for a single model method.
+
+   Open Replace Open in doctests temporarily.
+
+   solve_exception_doctest_issue() Insert the string
+   hydpy.core.exceptiontools. into the docstrings of the given module
+   related to exceptions defined in module exceptiontools (not
+   relevant for Python 2).
+
+
+class hydpy.core.testtools.StdOutErr(indent=0)
+
+   Bases:
+
+   object
+
+   write(text)
+
+   print_(text)
+
+   flush()
+
+class hydpy.core.testtools.Tester
+
+   Bases:
+
+   object
+
+   Tests either a base or an application model.
+
+   Usually, a
+
+   Tester
+
+    object is initialized at the end of the *__init__* file of its
+   base model or at the end of the module of an application modele.
+
+   filenames
+
+      list
+
+       of all filenames to be taken into account for testing.
+
+   modulenames
+
+      list
+
+       of all module names to be taken into account for testing.
+
+   doit()
+
+      Perform all doctests either in Python or in Cython mode
+      depending on the state of
+
+      usecython
+
+       set in module "pub".
+
+      Usually,
+
+      doit()
+
+       is triggered automatically by a
+
+      Cythonizer
+
+       object assigned to the same base or application model as a
+
+      Tester
+
+       object.
+
+class hydpy.core.testtools.Array
+
+   Bases:
+
+   object
+
+   Assures that attributes are
+
+   ndarray
+
+    objects.
+
+class hydpy.core.testtools.ArrayDescriptor
+
+   Bases:
+
+   object
+
+   Descriptor for handling values of
+
+   Array
+
+    objects.
+
+class hydpy.core.testtools.Test
+
+   Bases:
+
+   object
+
+   Base class for
+
+   IntegrationTest
+
+    and
+
+   UnitTest
+
+   .
+
+   This base class defines the printing of the test results primarily.
+   How the tests shall be prepared and performed, is to be defined in
+   its subclasses.
+
+   inits = <hydpy.core.testtools.Array object>
+
+      Stores arrays for setting the same values of parameters and/or
+      sequences before each new experiment.
+
+   raw_first_col_strings
+
+      To be implemented by the subclasses of
+
+      Test
+
+      .
+
+   static get_output_array(parseq)
+
+      To be implemented by the subclasses of
+
+      Test
+
+      .
+
+   parseqs = NotImplemented
+
+   HEADER_OF_FIRST_COL = NotImplemented
+
+   nmb_rows
+
+      Number of rows of the table.
+
+   nmb_cols
+
+      Number of columns of the table.
+
+   raw_header_strings
+
+      All raw strings for the tables header.
+
+   raw_body_strings
+
+      All raw strings for the tables body.
+
+   raw_strings
+
+      All raw strings for the complete table.
+
+   col_widths
+
+      The widths of all columns of the table.
+
+   col_seperators
+
+      The seperators for adjacent columns.
+
+   row_nmb_characters
+
+      Number of characters of a single row of the table.
+
+   print_table(idx1=None, idx2=None)
+
+      Print the result table between the given indices.
+
+   extract_units(parseqs=None)
+
+      Return a set of units of the given or the handled parameters and
+      sequences.
+
+class hydpy.core.testtools.PlottingOptions
+
+   Bases:
+
+   object
+
+   Plotting options of class
+
+   IntegrationTest
+
+   .
+
+class hydpy.core.testtools.IntegrationTest(element, seqs=None, inits=None)
+
+   Bases:
+
+   hydpy.core.testtools.Test
+
+   Defines model integration doctests.
+
+   The functionality of
+
+   IntegrationTest
+
+    is easiest to understand by inspecting doctests like the ones of
+   modules
+
+   llake_v1
+
+    or
+
+   arma_v1
+
+   .
+
+   Note that all condition sequences (state and logging sequences) are
+   initialized in accordance with the values are given in the *inits*
+   values.  The values of the simulation sequences of outlet and
+   sender nodes are always set to zero before each test run.  All
+   other parameter and sequence values can be changed between
+   different test runs.
+
+   HEADER_OF_FIRST_COL = 'date'
+
+      The header of the first column containing dates.
+
+   plotting_options = <hydpy.core.testtools.PlottingOptions object>
+
+   raw_first_col_strings
+
+      The raw date strings of the first column, except the header.
+
+   dateformat
+
+      Format string for printing dates in the first column of the
+      table.
+
+      See
+
+      datetime
+
+       for the format strings allowed.
+
+   static get_output_array(seq)
+
+      Return the array containing the output results of the given
+      sequence.
+
+   prepare_node_sequences()
+
+      Prepare the simulations sequences of all nodes in.
+
+      This preparation might not be suitable for all types of
+      integration tests.  Prepare those node sequences manually, for
+      which this method does not result in the desired outcome.
+
+   prepare_input_model_sequences()
+
+      Configure the input sequences of the model in a manner that
+      allows for applying their time series data in integration tests.
+
+   extract_print_sequences()
+
+      Return a list of all input, flux and state sequences of the
+      model as well as the simulation sequences of all nodes.
+
+   prepare_model()
+
+      Derive the secondary parameter values, prepare all required time
+      series and set the initial conditions.
+
+   reset_outputs()
+
+      Set the values of the simulation sequences of all outlet nodes
+      to zero.
+
+   reset_inits()
+
+      Set all initial conditions of all models.
+
+   plot(filename, width=None, height=None, selected=None, activated=None, skip_nodes=None)
+
+      Save a bokeh html file plotting the current test results.
+
+      (Optional) arguments:
+         filename: Name of the file.  If necessary, the file ending
+         html is added automatically.  The file is stored in the html
+         folder of subpackage docs.
+
+         width: Width of the plot in screen units.  Defaults to 600.
+
+         height: Height of the plot in screen units.  Defaults to 300.
+
+         selected: List of the sequences to be plotted.
+
+         activated: List of the sequences to be shown initially.
+
+         skip_nodes: Boolean flag that indicates whether series of
+         node objects shall be plotted or not. Defaults to False.
+
+   iframe(tabs=4)
+
+      Print a command for embeding the saved html file into the online
+      documentation via an *iframe*.
+
+class hydpy.core.testtools.UnitTest(model, method, first_example=1, last_example=1, parseqs=None)
+
+   Bases:
+
+   hydpy.core.testtools.Test
+
+   Defines unit doctests for a single model method.
+
+   HEADER_OF_FIRST_COL = 'ex.'
+
+      The header of the first column containing sequential numbers.
+
+   nexts = <hydpy.core.testtools.Array object>
+
+      Stores arrays for setting different values of parameters and/or
+      sequences before each new experiment.
+
+   results = <hydpy.core.testtools.Array object>
+
+      Stores arrays with the resulting values of parameters and/or
+      sequences of each new experiment.
+
+   nmb_examples
+
+      The number of examples to be calculated.
+
+   idx0
+
+      First index of the examples selected for printing.
+
+   idx1
+
+      Last index of the examples selected for printing.
+
+   get_output_array(parseq)
+
+      Return the array containing the output results of the given
+      parameter or sequence.
+
+   raw_first_col_strings
+
+      The raw integer strings of the first column, except the header.
+
+   memorize_inits()
+
+      Memorize all initial conditions.
+
+   prepare_output_arrays()
+
+      Prepare arrays for storing the calculated results for the
+      respective parameters and/or sequences.
+
+   reset_inits()
+
+      Set all initial conditions.
+
+   extract_method_doc()
+
+      Return the documentation string of the method to be tested.
+
+   extract_print_parameters_and_sequences()
+
+      Return a list of all parameter and sequences of the model.
+
+      Note that all parameters and sequences without the common
+      *values* attribute are omitted.
+
+class hydpy.core.testtools.Open
+
+   Bases:
+
+   object
+
+   Replace
+
+   Open
+
+    in doctests temporarily.
+
+   Class
+
+   Open
+
+    to intended to make writing to files visible and testable in
+   docstrings.  Therefore, Python's built in function
+
+   Open
+
+    is temporarily replaced by another object, printing the filename
+   and the file contend as shown in the following example:
+
+   >>> import os
+   >>> path = os.path.join('folder', 'test.py')
+   >>> from hydpy import Open
+   >>> with Open():
+   ...     with open(path, 'w') as file_:
+   ...         file_.write('first line\n')
+   ...         file_.write('\n')
+   ...         file_.write('third line\n')
+   ~~~~~~~~~~~~~~
+   folder/test.py
+   --------------
+   first line
+   <BLANKLINE>
+   third line
+   <BLANKLINE>
+   ~~~~~~~~~~~~~~
+
+   Note that, for simplicity, the UNIX style path seperator */* is
+   used to print the file path on all systems.
+
+   Class
+
+   Open
+
+    is rather restricted at the moment.  More functionalities will be
+   added later...
+
+hydpy.core.testtools.solve_exception_doctest_issue(module)
+
+   Insert the string *hydpy.core.exceptiontools.* into the docstrings
+   of the given module related to exceptions defined in module
+
+   exceptiontools
+
+    (not relevant for Python 2).

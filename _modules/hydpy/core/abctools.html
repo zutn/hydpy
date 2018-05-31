@@ -1,0 +1,340 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>hydpy.core.abctools &#8212; HydPy 2.1-dev documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.abctools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module provides some abstract base classes.</span>
+
+<span class="sd">There are some type checks within the HydPy framework relying on the</span>
+<span class="sd">build in  function |isinstance|.  In order to keep HydPy &quot;pythonic&quot;,</span>
+<span class="sd">the following abstract base classes are defined.  All calls to |isinstance|</span>
+<span class="sd">should rely these abstract base classes instead of the respective</span>
+<span class="sd">original classes.  This helps to build e.g. a new parameter class when</span>
+<span class="sd">one wants to avoid to inherit from |Parameter|.</span>
+
+<span class="sd">At the moment, the provided classes do not provide things like abstract</span>
+<span class="sd">methods (should be added later).  Just use them to register new classes</span>
+<span class="sd">that are not actual subclasses of the respective HydPy classes, but</span>
+<span class="sd">should be handled as if they were.  See class |anntools.ANN| as an example.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="k">import</span> <span class="n">pub</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">autodoctools</span>
+
+
+<span class="k">if</span> <span class="n">pub</span><span class="o">.</span><span class="n">pyversion</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">_ABC</span> <span class="o">=</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">class</span> <span class="nc">_ABC</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span>
+
+
+<div class="viewcode-block" id="DocABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.DocABC">[docs]</a><span class="k">class</span> <span class="nc">DocABC</span><span class="p">(</span><span class="n">_ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ABC base class automatically documenting is registered subclasses.&quot;&quot;&quot;</span>
+
+    <span class="n">_registry_empty</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="DocABC.register"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.DocABC.register">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">subclass</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add information to the documentation of the given abstract base</span>
+<span class="sd">        class and register the subclass afterwards.</span>
+
+<span class="sd">        Subclass the new abstract base class `NewABC` and define some new</span>
+<span class="sd">        concrete classes (`New1`, `New2`, `New3`) which do not inherit</span>
+<span class="sd">        from `NewABC`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.abctools import DocABC</span>
+<span class="sd">        &gt;&gt;&gt; class NewABC(DocABC):</span>
+<span class="sd">        ...    &quot;A new base class.&quot;</span>
+<span class="sd">        &gt;&gt;&gt; class New1(object):</span>
+<span class="sd">        ...     &quot;First new class&quot;</span>
+<span class="sd">        &gt;&gt;&gt; class New2(object):</span>
+<span class="sd">        ...     &quot;Second new class&quot;</span>
+<span class="sd">        &gt;&gt;&gt; class New3(object):</span>
+<span class="sd">        ...     &quot;Third new class&quot;</span>
+
+<span class="sd">        The docstring `NewABC` is still the same as defined above:</span>
+
+<span class="sd">        &gt;&gt;&gt; print(NewABC.__doc__)</span>
+<span class="sd">        A new base class.</span>
+
+<span class="sd">        Now we register the concrete classes `New1` and `New2`:</span>
+
+<span class="sd">        &gt;&gt;&gt; NewABC.register(New2)</span>
+<span class="sd">        &gt;&gt;&gt; NewABC.register(New1)</span>
+<span class="sd">        &gt;&gt;&gt; NewABC.register(New2)</span>
+
+<span class="sd">        Now the docstring of `NewABC` includes the information about</span>
+<span class="sd">        the concrete classes already registered:</span>
+
+<span class="sd">        &gt;&gt;&gt; print(NewABC.__doc__)</span>
+<span class="sd">        A new base class.</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        At the moment, the following classes are registered:</span>
+<span class="sd">             * :class:`~hydpy.core.abctools.New2`</span>
+<span class="sd">             * :class:`~hydpy.core.abctools.New1`</span>
+
+<span class="sd">        Note that the docstring order is the registration order.</span>
+<span class="sd">        Also note that the &quot;accidental reregistration&quot; of class</span>
+<span class="sd">        `New2` does not modify the docstring.</span>
+
+<span class="sd">        Now the concrete classes `New1` and `New2` are handled as</span>
+<span class="sd">        if they were actual subclasses of `NewABC`, but class `New3`</span>
+<span class="sd">        -- which had not been registered -- is not:</span>
+
+<span class="sd">        &gt;&gt;&gt; issubclass(New1, NewABC)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; isinstance(New1(), NewABC)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; issubclass(New2, NewABC)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; isinstance(New2(), NewABC)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; issubclass(New3, NewABC)</span>
+<span class="sd">        False</span>
+<span class="sd">        &gt;&gt;&gt; isinstance(New3(), NewABC)</span>
+<span class="sd">        False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registry_empty</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_registry_empty</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> \
+                <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">At the moment, the following classes are registered:&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">subclass</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">     * :class:`~</span><span class="si">%s</span><span class="s1">`&#39;</span>
+                            <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">subclass</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">subclass</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="IterableNonStringABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.IterableNonStringABC">[docs]</a><span class="k">class</span> <span class="nc">IterableNonStringABC</span><span class="p">(</span><span class="n">_ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for checking if an object is iterable but not a</span>
+<span class="sd">    string.&quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__subclasshook__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="n">IterableNonStringABC</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                    <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span>
+                         <span class="nb">issubclass</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="nb">str</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="bp">NotImplemented</span></div>
+
+
+<div class="viewcode-block" id="ElementABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.ElementABC">[docs]</a><span class="k">class</span> <span class="nc">ElementABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Element| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="NodeABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.NodeABC">[docs]</a><span class="k">class</span> <span class="nc">NodeABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Node| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="VariableABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.VariableABC">[docs]</a><span class="k">class</span> <span class="nc">VariableABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Variable| classes.</span>
+
+<span class="sd">    Usually, new classes should either be registered as a parameter</span>
+<span class="sd">    or a sequence.  Afterwards, they are automatically handled as</span>
+<span class="sd">    |Variable| subclasses:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.abctools import VariableABC, ParameterABC</span>
+<span class="sd">    &gt;&gt;&gt; class New(object):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; issubclass(New, VariableABC)</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; ParameterABC.register(New)</span>
+<span class="sd">    &gt;&gt;&gt; issubclass(New, VariableABC)</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="ParameterABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.ParameterABC">[docs]</a><span class="k">class</span> <span class="nc">ParameterABC</span><span class="p">(</span><span class="n">VariableABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Parameter| classes.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="ANNABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.ANNABC">[docs]</a><span class="k">class</span> <span class="nc">ANNABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |anntools.ANN| classes.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SeasonalANNABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.SeasonalANNABC">[docs]</a><span class="k">class</span> <span class="nc">SeasonalANNABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |anntools.SeasonalANN|</span>
+<span class="sd">    classes.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="IOSequencesABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.IOSequencesABC">[docs]</a><span class="k">class</span> <span class="nc">IOSequencesABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |IOSequences| classes.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="InputSequencesABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.InputSequencesABC">[docs]</a><span class="k">class</span> <span class="nc">InputSequencesABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |InputSequences| classes.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="OutputSequencesABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.OutputSequencesABC">[docs]</a><span class="k">class</span> <span class="nc">OutputSequencesABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom &quot;OutputSequences&quot; classes</span>
+<span class="sd">    like |FluxSequences|.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.SequenceABC">[docs]</a><span class="k">class</span> <span class="nc">SequenceABC</span><span class="p">(</span><span class="n">VariableABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Sequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="InputSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.InputSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">InputSequenceABC</span><span class="p">(</span><span class="n">SequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |InputSequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="FluxSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.FluxSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">FluxSequenceABC</span><span class="p">(</span><span class="n">SequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |FluxSequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ConditionSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.ConditionSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">ConditionSequenceABC</span><span class="p">(</span><span class="n">SequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |ConditionSequence| classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="StateSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.StateSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">StateSequenceABC</span><span class="p">(</span><span class="n">ConditionSequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |StateSequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="LogSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.LogSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">LogSequenceABC</span><span class="p">(</span><span class="n">ConditionSequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |LogSequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="AideSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.AideSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">AideSequenceABC</span><span class="p">(</span><span class="n">SequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |AideSequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="LinkSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.LinkSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">LinkSequenceABC</span><span class="p">(</span><span class="n">SequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |LinkSequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="NodeSequenceABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.NodeSequenceABC">[docs]</a><span class="k">class</span> <span class="nc">NodeSequenceABC</span><span class="p">(</span><span class="n">SequenceABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |NodeSequence| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DateABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.DateABC">[docs]</a><span class="k">class</span> <span class="nc">DateABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Date| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="PeriodABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.PeriodABC">[docs]</a><span class="k">class</span> <span class="nc">PeriodABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Period| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="TimegridABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.TimegridABC">[docs]</a><span class="k">class</span> <span class="nc">TimegridABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Timegrid| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="TimegridsABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.TimegridsABC">[docs]</a><span class="k">class</span> <span class="nc">TimegridsABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Timegrids| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="TOYABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.TOYABC">[docs]</a><span class="k">class</span> <span class="nc">TOYABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |TOY| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModelABC"><a class="viewcode-back" href="../../../abctools.html#hydpy.core.abctools.ModelABC">[docs]</a><span class="k">class</span> <span class="nc">ModelABC</span><span class="p">(</span><span class="n">DocABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for registering custom |Model| classes.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="n">autodoctools</span><span class="o">.</span><span class="n">autodoc_module</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Christoph Tyralla.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

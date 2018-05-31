@@ -1,0 +1,215 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>test_v2 &#8212; HydPy 2.1-dev documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="prev" title="test_v1" href="test_v1.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorials.html" title="Tutorials"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="test_v1.html" title="test_v1"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-T.html" accesskey="U">HydPy-T (TESTING)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="test-v2">
+<span id="id1"></span><h1>test_v2<a class="headerlink" href="#test-v2" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.models.test_v2"></span><p>This simple test model is thought for testing numerical integration
+strategies.  It can be seen from two perspectives.  On the one hand
+it implements a simple discontinous equation, bringing numerical integration
+algorithms into trouble.  On the other hand it describes a simple storage
+with a loss that is constant over time, as long as some storage content is
+left.  The loss rate <a class="reference internal" href="test.html#hydpy.models.test.test_fluxes.Q" title="hydpy.models.test.test_fluxes.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a> and the initial storage content <a class="reference internal" href="test.html#hydpy.models.test.test_states.S" title="hydpy.models.test.test_states.S"><code class="xref py py-class docutils literal notranslate"><span class="pre">S</span></code></a> can be set as
+required.</p>
+<dl class="class">
+<dt id="hydpy.models.test_v2.Model">
+<em class="property">class </em><code class="descclassname">hydpy.models.test_v2.</code><code class="descname">Model</code><a class="reference internal" href="_modules/hydpy/models/test_v2.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.models.test_v2.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.ModelELS" title="hydpy.core.modeltools.ModelELS"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.ModelELS</span></code></a></p>
+<p>Test model, Version 2.</p>
+<dl class="docutils">
+<dt>The following methods define the relevant components of a system of ODE equations (e.g. direct runoff):</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="test.html#hydpy.models.test.test_model.calc_q_v2" title="hydpy.models.test.test_model.calc_q_v2"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_q_v2()</span></code></a> Calculate the actual storage loss.</li>
+</ul>
+</dd>
+<dt>The following methods define the complete equations of an ODE system (e.g. change in storage of <cite>fast water</cite> due to  effective precipitation and direct runoff):</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="test.html#hydpy.models.test.test_model.calc_s_v1" title="hydpy.models.test.test_model.calc_s_v1"><code class="xref py py-func docutils literal notranslate"><span class="pre">calc_s_v1()</span></code></a> Calculate the actual storage content.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.test_v2.ControlParameters">
+<em class="property">class </em><code class="descclassname">hydpy.models.test_v2.</code><code class="descname">ControlParameters</code><span class="sig-paren">(</span><em>pars</em>, <em>cls_fastaccess=None</em>, <em>cymodel=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test_v2.html#ControlParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.models.test_v2.ControlParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a></p>
+<p>Control parameters of Test model, Version 2.</p>
+<dl class="docutils">
+<dt>The following parameter classes are selected:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="test.html#hydpy.models.test.test_control.K" title="hydpy.models.test.test_control.K"><code class="xref py py-class docutils literal notranslate"><span class="pre">K</span></code></a> Storage coefficient [1/T].</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.test_v2.SolverParameters">
+<em class="property">class </em><code class="descclassname">hydpy.models.test_v2.</code><code class="descname">SolverParameters</code><span class="sig-paren">(</span><em>pars</em>, <em>cls_fastaccess=None</em>, <em>cymodel=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test_v2.html#SolverParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.models.test_v2.SolverParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.SubParameters</span></code></a></p>
+<p>Solver parameters of the Test model,.</p>
+<dl class="docutils">
+<dt>The following parameter classes are selected:</dt>
+<dd><ul class="first last simple">
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">AbsErrorMax</span></code> Absolute numerical error tolerance [mm/T].</li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">RelDTMin</span></code> Smallest relative integration time step size allowed [-].</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.test_v2.FluxSequences">
+<em class="property">class </em><code class="descclassname">hydpy.models.test_v2.</code><code class="descname">FluxSequences</code><span class="sig-paren">(</span><em>seqs</em>, <em>cls_fastaccess=None</em>, <em>cymodel=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test_v2.html#FluxSequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.models.test_v2.FluxSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.FluxSequences</span></code></a></p>
+<p>Flux sequences of Test model, Version 2.</p>
+<dl class="docutils">
+<dt>The following sequence classes are selected:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="test.html#hydpy.models.test.test_fluxes.Q" title="hydpy.models.test.test_fluxes.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a> Storage loss [mm/T]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="hydpy.models.test_v2.StateSequences">
+<em class="property">class </em><code class="descclassname">hydpy.models.test_v2.</code><code class="descname">StateSequences</code><span class="sig-paren">(</span><em>seqs</em>, <em>cls_fastaccess=None</em>, <em>cymodel=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/test_v2.html#StateSequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.models.test_v2.StateSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.StateSequences</span></code></a></p>
+<p>State sequences of Test model, Version 2.</p>
+<dl class="docutils">
+<dt>The following sequence classes are selected:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="test.html#hydpy.models.test.test_states.S" title="hydpy.models.test.test_states.S"><code class="xref py py-class docutils literal notranslate"><span class="pre">S</span></code></a> Storage content [mm].</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="test.html">test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="test_v1.html">test_v1</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">test_v2</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="test_v1.html"
+                        title="previous chapter">test_v1</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tutorials.html"
+                        title="next chapter">Tutorials</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/test_v2.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorials.html" title="Tutorials"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="test_v1.html" title="test_v1"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-T.html" >HydPy-T (TESTING)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Christoph Tyralla.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

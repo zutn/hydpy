@@ -1,0 +1,1264 @@
+parametertools
+
+This module implements tools for handling the parameters of
+hydrological models.
+
+Module
+
+parametertools
+
+ implements the following members:
+
+   KeywordParameter2DMetaclass no description available
+
+   header_controlfile() Return the header of a normal or auxiliariy
+   parameter control file.
+
+   IntConstant Class for int objects with individual docstrings.
+
+   Constants Base class for defining integer constants for a specific
+   model.
+
+   Parameters Base class for handling all parameters of a specific
+   model.
+
+   SubParameters Base class for handling subgroups of model
+   parameters.
+
+   Parameterstep The actual parameter time step size.
+
+   Simulationstep The actual (or surrogate) simulation time step size.
+
+   Parameter Base class for SingleParameter and MultiParameter.
+
+   SingleParameter Base class for model parameters handling a single
+   value.
+
+   MultiParameter Base class for model parameters handling multiple
+   values.
+
+   ZipParameter Base class for model parameters handling multiple
+   values that offers additional keyword zipping fuctionality.
+
+   SeasonalParameter Class for the flexible handling of parameters
+   with anual cycles.
+
+   KeywordParameter2DType Add the construction of _ROWCOLMAPPING to
+   type.
+
+   KeywordParameter2D Base class for 2-dimensional model parameters
+   which values which depend on two factors.
+
+   LeftRightParameter no description available
+
+   IndexParameter no description available
+
+   SolverParameter no description available
+
+
+hydpy.core.parametertools.header_controlfile(model, parameterstep=None, simulationstep=None)
+
+   Return the header of a normal or auxiliariy parameter control file.
+
+   The header contains the default coding information, the import
+   command for the given model and the actual parameter and
+   simulationstep step sizes.
+
+   The first example shows that, if you pass the model argument as a
+   string, you have to take care that this string make sense:
+
+   >>> from hydpy.core.parametertools import header_controlfile
+   >>> from hydpy import Period
+   >>> print(header_controlfile(model='no model class',
+   ...                          parameterstep='-1h',
+   ...                          simulationstep=Period('1h')))
+   # -*- coding: utf-8 -*-
+   <BLANKLINE>
+   from hydpy.models.no model class import *
+   <BLANKLINE>
+   simulationstep("1h")
+   parameterstep("-1h")
+   <BLANKLINE>
+   <BLANKLINE>
+
+   The second example shows the saver option to pass the proper model
+   object.  It also shows that function
+
+   header_controlfile()
+
+    tries to gain the parameter and simulation step sizes from the
+   global
+
+   Timegrids
+
+    object contained in module "pub" when necessary:
+
+   >>> from hydpy.models.lland_v1 import *
+   >>> parameterstep('1d')
+   >>> from hydpy import pub
+   >>> from hydpy import Timegrids, Timegrid
+   >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
+   ...                                    '2001.01.01',
+   ...                                    '1h'))
+   >>> print(header_controlfile(model=model))
+   # -*- coding: utf-8 -*-
+   <BLANKLINE>
+   from hydpy.models.lland_v1 import *
+   <BLANKLINE>
+   simulationstep("1h")
+   parameterstep("1d")
+   <BLANKLINE>
+   <BLANKLINE>
+
+class hydpy.core.parametertools.IntConstant
+
+   Bases:
+
+   int
+
+   Class for
+
+   int
+
+    objects with individual docstrings.
+
+class hydpy.core.parametertools.Constants(*args, **kwargs)
+
+   Bases:
+
+   dict
+
+   Base class for defining integer constants for a specific model.
+
+class hydpy.core.parametertools.Parameters(kwargs)
+
+   Bases:
+
+   object
+
+   Base class for handling all parameters of a specific model.
+
+   update()
+
+      Call the update methods of all derived and solver parameters.
+
+   save_controls(filename=None, parameterstep=None, simulationstep=None, auxfiler=None)
+
+   verify()
+
+   secondary_subpars
+
+class hydpy.core.parametertools.SubParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases: "hydpy.core.parametertools._MetaSubParametersClass"
+
+   Base class for handling subgroups of model parameters.
+
+   When trying to implement a new model, one has to define its
+   parameter classes.  Currently, the HydPy framework  distinguishes
+   between control parameters and derived parameters.  These parameter
+   classes should be collected by subclasses of class
+
+   SubParameters
+
+    called *ControlParameters* or *DerivedParameters* respectivly.
+   This should be done via the *_PARCLASSES* tuple in the following
+   manner:
+
+   >>> from hydpy.core.parametertools import SingleParameter, SubParameters
+   >>> class Par2(SingleParameter):
+   ...     pass
+   >>> class Par1(SingleParameter):
+   ...     pass
+   >>> class ControlParameters(SubParameters):
+   ...     _PARCLASSES = (Par2, Par1)
+
+   The order within the tuple determines the order of iteration, e.g.:
+
+   >>> control = ControlParameters(None) # Assign `None` for brevity.
+   >>> control
+   par2(nan)
+   par1(nan)
+
+   If one forgets to define a *_PARCLASSES* tuple so (and maybe tries
+   to add the parameters in the constructor of the subclass of
+
+   SubParameters
+
+   , the following error is raised:
+
+   >>> class ControlParameters(SubParameters):
+   ...     pass
+   Traceback (most recent call last):
+   ...
+   NotImplementedError: For class `ControlParameters`, the required tuple `_PARCLASSES` is not defined.  Please see the documentation of class `SubParameters` of module `parametertools` for further information.
+
+   The *in* operator can be used to check if a certain
+
+   SubParameters
+
+    object handles a certain type of parameter:
+
+   >>> Par1 in control
+   True
+   >>> Par1() in control
+   True
+   >>> SingleParameter in control
+   False
+   >>> 1 in control
+   Traceback (most recent call last):
+   ...
+   TypeError: The given value `1` of type `int` is neither a parameter class nor a parameter instance.
+
+   classmethod getname()
+
+   name
+
+class hydpy.core.parametertools.Parameterstep
+
+   Bases: "hydpy.core.parametertools._Stepsize"
+
+   The actual parameter time step size.
+
+   Usually, the time step size of the units of certain parameters is
+   defined within control files via function
+
+   parameterstep()
+
+   . But it can also be changed interactively with the help of any
+
+   Parameter
+
+    object:
+
+   >>> from hydpy.core.parametertools import Parameter
+   >>> parameter = Parameter()
+   >>> parameter.parameterstep = '1d'
+   >>> parameter.parameterstep
+   Period('1d')
+
+   Note that setting the step size affects all parameters!
+
+   Getting the step size via the
+
+   Parameter
+
+    subclasses themselves works also fine, but use a method call
+   instead of an assignement to change the step size in order to
+   prevent from overwriting the descriptor:
+
+   >>> Parameter.parameterstep
+   Period('1d')
+   >>> Parameter.parameterstep('2d')
+   Period('2d')
+
+   Unreasonable assignements result in error messages like the
+   following:
+
+   >>> parameter.parameterstep = '0d'
+   Traceback (most recent call last):
+   ...
+   ValueError: While trying to (re)define the general parameterstep size with value `0d` of type `str`, the following error occured: The smallest step size allowed is one second.
+
+   After deleting the parameter step size, an empty period object is
+   returned:
+
+   >>> del parameter.parameterstep
+   >>> ps = parameter.parameterstep
+   >>> ps
+   Period()
+
+   In case you prefer an exception instead of an empty period object,
+   call its *check* method:
+
+   >>> ps.check()
+   Traceback (most recent call last):
+   ...
+   RuntimeError: No general parameter step size has been defined.
+
+   For temporary step size changes, Pythons *with* statement is
+   supported:
+
+   >>> parameter.parameterstep = '1d'
+   >>> with parameter.parameterstep('2h'):
+   ...     print(repr(parameter.parameterstep))
+   Period('2h')
+   >>> parameter.parameterstep
+   Period('1d')
+
+   Passing "None" means "change nothing in this context" (usefull for
+   defining functions with optional *parameterstep* arguments):
+
+   >>> with parameter.parameterstep(None):
+   ...     print(repr(parameter.parameterstep))
+   Period('1d')
+   >>> parameter.parameterstep
+   Period('1d')
+
+   Deleting the stepsize temporarily, requires calling method
+   *delete*:
+
+   >>> with parameter.parameterstep.delete():
+   ...     print(repr(parameter.parameterstep))
+   Period()
+   >>> parameter.parameterstep
+   Period('1d')
+
+   EXC_MESSAGE = 'No general parameter step size has been defined.'
+
+class hydpy.core.parametertools.Simulationstep
+
+   Bases: "hydpy.core.parametertools._Stepsize"
+
+   The actual (or surrogate) simulation time step size.
+
+   Usually, the simulation step size is defined globally in module
+   "pub" via a
+
+   Timegrids
+
+    object, or locally via function
+
+   simulationstep()
+
+    in separate control files.  But you can also change it
+   interactively with the help of
+
+   Parameter
+
+    objects.
+
+   Generally, the documentation on class
+
+   Parameterstep
+
+    also holds true for class
+
+   Simulationstep
+
+   .  The following explanations focus on the differences only.
+
+   As long as no usual or surrogate simulation time step is defined,
+   an empty period object is returned, which can be used to raise the
+   following exception:
+
+   >>> from hydpy.core.parametertools import Parameter
+   >>> parameter = Parameter()
+   >>> ps = parameter.simulationstep
+   >>> ps
+   Period()
+   >>> ps.check()
+   Traceback (most recent call last):
+   ...
+   RuntimeError: Neither a global simulation time grid nor a general simulation step size to be used as a surrogate for testing purposes has been defined.
+
+   For testing or documentation purposes a surrogate step size can be
+   set:
+
+   >>> parameter.simulationstep = '1d'
+   >>> parameter.simulationstep
+   Period('1d')
+
+   But in complete HydPy applications, changing the simulation step
+   size  would be highly error prone.  Hence, being defined globally
+   within the "pub" module, predefined surrogate values are ignored:
+
+   >>> from hydpy import pub
+   >>> from hydpy import Timegrids, Timegrid
+   >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
+   ...                                    '2001.01.01',
+   ...                                    '2h'))
+   >>> parameter.simulationstep
+   Period('2h')
+
+   This priority remains unchanged, even when one tries to set a
+   surrogate value after the timegrid object has been defined:
+
+   >>> parameter.simulationstep = '5s'
+   >>> parameter.simulationstep
+   Period('2h')
+
+   One has to delete the timegrid object to make the surrogate
+   simulation step size accessible:
+
+   >>> del pub.timegrids
+   >>> parameter.simulationstep
+   Period('5s')
+
+   EXC_MESSAGE = 'Neither a global simulation time grid nor a general simulation step size to be used as a surrogate for testing purposes has been defined.'
+
+class hydpy.core.parametertools.Parameter
+
+   Bases:
+
+   hydpy.core.variabletools.Variable
+
+   Base class for
+
+   SingleParameter
+
+    and
+
+   MultiParameter
+
+   .
+
+   NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
+
+   parameterstep = Period()
+
+   simulationstep = Period()
+
+   initvalue
+
+      Actual initial value of the given parameter.
+
+      Some
+
+      Parameter
+
+       subclasses define a class attribute *INIT*. Let's define a test
+      class and prepare a function for initializing a parameter object
+      and connecting it to a
+
+      SubParameters
+
+       object:
+
+      >>> from hydpy.core import parametertools
+      >>> class Test(parametertools.SingleParameter):
+      ...     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+      ...     INIT = 2.0
+      >>> def prepare():
+      ...     test = Test()
+      ...     from hydpy.core.parametertools import SubParameters
+      ...     subpars = parametertools.SubParameters(None)
+      ...     test.connect(subpars)
+      ...     return test
+
+      By default, making use of the *INIT* attribute is disabled:
+
+      >>> test = prepare()
+      >>> test
+      test(nan)
+
+      This can be changed through setting
+
+      usedefaultvalues
+
+       to *True*:
+
+      >>> from hydpy import pub
+      >>> pub.options.usedefaultvalues = True
+      >>> test = prepare()
+      >>> test
+      test(2.0)
+
+      When no *INIT* attribute is defined, enabling
+
+      usedefaultvalues
+
+       has no effect, of course:
+
+      >>> del Test.INIT
+      >>> test = prepare()
+      >>> test
+      test(nan)
+
+      For time dependent parameter values, the *INIT* attribute is
+      assumed to be related to a
+
+      Parameterstep
+
+       of one day:
+
+      >>> test.parameterstep = '2d'
+      >>> test.simulationstep = '12h'
+      >>> Test.INIT = 2.0
+      >>> Test.TIME = True
+      >>> test = prepare()
+      >>> test
+      test(4.0)
+      >>> test.value
+      1.0
+
+      Note the following *nan* surrogate values for types
+
+      bool
+
+       and
+
+      int
+
+       (for
+
+      bool
+
+      , a better solution should be found):
+
+      >>> Test.TIME = None
+      >>> Test.TYPE = bool
+      >>> del Test.INIT
+      >>> test = prepare()
+      >>> test
+      test(False)
+      >>> Test.TYPE = int
+      >>> test = prepare()
+      >>> test
+      test(-999999)
+
+      For not supported types, the following error message is raised:
+
+      >>> Test.TYPE = list
+      >>> test = prepare()
+      Traceback (most recent call last):
+      ...
+      AttributeError: For parameter `test` no `INIT` class attribute is defined, but no standard value for its TYPE `list` is available
+
+   timefactor
+
+      Factor to adapt a new parameter value related to
+
+      parameterstep()
+
+       to a different simulation time step.
+
+   trim(lower=None, upper=None)
+
+      Apply
+
+      trim()
+
+       of module
+
+      variabletools
+
+      .
+
+   warn_trim()
+
+   apply_timefactor(values)
+
+      Change the given parameter value/values in accordance with the
+      actual parameter simulation time step if necessary, and return
+      it/them.
+
+   revert_timefactor(values)
+
+      Change the given parameter value/values inversely in accordance
+      with the actual parameter simulation time step if necessary, and
+      return it/them.
+
+   commentrepr()
+
+      Returns a list with comments, e.g. for making string
+      representations more informative.  When
+
+      reprcomments
+
+       is set to "False", an empty list is returned.
+
+class hydpy.core.parametertools.SingleParameter
+
+   Bases:
+
+   hydpy.core.parametertools.Parameter
+
+   Base class for model parameters handling a single value.
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   INIT = None
+
+   connect(subpars)
+
+   shape
+
+      An empty tuple.  (Only intended for increasing consistent
+      usability of
+
+      SingleParameter
+
+       and
+
+      MultiParameter
+
+       instances.)
+
+   value
+
+      The actual parameter value handled by the respective
+
+      SingleParameter
+
+       instance.
+
+   values
+
+      The actual parameter value handled by the respective
+
+      SingleParameter
+
+       instance.
+
+   verify()
+
+      Raises a
+
+      RuntimeError
+
+       if the value of the instance of the respective subclass of
+
+      SingleParameter
+
+       is *nan*.
+
+class hydpy.core.parametertools.MultiParameter
+
+   Bases:
+
+   hydpy.core.parametertools.Parameter
+
+   Base class for model parameters handling multiple values.
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   connect(subpars)
+
+   shape
+
+      A tuple containing the lengths in all dimensions of the
+      parameter values.  Note that setting a new shape results in a
+      loss of all values of the respective parameter.
+
+   value
+
+      The actual parameter value(s) handled by the respective
+
+      Parameter
+
+       instance.  For consistency, *value* and *values* can always be
+      used interchangeably.
+
+   values
+
+      The actual parameter value(s) handled by the respective
+
+      Parameter
+
+       instance.  For consistency, *value* and *values* can always be
+      used interchangeably.
+
+   verifymask
+
+      A numpy array with all entries being "True" of the same shape as
+      the values handled by the respective parameter.  All entries
+      being "True" indicates that the method
+
+      verify()
+
+       checks all entries of the numpy array storing the parameter
+      values. Overwrite
+
+      verify()
+
+       for
+
+      MultiParameter
+
+       subclasses, where certain entries do not to be checked.
+
+   verify()
+
+      Raises a
+
+      RuntimeError
+
+       if at least one of the required values of the instance of the
+      respective subclass of
+
+      MultiParameter
+
+       is "None" or "nan". The property
+
+      verifymask
+
+       defines, which values are considered to be necessary.
+
+   compress_repr()
+
+      Returns a compressed parameter value string, which is (in
+      accordance with
+
+      NDIM
+
+      ) contained in a nested list. If the compression fails, a
+
+      NotImplementedError
+
+       is raised.
+
+class hydpy.core.parametertools.ZipParameter
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Base class for model parameters handling multiple values that
+   offers additional keyword zipping fuctionality.
+
+   When inheriting an actual parameter class from
+
+   ZipParameter
+
+    one needs to define suitable class constants
+
+   REQUIRED_VALUES
+
+    (a
+
+   tuple
+
+   ) and
+
+   MODEL_CONSTANTS
+
+    (a
+
+   dict
+
+   ). Additionally, a property named *refparameter* must be defined.
+
+   The implementation and functioning of subclasses of
+
+   ZipParameter
+
+    is best illustrated by an example: see the documentation of the
+   class
+
+   MultiParameter
+
+    of the HydPy-H-Land model.
+
+   REQUIRED_VALUES = ()
+
+   MODEL_CONSTANTS = {}
+
+   shape
+
+      Return a tuple containing the lengths in all dimensions of the
+      parameter values.
+
+   verifymask
+
+      A numpy array of the same shape as the value array handled by
+      the respective parameter.  *True* entries indicate that certain
+      parameter values are required, which depends on the tuple
+      *REQUIRED_VALUES* of the respective subclass.
+
+   compress_repr()
+
+      Return a compressed parameter value string, which is (in
+      accordance with *NDIM*) contained in a nested list.  If the
+      compression fails, a
+
+      NotImplementedError
+
+       is raised.
+
+class hydpy.core.parametertools.SeasonalParameter
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Class for the flexible handling of parameters with anual cycles.
+
+   Let us prepare a 1-dimensional
+
+   SeasonalParameter
+
+    instance:
+
+   >>> from hydpy.core.parametertools import SeasonalParameter
+   >>> seasonalparameter = SeasonalParameter()
+   >>> seasonalparameter.NDIM = 1
+
+   For the following examples, we assume a simulation step size of one
+   day:
+
+   >>> seasonalparameter.simulationstep = '1d'
+
+   To define its shape, the first entry of the assigned
+
+   tuple
+
+    object is ignored:
+
+   >>> seasonalparameter.shape = (None,)
+
+   Instead it is derived from the *simulationstep* defined above:
+
+   >>> seasonalparameter.shape
+   (366,)
+
+   The annual pattern of seasonal parameters is defined through pairs
+   of
+
+   TOY
+
+    objects and different values (e.g. of type
+
+   float
+
+   ).  One can define them all at once in the following manner:
+
+   >>> seasonalparameter(_1=2., _7_1=4., _3_1_0_0_0=5.)
+
+   Note that, as
+
+   str
+
+    objects, all keywords in the call above would be proper
+
+   TOY
+
+    initialization arguments. If they are not properly written, the
+   following exception is raised:
+
+   >>> SeasonalParameter()(_a=1.)
+   Traceback (most recent call last):
+   ...
+   ValueError: While trying to define the seasonal parameter value `seasonalparameter` of element `?` for time of year `_a`, the following error occured: While trying to retrieve the month for TOY (time of year) object based on the string `_a`, the following error occured: For TOY (time of year) objects, all properties must be of type `int`, but the value `a` of type `str` given for property `month` cannot be converted to `int`.
+
+   As the following string representation shows, are the pairs of each
+
+   SeasonalParameter
+
+    instance automatically sorted:
+
+   >>> seasonalparameter
+   seasonalparameter(toy_1_1_0_0_0=2.0,
+                     toy_3_1_0_0_0=5.0,
+                     toy_7_1_0_0_0=4.0)
+
+   By default, *toy* is used as a prefix string.  Using this prefix
+   string, one can change the toy-value pairs via attribute access:
+
+   >>> seasonalparameter.toy_1_1_0_0_0
+   2.0
+   >>> del seasonalparameter.toy_1_1_0_0_0
+   >>> seasonalparameter.toy_2_1_0_0_0 = 2.
+   >>> seasonalparameter
+   seasonalparameter(toy_2_1_0_0_0=2.0,
+                     toy_3_1_0_0_0=5.0,
+                     toy_7_1_0_0_0=4.0)
+
+   On applying function
+
+   len()
+
+    on
+
+   SeasonalParameter
+
+    objects, the number of toy-value pairs is returned:
+
+   >>> len(seasonalparameter)
+   3
+
+   New values are checked to be compatible predefined shape:
+
+   >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+   Traceback (most recent call last):
+   ...
+   TypeError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: float() argument must be a string or a number...
+   >>> seasonalparameter = SeasonalParameter()
+   >>> seasonalparameter.NDIM = 2
+   >>> seasonalparameter.shape = (None, 3)
+   >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+   Traceback (most recent call last):
+   ...
+   ValueError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: could not broadcast input array from shape (2) into shape (3)
+   >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2., 3.]
+   >>> seasonalparameter
+   seasonalparameter(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
+
+   refresh()
+
+      Update the actual simulation values based on the toy-value
+      pairs.
+
+      Usually, one does not need to call refresh explicitly, as it is
+      called by methods __call__, __setattr__ and __delattr__
+      automatically, when required.
+
+      Instantiate a 1-dimensional
+
+      SeasonalParameter
+
+       object:
+
+      >>> from hydpy.core.parametertools import SeasonalParameter
+      >>> sp = SeasonalParameter()
+      >>> sp.simulationstep = '1d'
+      >>> sp.NDIM = 1
+      >>> sp.shape = (None,)
+
+      When a
+
+      SeasonalParameter
+
+       object does not contain any toy-value pairs yet, the method
+
+      refresh()
+
+       sets all actual simulation values to zero:
+
+      >>> sp.values = 1.
+      >>> sp.refresh()
+      >>> sp.values[0]
+      0.0
+
+      When there is only one toy-value pair, its values are taken for
+      all actual simulation values:
+
+      >>> sp.toy_1 = 2. # calls refresh automatically
+      >>> sp.values[0]
+      2.0
+
+      Method
+
+      refresh()
+
+       performs a linear interpolation for the central time points of
+      each simulation time step.  Hence, in the following example the
+      original values of the toy-value pairs do not show up:
+
+      >>> sp.toy_12_31 = 4.
+      >>> from hydpy import round_
+      >>> round_(sp.values[0])
+      2.00274
+      >>> round_(sp.values[-2])
+      3.99726
+      >>> sp.values[-1]
+      3.0
+
+      If one wants to preserve the original values in this example,
+      one would have to set the corresponding toy instances in the
+      middle of some simulation step intervals:
+
+      >>> del sp.toy_1
+      >>> del sp.toy_12_31
+      >>> sp.toy_1_1_12 = 2
+      >>> sp.toy_12_31_12 = 4.
+      >>> sp.values[0]
+      2.0
+      >>> round_(sp.values[1])
+      2.005479
+      >>> round_(sp.values[-2])
+      3.994521
+      >>> sp.values[-1]
+      4.0
+
+   interp(date)
+
+      Perform a linear value interpolation for a date defined by the
+      passed
+
+      Date
+
+       object and return the result.
+
+      Instantiate a 1-dimensional
+
+      SeasonalParameter
+
+       object:
+
+      >>> sp = SeasonalParameter()
+      >>> from hydpy import Date, Period
+      >>> sp.simulationstep = Period('1d')
+      >>> sp.NDIM = 1
+      >>> sp.shape = (None,)
+
+      Define three toy-value pairs: >>> sp(_1=2.0, _2=5.0, _12_31=4.0)
+
+      Passing a
+
+      Date
+
+       object excatly matching a
+
+      TOY
+
+       object of course simply returns the associated value:
+
+      >>> sp.interp(Date('2000.01.01'))
+      2.0
+      >>> sp.interp(Date('2000.02.01'))
+      5.0
+      >>> sp.interp(Date('2000.12.31'))
+      4.0
+
+      For all intermediate points, a linear interpolation is
+      performed:
+
+      >>> from hydpy import round_
+      >>> round_(sp.interp(Date('2000.01.02')))
+      2.096774
+      >>> round_(sp.interp(Date('2000.01.31')))
+      4.903226
+      >>> round_(sp.interp(Date('2000.02.02')))
+      4.997006
+      >>> round_(sp.interp(Date('2000.12.30')))
+      4.002994
+
+      Linear interpolation is also allowed between the first and the
+      last pair, when they do not capture the end points of the year:
+
+      >>> sp(_1_2=2.0, _12_30=4.0)
+      >>> round_(sp.interp(Date('2000.12.29')))
+      3.99449
+      >>> sp.interp(Date('2000.12.30'))
+      4.0
+      >>> round_(sp.interp(Date('2000.12.31')))
+      3.333333
+      >>> round_(sp.interp(Date('2000.01.01')))
+      2.666667
+      >>> sp.interp(Date('2000.01.02'))
+      2.0
+      >>> round_(sp.interp(Date('2000.01.03')))
+      2.00551
+
+      The following example briefly shows interpolation performed for
+      2-dimensional parameter:
+
+      >>> sp = SeasonalParameter()
+      >>> from hydpy import Date, Period
+      >>> sp.simulationstep = Period('1d')
+      >>> sp.NDIM = 2
+      >>> sp.shape = (None, 2)
+      >>> sp(_1_1=[1., 2.], _1_3=[-3, 0.])
+      >>> result = sp.interp(Date('2000.01.02'))
+      >>> round_(result[0])
+      -1.0
+      >>> round_(result[1])
+      1.0
+
+   shape
+
+      A tuple containing the lengths in all dimensions of the
+      parameter values.  Note that setting a new shape results in a
+      loss of all values of the respective parameter.
+
+class hydpy.core.parametertools.KeywordParameter2DType
+
+   Bases:
+
+   type
+
+   Add the construction of *_ROWCOLMAPPING* to
+
+   type
+
+   .
+
+class hydpy.core.parametertools.KeywordParameter2DMetaclass
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+class hydpy.core.parametertools.KeywordParameter2D
+
+   Bases:
+
+   hydpy.core.parametertools.KeywordParameter2DMetaclass
+
+   Base class for 2-dimensional model parameters which values which
+   depend on two factors.
+
+   When inheriting an actual parameter class from
+
+   KeywordParameter2D
+
+    one needs to define the class attributes
+
+   ROWNAMES
+
+    and
+
+   COLNAMES
+
+    (both of type
+
+   tuple
+
+   ).  One usual setting would be that
+
+   ROWNAMES
+
+    defines some land use classes and
+
+   COLNAMES
+
+    defines seasons, months, or the like.
+
+   Consider the following example, where the boolean parameter
+   *IsWarm* both depends on the half-year period and the hemisphere:
+
+   >>> from hydpy.core.parametertools import KeywordParameter2D
+   >>> class IsWarm(KeywordParameter2D):
+   ...     TYPE = bool
+   ...     ROWNAMES = ('north', 'south')
+   ...     COLNAMES = ('apr2sep', 'oct2mar')
+
+   Instantiate the defined parameter class and define its shape:
+
+   >>> iswarm = IsWarm()
+   >>> iswarm.shape = (2, 2)
+
+   KeywordParameter2D
+
+    allows to set the values of all rows via keyword arguments:
+
+   >>> iswarm(north=[True, False],
+   ...        south=[False, True])
+   >>> iswarm
+   iswarm(north=[True, False],
+          south=[False, True])
+   >>> iswarm.values
+   array([[ True, False],
+          [False,  True]], dtype=bool)
+
+   If a keyword is missing, a
+
+   TypeError
+
+    is raised:
+
+   >>> iswarm(north=[True, False])
+   Traceback (most recent call last):
+   ...
+   ValueError: When setting parameter `iswarm` of element `?` via row related keyword arguments, each string defined in `ROWNAMES` must be used as a keyword, but the following keyword is not: `south`.
+
+   But one can modify single rows via attribute access:
+
+   >>> iswarm.north = False, False
+   >>> iswarm.north
+   array([False, False], dtype=bool)
+
+   The same holds true for the columns:
+
+   >>> iswarm.apr2sep = True, False
+   >>> iswarm.apr2sep
+   array([ True, False], dtype=bool)
+
+   Even a combined row-column access is supported in the following
+   manner:
+
+   >>> iswarm.north_apr2sep
+   True
+   >>> iswarm.north_apr2sep = False
+   >>> iswarm.north_apr2sep
+   False
+
+   All three forms of attribute access define augmented exception
+   messages in case anything goes wrong:
+
+   >>> iswarm.north = True, True, True
+   Traceback (most recent call last):
+   ...
+   ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the row related attribute `north`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+   >>> iswarm.apr2sep = True, True, True
+   Traceback (most recent call last):
+   ...
+   ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related attribute `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+
+   >>> iswarm.shape = (1, 1)
+   >>> iswarm.south_apr2sep = False
+   Traceback (most recent call last):
+   ...
+   IndexError: While trying to assign new values to parameter `iswarm` of element `?` via the row and column related attribute `south_apr2sep`, the following error occured: index 1 is out of bounds for axis 0 with size 1
+   >>> iswarm.shape = (2, 2)
+
+   Of course, one can define the parameter values in the common
+   manner, e.g.:
+
+   >>> iswarm(True)
+   >>> iswarm
+   iswarm(north=[True, True],
+          south=[True, True])
+
+   For parameters with many columns, string representations are
+   properly wrapped:
+
+   >>> iswarm.shape = (2, 10)
+   >>> iswarm
+   iswarm(north=[False, False, False, False, False, False, False, False,
+                 False, False],
+          south=[False, False, False, False, False, False, False, False,
+                 False, False])
+
+   NDIM = 2
+
+   ROWNAMES = ()
+
+   COLNAMES = ()
+
+   connect(subpars)
+
+class hydpy.core.parametertools.LeftRightParameter
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   NDIM = 1
+
+   connect(subpars)
+
+   left
+
+      The "left" value of the actual parameter.
+
+   right
+
+      The "right" value of the actual parameter.
+
+class hydpy.core.parametertools.IndexParameter
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   setreference(indexarray)
+
+class hydpy.core.parametertools.SolverParameter
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   update()
+
+   modify_init()
+
+   alternative_initvalue

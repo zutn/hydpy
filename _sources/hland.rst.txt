@@ -1,0 +1,4691 @@
+hland
+
+The H-Land model is the core of the HydPy implementation of the the
+frequently applied HBV96 model.  It consists of some routines for the
+preparation of meteorological input, and some process routines related
+to interception, snow, soil moisture, upper groundwater, lower
+groundwater (including lakes), and runoff concentration.
+
+Model features
+
+class hydpy.models.hland.hland_model.Model
+
+   Bases:
+
+   hydpy.core.modeltools.Model
+
+   The HydPy-H-Land base model.
+
+   The following "run methods" are called each simulation step run in
+   the given sequence:
+      calc_tc_v1() Adjust the measured air temperature to the altitude
+      of the individual zones.
+
+      calc_tmean_v1() Calculate the areal mean temperature of the
+      subbasin.
+
+      calc_fracrain_v1() Determine the temperature-dependent fraction
+      of (liquid) rainfall and (total) precipitation.
+
+      calc_rfc_sfc_v1() Calculate the corrected fractions
+      rainfall/snowfall and total precipitation.
+
+      calc_pc_v1() Apply the precipitation correction factors and
+      adjust precipitation to the altitude of the individual zones.
+
+      calc_ep_v1() Adjust potential norm evaporation to the actual
+      temperature.
+
+      calc_epc_v1() Apply the evaporation correction factors and
+      adjust evaporation to the altitude of the individual zones.
+
+      calc_tf_ic_v1() Calculate throughfall and update the
+      interception storage accordingly.
+
+      calc_ei_ic_v1() Calculate interception evaporation and update
+      the interception storage accordingly.
+
+      calc_sp_wc_v1() Add throughfall to the snow layer.
+
+      calc_melt_sp_wc_v1() Calculate melting of the ice content within
+      the snow layer and update both the snow layers ice and the water
+      content.
+
+      calc_refr_sp_wc_v1() Calculate refreezing of the water content
+      within the snow layer and update both the snow layers ice and
+      the water content.
+
+      calc_in_wc_v1() Calculate the actual water release from the snow
+      layer due to the exceedance of the snow layers capacity for
+      (liquid) water.
+
+      calc_glmelt_in_v1() Calculate melting from glaciers which are
+      actually not covered by a snow layer and add it to the water
+      release of the snow module.
+
+      calc_r_sm_v1() Calculate effective precipitation and update soil
+      moisture.
+
+      calc_cf_sm_v1() Calculate capillary flow and update soil
+      moisture.
+
+      calc_ea_sm_v1() Calculate soil evaporation and update soil
+      moisture.
+
+      calc_inuz_v1() Accumulate the total inflow into the upper zone
+      layer.
+
+      calc_contriarea_v1() Determine the relative size of the
+      contributing area of the whole subbasin.
+
+      calc_q0_perc_uz_v1() Perform the upper zone layer routine which
+      determines percolation to the lower zone layer and the fast
+      response of the hland model. Note that the system behaviour of
+      this method depends strongly on the specifications of the
+      options RespArea and RecStep.
+
+      calc_lz_v1() Update the lower zone layer in accordance with
+      percolation from upper groundwater to lower groundwater and/or
+      in accordance with lake precipitation.
+
+      calc_el_lz_v1() Calculate lake evaporation.
+
+      calc_q1_lz_v1() Calculate the slow response of the lower zone
+      layer.
+
+      calc_inuh_v1() Calculate the unit hydrograph input.
+
+      calc_outuh_quh_v1() Calculate the unit hydrograph output
+      (convolution).
+
+      calc_qt_v1() Calculate the total discharge after possible
+      abstractions.
+
+   The following "outlet update methods" are called in the given
+   sequence immediately  after solving the differential equations of
+   the respective model:
+      update_q_v1() Update the outlet link sequence.
+
+hydpy.models.hland.hland_model.calc_tc_v1(self)
+
+   Adjust the measured air temperature to the altitude of the
+   individual zones.
+
+   Required control parameters:
+      NmbZones
+
+
+      TCAlt
+
+
+      ZoneZ
+
+
+      ZRelT
+
+   Required input sequence:
+      T
+
+   Calculated flux sequences:
+      TC
+
+   Basic equation:
+      TC = T - TCAlt \cdot (ZoneZ-ZRelT)
+
+   Examples:
+      Prepare two zones, the first one lying at the reference height
+      and the second one 200 meters above:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(2); zrelt(2.); zonez(2., 4.)
+
+      Applying the usual temperature lapse rate of 0.6°C/100m does not
+      affect the temperature of the first zone but reduces the
+      temperature of the second zone by 1.2°C:
+
+      >>> tcalt(.6)
+      >>> inputs.t = 5.
+      >>> model.calc_tc_v1()
+      >>> fluxes.tc
+      tc(5.0, 3.8)
+
+hydpy.models.hland.hland_model.calc_tmean_v1(self)
+
+   Calculate the areal mean temperature of the subbasin.
+
+   Required derived parameter:
+      RelZoneArea
+
+   Required flux sequence:
+      TC
+
+   Calculated flux sequences:
+      TMean
+
+   Examples:
+      Prepare sized zones, the first one being twice as large as the
+      second one:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(2)
+      >>> derived.relzonearea(2./3., 1./3.)
+
+      With temperature values of 5°C and 8°C  of the respective zones,
+      the mean temperature is 6°C:
+
+      >>> fluxes.tc = 5., 8.
+      >>> model.calc_tmean_v1()
+      >>> fluxes.tmean
+      tmean(6.0)
+
+hydpy.models.hland.hland_model.calc_fracrain_v1(self)
+
+   Determine the temperature-dependent fraction of (liquid) rainfall
+   and (total) precipitation.
+
+   Required control parameters:
+      NmbZones
+
+
+      TT
+
+      ,
+
+      TTInt
+
+   Required flux sequence:
+      TC
+
+   Calculated flux sequences:
+      FracRain
+
+   Basic equation:
+      FracRain = \frac{TC-(TT-\frac{TTInt}{2})}{TTInt}
+
+   Restriction:
+      0 \leq FracRain \leq 1
+
+   Examples:
+      The threshold temperature of seven zones is 0°C and the
+      corresponding temperature interval of mixed precipitation 2°C:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(7)
+      >>> tt(0.)
+      >>> ttint(2.)
+
+      The fraction of rainfall is zero below -1°C, is one above 1°C
+      and increases linearly in between:
+
+      >>> fluxes.tc = -10., -1., -.5, 0., .5, 1., 10.
+      >>> model.calc_fracrain_v1()
+      >>> fluxes.fracrain
+      fracrain(0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0)
+
+      Note the special case of a zero temperature interval.  With a
+      actual temperature being equal to the threshold temperature, the
+      rainfall fraction is one:
+
+      >>> ttint(0.)
+      >>> model.calc_fracrain_v1()
+      >>> fluxes.fracrain
+      fracrain(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)
+
+hydpy.models.hland.hland_model.calc_rfc_sfc_v1(self)
+
+   Calculate the corrected fractions rainfall/snowfall and total
+   precipitation.
+
+   Required control parameters:
+      NmbZones
+
+
+      RfCF
+
+
+      SfCF
+
+   Calculated flux sequences:
+      RfC
+
+
+      SfC
+
+   Basic equations:
+      RfC = RfCF \cdot FracRain
+
+      SfC = SfCF \cdot (1 - FracRain)
+
+   Examples:
+      Assume five zones with different temperatures and hence
+      different fractions of rainfall and total precipitation:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(5)
+      >>> fluxes.fracrain = 0., .25, .5, .75, 1.
+
+      With no rainfall and no snowfall correction (implied by the
+      respective factors being one), the corrected fraction related to
+      rainfall is identical with the original fraction and the
+      corrected fraction related to snowfall behaves opposite:
+
+      >>> rfcf(1.)
+      >>> sfcf(1.)
+      >>> model.calc_rfc_sfc_v1()
+      >>> fluxes.rfc
+      rfc(0.0, 0.25, 0.5, 0.75, 1.0)
+      >>> fluxes.sfc
+      sfc(1.0, 0.75, 0.5, 0.25, 0.0)
+
+      With a negative rainfall correction of 20% and a positive
+      snowfall correction of 20 % the corrected fractions are:
+
+      >>> rfcf(0.8)
+      >>> sfcf(1.2)
+      >>> model.calc_rfc_sfc_v1()
+      >>> fluxes.rfc
+      rfc(0.0, 0.2, 0.4, 0.6, 0.8)
+      >>> fluxes.sfc
+      sfc(1.2, 0.9, 0.6, 0.3, 0.0)
+
+hydpy.models.hland.hland_model.calc_pc_v1(self)
+
+   Apply the precipitation correction factors and adjust precipitation
+   to the altitude of the individual zones.
+
+   Required control parameters:
+      NmbZones
+
+
+      PCorr
+
+
+      PCAlt
+
+
+      ZoneZ
+
+
+      ZRelP
+
+   Required input sequence:
+      P
+
+   Required flux sequences:
+      RfC
+
+
+      SfC
+
+   Calculated flux sequences:
+      PC
+
+   Basic equation:
+      PC = P \cdot PCorr \cdot (1+PCAlt \cdot (ZoneZ-ZRelP)) \cdot
+      (RfC + SfC)
+
+   Examples:
+
+      Five zones are at an elevation of 200 m.  A precipitation value
+      of 5 mm has been measured at a gauge at an elevation of 300 m:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(5)
+      >>> zrelp(2.0)
+      >>> zonez(3.0)
+      >>> inputs.p = 5.0
+
+      The first four zones illustrate the individual precipitation
+      corrections due to the general precipitation correction factor (
+
+      PCorr
+
+      , first zone), the altitude correction factor (
+
+      PCAlt
+
+      , second zone), the rainfall related correction (
+
+      RfC
+
+      , third zone), and the snowfall related correction factor (
+
+      SfC
+
+      , fourth zone). The fifth zone illustrates the interaction
+      between all corrections:
+
+      >>> pcorr(1.3, 1.0, 1.0, 1.0, 1.3)
+      >>> pcalt(0.0, 0.1, 0.0, 0.0, 0.1)
+      >>> fluxes.rfc = 0.5, 0.5, 0.4, 0.5, 0.4
+      >>> fluxes.sfc = 0.5, 0.5, 0.5, 0.7, 0.7
+      >>> model.calc_pc_v1()
+      >>> fluxes.pc
+      pc(6.5, 5.5, 4.5, 6.0, 7.865)
+
+      Usually, one would set zero or positive values for parameter
+
+      PCAlt
+
+      . But it is also allowed to set negative values, in order to
+      reflect possible negative relationships between precipitation
+      and altitude. To prevent from calculating negative precipitation
+      when too large negative values are applied, a truncation is
+      performed:
+
+      >>> pcalt(-1.0)
+      >>> model.calc_pc_v1()
+      >>> fluxes.pc
+      pc(0.0, 0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.hland.hland_model.calc_ep_v1(self)
+
+   Adjust potential norm evaporation to the actual temperature.
+
+   Required control parameters:
+      NmbZones
+
+
+      ETF
+
+   Required input sequence:
+      EPN
+
+
+      TN
+
+   Required flux sequence:
+      TMean
+
+   Calculated flux sequences:
+      EP
+
+   Basic equation:
+      EP = EPN \cdot (1 + ETF \cdot (TMean - TN))
+
+   Restriction:
+      0 \leq EP \leq 2 \cdot EPN
+
+   Examples:
+      Assume four zones with different values of the temperature
+      related factor for the adjustment of evaporation (the negative
+      value of the first zone is not meaningful, but used for
+      illustration purporses):
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(4)
+      >>> etf(-0.5, 0.0, 0.1, 0.5)
+      >>> inputs.tn = 20.
+      >>> inputs.epn = 2.
+
+      With mean temperature equal to norm temperature, actual
+      (uncorrected) evaporation is equal to norm evaporation:
+
+      >>> fluxes.tmean = 20.
+      >>> model.calc_ep_v1()
+      >>> fluxes.ep
+      ep(2.0, 2.0, 2.0, 2.0)
+
+      With mean temperature 5°C higher than norm temperature,
+      potential evaporation is increased by 1 mm for the third zone,
+      which possesses a very common adjustment factor.  For the first
+      zone, potential evaporation is 0 mm (which is the smallest value
+      allowed), and for the fourth zone it is the double value of the
+      norm evaporation (which is the largest value allowed):
+
+      >>> fluxes.tmean  = 25.
+      >>> model.calc_ep_v1()
+      >>> fluxes.ep
+      ep(0.0, 2.0, 3.0, 4.0)
+
+hydpy.models.hland.hland_model.calc_epc_v1(self)
+
+   Apply the evaporation correction factors and adjust evaporation to
+   the altitude of the individual zones.
+
+   Calculate the areal mean of (uncorrected) potential evaporation for
+   the subbasin, adjust it to the individual zones in accordance with
+   their heights and perform some corrections, among which one depends
+   on the actual precipitation.
+
+   Required control parameters:
+      NmbZones
+
+
+      ECorr
+
+
+      ECAlt
+
+
+      ZoneZ
+
+
+      ZRelE
+
+
+      EPF
+
+   Required flux sequences:
+      EP
+
+
+      PC
+
+   Calculated flux sequences:
+      EPC
+
+   Basic equation:
+      EPC = EP \cdot ECorr \cdot (1+ECAlt \cdot (ZoneZ-ZRelE)) \cdot
+      exp(-EPF \cdot PC)
+
+   Examples:
+
+      Four zones are at an elevation of 200 m.  A (uncorrected)
+      potential evaporation value of 2 mm and a (corrected)
+      precipitation value of 5 mm have been determined for each zone
+      beforehand:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nmbzones(4)
+      >>> zrele(2.0)
+      >>> zonez(3.0)
+      >>> fluxes.ep = 2.0
+      >>> fluxes.pc = 5.0
+
+      The first three zones  illustrate the individual evaporation
+      corrections due to the general evaporation correction factor (
+
+      ECorr
+
+      , first zone), the altitude correction factor (
+
+      ECAlt
+
+      , second zone), the precipitation related correction factor (
+
+      EPF
+
+      , third zone).  The fourth zone illustrates the interaction
+      between all corrections:
+
+      >>> ecorr(1.3, 1.0, 1.0, 1.3)
+      >>> ecalt(0.0, 0.1, 0.0, 0.1)
+      >>> epf(0.0, 0.0, -numpy.log(.7)/10., -numpy.log(.7)/10.)
+      >>> model.calc_epc_v1()
+      >>> fluxes.epc
+      epc(2.6, 1.8, 1.4, 1.638)
+
+      To prevent from calculating negative evaporation values when too
+      large values for parameter
+
+      ECAlt
+
+       are set, a truncation is performed:
+
+      >>> ecalt(2.0)
+      >>> model.calc_epc_v1()
+      >>> fluxes.epc
+      epc(0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.hland.hland_model.calc_tf_ic_v1(self)
+
+   Calculate throughfall and update the interception storage
+   accordingly.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      IcMax
+
+   Required flux sequences:
+      PC
+
+   Calculated fluxes sequences:
+      TF
+
+   Updated state sequence:
+      Ic
+
+   Basic equation:
+      TF = \Bigl \lbrace { {PC \ | \ Ic = IcMax} \atop {0 \ | \ Ic <
+      IcMax} }
+
+   Examples:
+      Initialize six zones of different types.  Assume a generall
+      maximum interception capacity of 2 mm. All zones receive a 0.5
+      mm input of precipitation:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(6)
+      >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
+      >>> icmax(2.)
+      >>> fluxes.pc = .5
+      >>> states.ic = 0., 0., 0., 0., 1., 2.
+      >>> model.calc_tf_ic_v1()
+
+      For glaciers (first zone) and internal lakes (second zone) the
+      interception routine does not apply.  Hence, all precipitation
+      is routed as throughfall. For fields and forests, the
+      interception routine is identical (usually, only larger
+      capacities for forests are assumed, due to their higher leaf
+      area index).  Hence, the results of the third and the second
+      zone are equal.  The last three zones demonstrate, that all
+      precipitation is stored until the interception capacity is
+      reached; afterwards, all precepitation is routed as throughfall.
+      Initial storage reduces the effective capacity of the respective
+      simulation step:
+
+      >>> states.ic
+      ic(0.0, 0.0, 0.5, 0.5, 1.5, 2.0)
+      >>> fluxes.tf
+      tf(0.5, 0.5, 0.0, 0.0, 0.0, 0.5)
+
+      A zero precipitation example:
+
+      >>> fluxes.pc = 0.
+      >>> states.ic = 0., 0., 0., 0., 1., 2.
+      >>> model.calc_tf_ic_v1()
+      >>> states.ic
+      ic(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
+      >>> fluxes.tf
+      tf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+      A high precipitation example:
+
+      >>> fluxes.pc = 5.
+      >>> states.ic = 0., 0., 0., 0., 1., 2.
+      >>> model.calc_tf_ic_v1()
+      >>> states.ic
+      ic(0.0, 0.0, 2.0, 2.0, 2.0, 2.0)
+      >>> fluxes.tf
+      tf(5.0, 5.0, 3.0, 3.0, 4.0, 5.0)
+
+hydpy.models.hland.hland_model.calc_ei_ic_v1(self)
+
+   Calculate interception evaporation and update the interception
+   storage accordingly.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+   Required flux sequences:
+      EPC
+
+   Calculated fluxes sequences:
+      EI
+
+   Updated state sequence:
+      Ic
+
+   Basic equation:
+      EI = \Bigl \lbrace { {EPC \ | \ Ic > 0} \atop {0 \ | \ Ic = 0} }
+
+   Examples:
+      Initialize six zones of different types.  For all zones a
+      (corrected) potential evaporation of 0.5 mm is given:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(6)
+      >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
+      >>> fluxes.epc = .5
+      >>> states.ic = 0., 0., 0., 0., 1., 2.
+      >>> model.calc_ei_ic_v1()
+
+      For glaciers (first zone) and internal lakes (second zone) the
+      interception routine does not apply.  Hence, no interception
+      evaporation can occur.  For fields and forests, the interception
+      routine is identical (usually, only larger capacities for
+      forests are assumed, due to their higher leaf area index).
+      Hence, the results of the third and the second zone are equal.
+      The last three zones demonstrate, that all interception
+      evaporation is equal to potential evaporation until the
+      interception storage is empty; afterwards, interception
+      evaporation is zero:
+
+      >>> states.ic
+      ic(0.0, 0.0, 0.0, 0.0, 0.5, 1.5)
+      >>> fluxes.ei
+      ei(0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
+
+      A zero evaporation example:
+
+      >>> fluxes.epc = 0.
+      >>> states.ic = 0., 0., 0., 0., 1., 2.
+      >>> model.calc_ei_ic_v1()
+      >>> states.ic
+      ic(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
+      >>> fluxes.ei
+      ei(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+      A high evaporation example:
+
+      >>> fluxes.epc = 5.
+      >>> states.ic = 0., 0., 0., 0., 1., 2.
+      >>> model.calc_ei_ic_v1()
+      >>> states.ic
+      ic(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> fluxes.ei
+      ei(0.0, 0.0, 0.0, 0.0, 1.0, 2.0)
+
+hydpy.models.hland.hland_model.calc_sp_wc_v1(self)
+
+   Add throughfall to the snow layer.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+   Required flux sequences:
+      TF
+
+
+      RfC
+
+
+      SfC
+
+   Updated state sequences:
+      WC
+
+
+      SP
+
+   Basic equations:
+      \frac{dSP}{dt} = TF \cdot \frac{SfC}{SfC+RfC}
+
+      \frac{dWC}{dt} = TF \cdot \frac{RfC}{SfC+RfC}
+
+   Exemples:
+      Consider the following setting, in which eight zones of
+      different type receive a throughfall of 10mm:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(8)
+      >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD, FIELD)
+      >>> fluxes.tf = 10.
+      >>> fluxes.sfc = .5, .5, .5, .5, .2, .8, 1., 4.
+      >>> fluxes.rfc = .5, .5, .5, .5, .8, .2, 4., 1.
+      >>> states.sp = 0.
+      >>> states.wc = 0.
+      >>> model.calc_sp_wc_v1()
+      >>> states.sp
+      sp(0.0, 5.0, 5.0, 5.0, 2.0, 8.0, 2.0, 8.0)
+      >>> states.wc
+      wc(0.0, 5.0, 5.0, 5.0, 8.0, 2.0, 8.0, 2.0)
+
+      The snow routine does not apply for internal lakes, which is why
+      both  the ice storage and the water storage of the first zone
+      remain unchanged.  The snow routine is identical for glaciers,
+      fields and forests in the current context, which is why the
+      results of the second, third, and fourth zone are equal.  The
+      last four zones illustrate that the corrected snowfall fraction
+      as well as the corrected rainfall fraction are applied in a
+      relative manner, as the total amount of water yield has been
+      corrected in the interception module already.
+
+      When both factors are zero, the neither the water nor the ice
+      content of the snow layer changes:
+
+      >>> fluxes.sfc = 0.
+      >>> fluxes.rfc = 0.
+      >>> states.sp = 2.
+      >>> states.wc = 0.
+      >>> model.calc_sp_wc_v1()
+      >>> states.sp
+      sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+      >>> states.wc
+      wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.hland.hland_model.calc_melt_sp_wc_v1(self)
+
+   Calculate melting of the ice content within the snow layer and
+   update both the snow layers ice and the water content.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      CFMax
+
+   Required derived parameter:
+      TTM
+
+   Required flux sequences:
+      TC
+
+   Calculated fluxes sequences:
+      Melt
+
+   Required state sequence:
+      SP
+
+   Updatet state sequence:
+      WC
+
+   Basic equations:
+      \frac{dSP}{dt} = - Melt
+
+      \frac{dWC}{dt} = + Melt
+
+      Melt = min(cfmax \cdot (TC-TTM), SP)
+
+   Examples:
+      Six zones are initialized with the same threshold temperature
+      and degree day factor, but  with different zone types and
+      initial ice contents:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nmbzones(6)
+      >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+      >>> cfmax(4.)
+      >>> derived.ttm = 2.
+      >>> states.sp = 0., 10., 10., 10., 5., 0.
+      >>> states.wc = 2.
+
+      Note that the assumed length of the simulation step is only a
+      half day.  Hence the effective value of the degree day factor is
+      not 4 but 2:
+
+      >>> cfmax
+      cfmax(4.0)
+      >>> cfmax.values
+      array([ 2.,  2.,  2.,  2.,  2.,  2.])
+
+      When the actual temperature is equal to the threshold
+      temperature for melting and refreezing, no melting  occurs and
+      the states remain unchanged:
+
+      >>> fluxes.tc = 2.
+      >>> model.calc_melt_sp_wc_v1()
+      >>> fluxes.melt
+      melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sp
+      sp(0.0, 10.0, 10.0, 10.0, 5.0, 0.0)
+      >>> states.wc
+      wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+
+      The same holds true for an actual temperature lower than the
+      threshold temperature:
+
+      >>> states.sp = 0., 10., 10., 10., 5., 0.
+      >>> states.wc = 2.
+      >>> fluxes.tc = -1.
+      >>> model.calc_melt_sp_wc_v1()
+      >>> fluxes.melt
+      melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sp
+      sp(0.0, 10.0, 10.0, 10.0, 5.0, 0.0)
+      >>> states.wc
+      wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+
+      With an actual temperature 3°C above the threshold temperature,
+      melting can occur. Actual melting is consistent with potential
+      melting, except for the first zone, which is an internal lake,
+      and the last two zones, for which potential melting exceeds the
+      available frozen water content of the snow layer:
+
+      >>> states.sp = 0., 10., 10., 10., 5., 0.
+      >>> states.wc = 2.
+      >>> fluxes.tc = 5.
+      >>> model.calc_melt_sp_wc_v1()
+      >>> fluxes.melt
+      melt(0.0, 6.0, 6.0, 6.0, 5.0, 0.0)
+      >>> states.sp
+      sp(0.0, 4.0, 4.0, 4.0, 0.0, 0.0)
+      >>> states.wc
+      wc(0.0, 8.0, 8.0, 8.0, 7.0, 2.0)
+
+hydpy.models.hland.hland_model.calc_refr_sp_wc_v1(self)
+
+   Calculate refreezing of the water content within the snow layer and
+   update both the snow layers ice and the water content.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      CFMax
+
+
+      CFR
+
+   Required derived parameter:
+      TTM
+
+   Required flux sequences:
+      TC
+
+   Calculated fluxes sequences:
+      Refr
+
+   Required state sequence:
+      WC
+
+   Updated state sequence:
+      SP
+
+   Basic equations:
+      \frac{dSP}{dt} =  + Refr
+
+      \frac{dWC}{dt} =  - Refr
+
+      Refr = min(cfr \cdot cfmax \cdot (TTM-TC), WC)
+
+   Examples:
+      Six zones are initialized with the same threshold temperature,
+      degree day factor and refreezing coefficient, but with different
+      zone types and initial states:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nmbzones(6)
+      >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+      >>> cfmax(4.)
+      >>> cfr(.1)
+      >>> derived.ttm = 2.
+      >>> states.sp = 2.
+      >>> states.wc = 0., 1., 1., 1., .5, 0.
+
+      Note that the assumed length of the simulation step is only a
+      half day.  Hence the effective value of the degree day factor is
+      not 4 but 2:
+
+      >>> cfmax
+      cfmax(4.0)
+      >>> cfmax.values
+      array([ 2.,  2.,  2.,  2.,  2.,  2.])
+
+      When the actual temperature is equal to the threshold
+      temperature for melting and refreezing, neither no refreezing
+      occurs and the states remain unchanged:
+
+      >>> fluxes.tc = 2.
+      >>> model.calc_refr_sp_wc_v1()
+      >>> fluxes.refr
+      refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sp
+      sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+      >>> states.wc
+      wc(0.0, 1.0, 1.0, 1.0, 0.5, 0.0)
+
+      The same holds true for an actual temperature higher than the
+      threshold temperature:
+
+      >>> states.sp = 2.
+      >>> states.wc = 0., 1., 1., 1., .5, 0.
+      >>> fluxes.tc = 2.
+      >>> model.calc_refr_sp_wc_v1()
+      >>> fluxes.refr
+      refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sp
+      sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+      >>> states.wc
+      wc(0.0, 1.0, 1.0, 1.0, 0.5, 0.0)
+
+      With an actual temperature 3°C above the threshold temperature,
+      only melting can occur. Actual melting is consistent with
+      potential melting, except for the first zone, which is an
+      internal lake, and the last two zones, for which potential
+      melting exceeds the available frozen water content of the snow
+      layer:
+
+      >>> states.sp = 2.
+      >>> states.wc = 0., 1., 1., 1., .5, 0.
+      >>> fluxes.tc = 5.
+      >>> model.calc_refr_sp_wc_v1()
+      >>> fluxes.refr
+      refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sp
+      sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0)
+      >>> states.wc
+      wc(0.0, 1.0, 1.0, 1.0, 0.5, 0.0)
+
+      With an actual temperature 3°C below the threshold temperature,
+      refreezing can occur. Actual refreezing is consistent with
+      potential refreezing, except for the first zone, which is an
+      internal lake, and the last two zones, for which potential
+      refreezing exceeds the available liquid water content of the
+      snow layer:
+
+      >>> states.sp = 2.
+      >>> states.wc = 0., 1., 1., 1., .5, 0.
+      >>> fluxes.tc = -1.
+      >>> model.calc_refr_sp_wc_v1()
+      >>> fluxes.refr
+      refr(0.0, 0.6, 0.6, 0.6, 0.5, 0.0)
+      >>> states.sp
+      sp(0.0, 2.6, 2.6, 2.6, 2.5, 2.0)
+      >>> states.wc
+      wc(0.0, 0.4, 0.4, 0.4, 0.0, 0.0)
+
+hydpy.models.hland.hland_model.calc_in_wc_v1(self)
+
+   Calculate the actual water release from the snow layer due to the
+   exceedance of the snow layers capacity for (liquid) water.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      WHC
+
+   Required state sequence:
+      SP
+
+   Required flux sequence
+      TF
+
+   Calculated fluxes sequences:
+      In_
+
+   Updated state sequence:
+      WC
+
+   Basic equations:
+      \frac{dWC}{dt} = -In
+
+      -In = max(WC - WHC \cdot SP, 0)
+
+   Examples:
+      Initialize six zones of different types and frozen water
+      contents of the snow layer and set the relative water holding
+      capacity to 20% of the respective frozen water content:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(6)
+      >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+      >>> whc(.2)
+      >>> states.sp = 0., 10., 10., 10., 5., 0.
+
+      Also set the actual value of stand precipitation to 5 mm/d:
+
+      >>> fluxes.tf = 5.
+
+      When there is no (liquid) water content in the snow layer, no
+      water can be released:
+
+      >>> states.wc = 0.
+      >>> model.calc_in_wc_v1()
+      >>> fluxes.in_
+      in_(5.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.wc
+      wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+      When there is a (liquid) water content in the snow layer, the
+      water release depends on the frozen water content.  Note the
+      special cases of the first zone being an internal lake, for
+      which the snow routine does not apply, and of the last zone,
+      which has no ice content and thus effectively not really a snow
+      layer:
+
+      >>> states.wc = 5.
+      >>> model.calc_in_wc_v1()
+      >>> fluxes.in_
+      in_(5.0, 3.0, 3.0, 3.0, 4.0, 5.0)
+      >>> states.wc
+      wc(0.0, 2.0, 2.0, 2.0, 1.0, 0.0)
+
+      When the relative water holding capacity is assumed to be zero,
+      all liquid water is released:
+
+      >>> whc(0.)
+      >>> states.wc = 5.
+      >>> model.calc_in_wc_v1()
+      >>> fluxes.in_
+      in_(5.0, 5.0, 5.0, 5.0, 5.0, 5.0)
+      >>> states.wc
+      wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+      Note that for the single lake zone, stand precipitation is
+      directly passed to *in_* in all three examples.
+
+hydpy.models.hland.hland_model.calc_glmelt_in_v1(self)
+
+   Calculate melting from glaciers which are actually not covered by a
+   snow layer and add it to the water release of the snow module.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      GMelt
+
+   Required state sequence:
+      SP
+
+   Required flux sequence:
+      TC
+
+   Calculated fluxes sequence:
+      GlMelt
+
+   Updated flux sequence:
+      In_
+
+   Basic equation:
+
+      GlMelt = \Bigl \lbrace { {max(GMelt \cdot (TC-TTM), 0) \ | \ SP
+      = 0} \atop {0 \ | \ SP > 0} }
+
+   Examples:
+      Seven zones are prepared, but glacier melting occurs only in the
+      fourth one, as the first three zones are no glaciers, the fifth
+      zone is covered by a snow layer and the actual temperature of
+      the last two zones is not above the threshold temperature:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nmbzones(7)
+      >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, GLACIER, GLACIER, GLACIER)
+      >>> gmelt(4.)
+      >>> derived.ttm(2.)
+      >>> states.sp = 0., 0., 0., 0., .1, 0., 0.
+      >>> fluxes.tc = 3., 3., 3., 3., 3., 2., 1.
+      >>> fluxes.in_ = 3.
+      >>> model.calc_glmelt_in_v1()
+      >>> fluxes.glmelt
+      glmelt(0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0)
+      >>> fluxes.in_
+      in_(3.0, 3.0, 3.0, 5.0, 3.0, 3.0, 3.0)
+
+      Note that the assumed length of the simulation step is only a
+      half day. Hence the effective value of the degree day factor is
+      not 4 but 2:
+
+      >>> gmelt
+      gmelt(4.0)
+      >>> gmelt.values
+      array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.])
+
+hydpy.models.hland.hland_model.calc_r_sm_v1(self)
+
+   Calculate effective precipitation and update soil moisture.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      FC
+
+
+      Beta
+
+   Required fluxes sequence:
+      In_
+
+   Calculated flux sequence:
+      R
+
+   Updated state sequence:
+      SM
+
+   Basic equations:
+      \frac{dSM}{dt} = IN - R
+
+      R = IN \cdot \left(\frac{SM}{FC}\right)^{Beta}
+
+   Examples:
+      Initialize six zones of different types.  The field capacity of
+      all fields and forests is set to 200mm, the input of each zone
+      is 10mm:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(6)
+      >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+      >>> fc(200.)
+      >>> fluxes.in_ = 10.
+
+      With a common nonlinearity parameter value of 2, a relative soil
+      moisture of 50%  (zones three and four) results in a discharge
+      coefficient of 25%. For a soil completely dried (zone five) or
+      completely saturated (one six) the discharge coefficient does
+      not depend on the nonlinearity parameter and is 0% and 100%
+      respectively.  Glaciers and internal lakes also always route
+      100% of their input as effective precipitation:
+
+      >>> beta(2.)
+      >>> states.sm = 0., 0., 100., 100., 0., 200.
+      >>> model.calc_r_sm_v1()
+      >>> fluxes.r
+      r(10.0, 10.0, 2.5, 2.5, 0.0, 10.0)
+      >>> states.sm
+      sm(0.0, 0.0, 107.5, 107.5, 10.0, 200.0)
+
+      Through decreasing the nonlinearity parameter, the discharge
+      coefficient increases.  A parameter value of zero leads to a
+      discharge coefficient of 100% for any soil moisture:
+
+      >>> beta(0.)
+      >>> states.sm = 0., 0., 100., 100., 0., 200.
+      >>> model.calc_r_sm_v1()
+      >>> fluxes.r
+      r(10.0, 10.0, 10.0, 10.0, 10.0, 10.0)
+      >>> states.sm
+      sm(0.0, 0.0, 100.0, 100.0, 0.0, 200.0)
+
+      With zero field capacity, the discharge coefficient also always
+      equates to 100%:
+
+      >>> fc(0.)
+      >>> beta(2.)
+      >>> states.sm = 0.
+      >>> model.calc_r_sm_v1()
+      >>> fluxes.r
+      r(10.0, 10.0, 10.0, 10.0, 10.0, 10.0)
+      >>> states.sm
+      sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.hland.hland_model.calc_cf_sm_v1(self)
+
+   Calculate capillary flow and update soil moisture.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      FC
+
+
+      CFlux
+
+   Required fluxes sequence:
+      R
+
+   Required state sequence:
+      UZ
+
+   Calculated flux sequence:
+      CF
+
+   Updated state sequence:
+      SM
+
+   Basic equations:
+      \frac{dSM}{dt} = CF
+
+      CF = CFLUX \cdot (1 - \frac{SM}{FC})
+
+   Examples:
+      Initialize six zones of different types.  The field capacity of
+      als fields and forests is set to 200mm, the maximum capillary
+      flow rate is 4mm/d:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nmbzones(6)
+      >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
+      >>> fc(200.)
+      >>> cflux(4.)
+
+      Note that the assumed length of the simulation step is only a
+      half day.  Hence the maximum capillary flow per simulation step
+      is 2 instead of 4:
+
+      >>> cflux
+      cflux(4.0)
+      >>> cflux.values
+      array([ 2.,  2.,  2.,  2.,  2.,  2.])
+
+      For fields and forests, the actual capillary return flow depends
+      on the relative soil moisture deficite, if either the upper zone
+      layer provides enough water...
+
+      >>> fluxes.r = 0.
+      >>> states.sm = 0., 0., 100., 100., 0., 200.
+      >>> states.uz = 20.
+      >>> model.calc_cf_sm_v1()
+      >>> fluxes.cf
+      cf(0.0, 0.0, 1.0, 1.0, 2.0, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 101.0, 101.0, 2.0, 200.0)
+
+      ...our enough effective precipitation is generated, which can be
+      rerouted directly:
+
+      >>> cflux(4.)
+      >>> fluxes.r = 10.
+      >>> states.sm = 0., 0., 100., 100., 0., 200.
+      >>> states.uz = 0.
+      >>> model.calc_cf_sm_v1()
+      >>> fluxes.cf
+      cf(0.0, 0.0, 1.0, 1.0, 2.0, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 101.0, 101.0, 2.0, 200.0)
+
+      If the upper zone layer is empty and no effective precipitation
+      is generated, capillary flow is zero:
+
+      >>> cflux(4.)
+      >>> fluxes.r = 0.
+      >>> states.sm = 0., 0., 100., 100., 0., 200.
+      >>> states.uz = 0.
+      >>> model.calc_cf_sm_v1()
+      >>> fluxes.cf
+      cf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 100.0, 100.0, 0.0, 200.0)
+
+      Here an example, where both the upper zone layer and effective
+      precipitation provide water for the capillary flow, but less
+      then the maximum flow rate times the relative soil moisture:
+
+      >>> cflux(4.)
+      >>> fluxes.r = 0.1
+      >>> states.sm = 0., 0., 100., 100., 0., 200.
+      >>> states.uz = 0.2
+      >>> model.calc_cf_sm_v1()
+      >>> fluxes.cf
+      cf(0.0, 0.0, 0.3, 0.3, 0.3, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 100.3, 100.3, 0.3, 200.0)
+
+      Even unrealistic high maximum capillary flow rates do not result
+      in overfilled soils:
+
+      >>> cflux(1000.)
+      >>> fluxes.r = 200.
+      >>> states.sm = 0., 0., 100., 100., 0., 200.
+      >>> states.uz = 200.
+      >>> model.calc_cf_sm_v1()
+      >>> fluxes.cf
+      cf(0.0, 0.0, 100.0, 100.0, 200.0, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 200.0, 200.0, 200.0, 200.0)
+
+      For (unrealistic) soils with zero field capacity, capillary flow
+      is always zero:
+
+      >>> fc(0.)
+      >>> states.sm = 0.
+      >>> model.calc_cf_sm_v1()
+      >>> fluxes.cf
+      cf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.hland.hland_model.calc_ea_sm_v1(self)
+
+   Calculate soil evaporation and update soil moisture.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      FC
+
+
+      LP
+
+
+      ERed
+
+   Required fluxes sequences:
+      EPC
+
+
+      EI
+
+   Required state sequence:
+      SP
+
+   Calculated flux sequence:
+      EA
+
+   Updated state sequence:
+      SM
+
+   Basic equations:
+      \frac{dSM}{dt} = - EA
+
+      EA_{temp} = \biggl \lbrace { {EPC \cdot min\left(\frac{SM}{LP
+      \cdot FC}, 1\right) \ | \ SP = 0} \atop {0 \ | \ SP > 0} }
+
+      EA = EA_{temp} - max(ERED \cdot (EA_{temp} + EI - EPC), 0)
+
+   Examples:
+      Initialize seven zones of different types.  The field capacity
+         of all fields and forests is set to 200mm, potential
+         evaporation and interception evaporation are 2mm and 1mm
+         respectively:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(7)
+      >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD)
+      >>> fc(200.)
+      >>> lp(.0, .0, .5, .5, .0, .8, 1.)
+      >>> ered(0.)
+      >>> fluxes.epc = 2.
+      >>> fluxes.ei = 1.
+      >>> states.sp = 0.
+
+      Only fields and forests include soils; for glaciers and zones
+      (the first two zones) no soil evaporation is performed.  For
+      fields and forests, the underlying calculations are the same. In
+      the following example, the relative soil moisture is 50% in all
+      field and forest zones.  Hence, differences in soil evaporation
+      are related to the different soil evaporation parameter values
+      only:
+
+      >>> states.sm = 100.
+      >>> model.calc_ea_sm_v1()
+      >>> fluxes.ea
+      ea(0.0, 0.0, 2.0, 2.0, 2.0, 1.25, 1.0)
+      >>> states.sm
+      sm(0.0, 0.0, 98.0, 98.0, 98.0, 98.75, 99.0)
+
+      In the last example, evaporation values of 2mm have been
+      calculated for some zones despite the fact, that these 2mm added
+      to the actual interception evaporation of 1mm exceed potential
+      evaporation.  This behaviour can be reduced...
+
+      >>> states.sm = 100.
+      >>> ered(.5)
+      >>> model.calc_ea_sm_v1()
+      >>> fluxes.ea
+      ea(0.0, 0.0, 1.5, 1.5, 1.5, 1.125, 1.0)
+      >>> states.sm
+      sm(0.0, 0.0, 98.5, 98.5, 98.5, 98.875, 99.0)
+
+      ...or be completely excluded:
+
+      >>> states.sm = 100.
+      >>> ered(1.)
+      >>> model.calc_ea_sm_v1()
+      >>> fluxes.ea
+      ea(0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+      >>> states.sm
+      sm(0.0, 0.0, 99.0, 99.0, 99.0, 99.0, 99.0)
+
+      Any occurrence of a snow layer suppresses soil evaporation
+      completely:
+
+      >>> states.sp = 0.01
+      >>> states.sm = 100.
+      >>> model.calc_ea_sm_v1()
+      >>> fluxes.ea
+      ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
+
+      For (unrealistic) soils with zero field capacity, soil
+      evaporation is always zero:
+
+      >>> fc(0.)
+      >>> states.sm = 0.
+      >>> model.calc_ea_sm_v1()
+      >>> fluxes.ea
+      ea(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+      >>> states.sm
+      sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.hland.hland_model.calc_inuz_v1(self)
+
+   Accumulate the total inflow into the upper zone layer.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+   Required derived parameters:
+      RelLandZoneArea
+
+   Required fluxes sequences:
+      R
+
+
+      CF
+
+   Calculated flux sequence:
+      InUZ
+
+   Basic equation:
+      InUZ = R - CF
+
+   Examples:
+      Initialize three zones of different relative *land sizes* (area
+      related to the total size of the subbasin except lake areas):
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(3)
+      >>> zonetype(FIELD, ILAKE, GLACIER)
+      >>> derived.rellandzonearea = 2./3., 0., 1./3.
+      >>> fluxes.r = 6., 0., 2.
+      >>> fluxes.cf = 2., 0., 1.
+      >>> model.calc_inuz_v1()
+      >>> fluxes.inuz
+      inuz(3.0)
+
+      Internal lakes do not contribute to the upper zone layer.  Hence
+      for a subbasin consisting only of interal lakes a zero input
+      value would be calculated:
+
+      >>> zonetype(ILAKE, ILAKE, ILAKE)
+      >>> model.calc_inuz_v1()
+      >>> fluxes.inuz
+      inuz(0.0)
+
+hydpy.models.hland.hland_model.calc_contriarea_v1(self)
+
+   Determine the relative size of the contributing area of the whole
+   subbasin.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      RespArea
+
+
+      FC
+
+
+      Beta
+
+   Required derived parameter:
+
+   RelSoilArea
+
+   Required state sequence:
+      SM
+
+   Calculated fluxes sequences:
+      ContriArea
+
+   Basic equation:
+      ContriArea = \left( \frac{SM}{FC} \right)^{Beta}
+
+   Examples:
+      Four zones are initialized, but only the first two zones of type
+      field and forest are taken into account in the calculation of
+      the relative contributing area of the catchment (even, if also
+      glaciers contribute to the inflow of the upper zone layer):
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(4)
+      >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+      >>> beta(2.)
+      >>> fc(200.)
+      >>> resparea(True)
+      >>> derived.relsoilarea(.5)
+      >>> derived.relsoilzonearea(1./3., 2./3., 0., 0.)
+
+      With a relative soil moisture of 100% in the whole subbasin, the
+      contributing area is also estimated as 100%,...
+
+      >>> states.sm = 200.
+      >>> model.calc_contriarea_v1()
+      >>> fluxes.contriarea
+      contriarea(1.0)
+
+      ...and relative soil moistures of 0% result in an contributing
+      area of 0%:
+
+      >>> states.sm = 0.
+      >>> model.calc_contriarea_v1()
+      >>> fluxes.contriarea
+      contriarea(0.0)
+
+      With the given value 2 of the nonlinearity parameter Beta, soil
+      moisture of 50% results in a contributing area estimate of 25%:
+
+      >>> states.sm = 100.
+      >>> model.calc_contriarea_v1()
+      >>> fluxes.contriarea
+      contriarea(0.25)
+
+      Setting the response area option to False,...
+
+      >>> resparea(False)
+      >>> model.calc_contriarea_v1()
+      >>> fluxes.contriarea
+      contriarea(1.0)
+
+      ... setting the soil area (total area of all field and forest
+      zones in the subbasin) to zero...,
+
+      >>> resparea(True)
+      >>> derived.relsoilarea(0.)
+      >>> model.calc_contriarea_v1()
+      >>> fluxes.contriarea
+      contriarea(1.0)
+
+      ...or setting all field capacities to zero...
+
+      >>> derived.relsoilarea(.5)
+      >>> fc(0.)
+      >>> states.sm = 0.
+      >>> model.calc_contriarea_v1()
+      >>> fluxes.contriarea
+      contriarea(1.0)
+
+      ...leads to contributing area values of 100%.
+
+hydpy.models.hland.hland_model.calc_q0_perc_uz_v1(self)
+
+   Perform the upper zone layer routine which determines percolation
+   to the lower zone layer and the fast response of the hland model.
+   Note that the system behaviour of this method depends strongly on
+   the specifications of the options
+
+   RespArea
+
+    and
+
+   RecStep
+
+   .
+
+   Required control parameters:
+      RecStep
+
+
+      PercMax
+
+
+      K
+
+
+      Alpha
+
+   Required derived parameters:
+      DT
+
+   Required fluxes sequence:
+      InUZ
+
+   Calculated fluxes sequences:
+      Perc
+
+
+      Q0
+
+   Updated state sequence:
+      UZ
+
+   Basic equations:
+      \frac{dUZ}{dt} = InUZ - Perc - Q0
+
+      Perc = PercMax \cdot ContriArea
+
+      Q0 = K * \cdot \left( \frac{UZ}{ContriArea} \right)^{1+Alpha}
+
+   Examples:
+      The upper zone layer routine is an exception compared to the
+      other routines of the HydPy-H-Land model, regarding its
+      consideration of numerical accuracy.  To increase the accuracy
+      of the numerical integration of the underlying ordinary
+      differential equation, each simulation step can be divided into
+      substeps, which are all solved with first order accuracy.  In
+      the first example, this option is omitted through setting the
+      RecStep parameter to one:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> recstep(2)
+      >>> derived.dt = 1./recstep
+      >>> percmax(2.)
+      >>> alpha(1.)
+      >>> k(2.)
+      >>> fluxes.contriarea = 1.
+      >>> fluxes.inuz = 0.
+      >>> states.uz = 1.
+      >>> model.calc_q0_perc_uz_v1()
+      >>> fluxes.perc
+      perc(1.0)
+      >>> fluxes.q0
+      q0(0.0)
+      >>> states.uz
+      uz(0.0)
+
+      Due to the sequential calculation of the upper zone routine, the
+      upper zone storage is drained completely through percolation and
+      no water is left for fast discharge response.  By dividing the
+      simulation step in 100 substeps, the results are quite
+      different:
+
+      >>> recstep(200)
+      >>> derived.dt = 1./recstep
+      >>> states.uz = 1.
+      >>> model.calc_q0_perc_uz_v1()
+      >>> fluxes.perc
+      perc(0.786934)
+      >>> fluxes.q0
+      q0(0.213066)
+      >>> states.uz
+      uz(0.0)
+
+      Note that the assumed length of the simulation step is only a
+      half day. Hence the effective values of the maximum percolation
+      rate and the storage coefficient is not 2 but 1:
+
+      >>> percmax
+      percmax(2.0)
+      >>> k
+      k(2.0)
+      >>> percmax.value
+      1.0
+      >>> k.value
+      1.0
+
+      By decreasing the contributing area one decreases percolation
+      but increases fast discharge response:
+
+      >>> fluxes.contriarea = .5
+      >>> states.uz = 1.
+      >>> model.calc_q0_perc_uz_v1()
+      >>> fluxes.perc
+      perc(0.434108)
+      >>> fluxes.q0
+      q0(0.565892)
+      >>> states.uz
+      uz(0.0)
+
+      Resetting RecStep leads to more transparent results.  Note that,
+      due to the large value of the storage coefficient and the low
+      accuracy of the numerical approximation, direct discharge drains
+      the rest of the upper zone storage:
+
+      >>> recstep(2)
+      >>> derived.dt = 1./recstep
+      >>> states.uz = 1.
+      >>> model.calc_q0_perc_uz_v1()
+      >>> fluxes.perc
+      perc(0.5)
+      >>> fluxes.q0
+      q0(0.5)
+      >>> states.uz
+      uz(0.0)
+
+      Applying a more reasonable storage coefficient results in:
+
+      >>> k(.5)
+      >>> states.uz = 1.
+      >>> model.calc_q0_perc_uz_v1()
+      >>> fluxes.perc
+      perc(0.5)
+      >>> fluxes.q0
+      q0(0.25)
+      >>> states.uz
+      uz(0.25)
+
+      Adding an input of 0.3 mm results the same percolation value
+      (which, in the given example, is determined by the maximum
+      percolation rate only), but in an increases value of the direct
+      response (which always depends on the actual upper zone storage
+      directly):
+
+      >>> fluxes.inuz = .3
+      >>> states.uz = 1.
+      >>> model.calc_q0_perc_uz_v1()
+      >>> fluxes.perc
+      perc(0.5)
+      >>> fluxes.q0
+      q0(0.64)
+      >>> states.uz
+      uz(0.16)
+
+      Due to the same reasons, another increase in numerical accuracy
+      has no impact on percolation but decreases the direct response
+      in the given example:
+
+      >>> recstep(200)
+      >>> derived.dt = 1./recstep
+      >>> states.uz = 1.
+      >>> model.calc_q0_perc_uz_v1()
+      >>> fluxes.perc
+      perc(0.5)
+      >>> fluxes.q0
+      q0(0.421708)
+      >>> states.uz
+      uz(0.378292)
+
+hydpy.models.hland.hland_model.calc_lz_v1(self)
+
+   Update the lower zone layer in accordance with percolation from
+   upper groundwater to lower groundwater and/or in accordance with
+   lake precipitation.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+   Required derived parameters:
+      RelLandArea
+
+
+      RelZoneArea
+
+   Required fluxes sequences:
+      PC
+
+
+      Perc
+
+   Updated state sequence:
+      LZ
+
+   Basic equation:
+      \frac{dLZ}{dt} = Perc + Pc
+
+   Examples:
+      At first, a subbasin with two field zones is assumed (the zones
+      could be of type forest or glacier as well).  In such zones,
+      precipitation does not fall directly into the lower zone layer,
+      hence the given precipitation of 2mm has no impact.  Only the
+      actual percolation from the upper zone layer (underneath both
+      field zones) is added to the lower zone storage:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(2)
+      >>> zonetype(FIELD, FIELD)
+      >>> derived.rellandarea = 1.
+      >>> derived.relzonearea = 2./3., 1./3.
+      >>> fluxes.perc = 2.
+      >>> fluxes.pc = 5.
+      >>> states.lz = 10.
+      >>> model.calc_lz_v1()
+      >>> states.lz
+      lz(12.0)
+
+      If the second zone is an internal lake, its precipitation falls
+      on the lower zone layer directly.  Note that only 5/3mm
+      precipitation are added, due to the relative size of the
+      internal lake within the subbasin. Percolation from the upper
+      zone layer increases the lower zone storage only by two thirds
+      of its original value, due to the larger spatial extend of the
+      lower zone layer:
+
+      >>> zonetype(FIELD, ILAKE)
+      >>> derived.rellandarea = 2./3.
+      >>> derived.relzonearea = 2./3., 1./3.
+      >>> states.lz = 10.
+      >>> model.calc_lz_v1()
+      >>> states.lz
+      lz(13.0)
+
+hydpy.models.hland.hland_model.calc_el_lz_v1(self)
+
+   Calculate lake evaporation.
+
+   Required control parameters:
+      NmbZones
+
+
+      ZoneType
+
+
+      TTIce
+
+   Required derived parameters:
+      RelZoneArea
+
+   Required fluxes sequences:
+      TC
+
+
+      EPC
+
+   Updated state sequence:
+      LZ
+
+   Basic equations:
+      \frac{dLZ}{dt} = -EL
+
+      EL = \Bigl \lbrace { {EPC \ | \ TC > TTIce} \atop {0 \ | \ TC
+      \leq TTIce} }
+
+   Examples:
+      Six zones of the same size are initialized.  The first three
+      zones are no internal lakes, they can not exhibit any lake
+      evaporation.  Of the last three zones, which are internal lakes,
+      only the last one evaporates water.  For zones five and six,
+      evaporation is suppressed due to an assumed ice layer, whenever
+      the associated theshold temperature is not exceeded:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(6)
+      >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, ILAKE)
+      >>> ttice(-1.)
+      >>> derived.relzonearea = 1./6.
+      >>> fluxes.epc = .6
+      >>> fluxes.tc = 0., 0., 0., 0., -1., -2.
+      >>> states.lz = 10.
+      >>> model.calc_el_lz_v1()
+      >>> fluxes.el
+      el(0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
+      >>> states.lz
+      lz(9.9)
+
+      Note that internal lakes always contain water.  Hence, the
+      HydPy-H-Land model allows for negative values of the lower zone
+      storage:
+
+      >>> states.lz = .05
+      >>> model.calc_el_lz_v1()
+      >>> fluxes.el
+      el(0.0, 0.0, 0.0, 0.6, 0.0, 0.0)
+      >>> states.lz
+      lz(-0.05)
+
+hydpy.models.hland.hland_model.calc_q1_lz_v1(self)
+
+   Calculate the slow response of the lower zone layer.
+
+   Required control parameters:
+      K4
+
+
+      Gamma
+
+   Calculated fluxes sequence:
+      Q1
+
+   Updated state sequence:
+      LZ
+
+   Basic equations:
+      \frac{dLZ}{dt} = -Q1
+
+      Q1 = \Bigl \lbrace { {K4 \cdot LZ^{1+Gamma} \ | \ LZ > 0} \atop
+      {0 \ | \ LZ\leq 0} }
+
+   Examples:
+      As long as the lower zone storage is negative...
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> k4(.2)
+      >>> gamma(0.)
+      >>> states.lz = -2.
+      >>> model.calc_q1_lz_v1()
+      >>> fluxes.q1
+      q1(0.0)
+      >>> states.lz
+      lz(-2.0)
+
+      ...or zero, no slow discharge response occurs:
+
+      >>> states.lz = 0.
+      >>> model.calc_q1_lz_v1()
+      >>> fluxes.q1
+      q1(0.0)
+      >>> states.lz
+      lz(0.0)
+
+      For storage values above zero the linear...
+
+      >>> states.lz = 2.
+      >>> model.calc_q1_lz_v1()
+      >>> fluxes.q1
+      q1(0.2)
+      >>> states.lz
+      lz(1.8)
+
+      ...or nonlinear storage routing equation applies:
+
+      >>> gamma(1.)
+      >>> states.lz = 2.
+      >>> model.calc_q1_lz_v1()
+      >>> fluxes.q1
+      q1(0.4)
+      >>> states.lz
+      lz(1.6)
+
+      Note that the assumed length of the simulation step is only a
+      half day. Hence the effective value of the storage coefficient
+      is not 0.2 but 0.1:
+
+      >>> k4
+      k4(0.2)
+      >>> k4.value
+      0.1
+
+hydpy.models.hland.hland_model.calc_inuh_v1(self)
+
+   Calculate the unit hydrograph input.
+
+   Required derived parameters:
+      RelLandArea
+
+   Required flux sequences:
+      Q0
+
+
+      Q1
+
+   Calculated flux sequence:
+      InUH
+
+   Basic equation:
+      InUH = Q0 + Q1
+
+   Example:
+      The unit hydrographs receives base flow from the whole subbasin
+      and direct flow from zones of type field, forest and glacier
+      only. In the following example, these occupy only one half of
+      the subbasin, which is why the partial input of q0 is halved:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> derived.rellandarea = 0.5
+      >>> fluxes.q0 = 4.
+      >>> fluxes.q1 = 1.
+      >>> model.calc_inuh_v1()
+      >>> fluxes.inuh
+      inuh(3.0)
+
+hydpy.models.hland.hland_model.calc_outuh_quh_v1(self)
+
+   Calculate the unit hydrograph output (convolution).
+
+   Required derived parameters:
+      UH
+
+
+      NmbUH
+
+   Required flux sequences:
+      Q0
+
+
+      Q1
+
+
+      InUH
+
+   Updated log sequence:
+      QUH
+
+   Calculated flux sequence:
+      OutUH
+
+   Examples:
+      Prepare a unit hydrograph with only three ordinates ---
+      representing a fast catchment response compared to the selected
+      step size:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> derived.nmbuh = 3
+      >>> derived.uh.shape = derived.nmbuh
+      >>> derived.uh = 0.3, 0.5, 0.2
+      >>> logs.quh.shape = 3
+      >>> logs.quh = 1., 3., 0.
+
+      Without new input, the actual output is simply the first value
+      stored in the logging sequence and the values of the logging
+      sequence are shifted to the left:
+
+      >>> fluxes.inuh = 0.
+      >>> model.calc_outuh_quh_v1()
+      >>> fluxes.outuh
+      outuh(1.0)
+      >>> logs.quh
+      quh(3.0, 0.0, 0.0)
+
+      With an new input of 4mm, the actual output consists of the
+      first value stored in the logging sequence and the input value
+      multiplied with the first unit hydrograph ordinate.  The updated
+      logging sequence values result from the multiplication of the
+      input values and the remaining ordinates:
+
+      >>> fluxes.inuh = 4.
+      >>> model.calc_outuh_quh_v1()
+      >>> fluxes.outuh
+      outuh(4.2)
+      >>> logs.quh
+      quh(2.0, 0.8, 0.0)
+
+      The next example demonstates the updating of non empty logging
+      sequence:
+
+      >>> fluxes.inuh = 4.
+      >>> model.calc_outuh_quh_v1()
+      >>> fluxes.outuh
+      outuh(3.2)
+      >>> logs.quh
+      quh(2.8, 0.8, 0.0)
+
+      A unit hydrograph with only one ordinate results in the direct
+      routing of the input:
+
+      >>> derived.nmbuh = 1
+      >>> derived.uh.shape = derived.nmbuh
+      >>> derived.uh = 1.
+      >>> fluxes.inuh = 0.
+      >>> logs.quh.shape = 1
+      >>> logs.quh = 0.
+      >>> model.calc_outuh_quh_v1()
+      >>> fluxes.outuh
+      outuh(0.0)
+      >>> logs.quh
+      quh(0.0)
+      >>> fluxes.inuh = 4.
+      >>> model.calc_outuh_quh()
+      >>> fluxes.outuh
+      outuh(4.0)
+      >>> logs.quh
+      quh(0.0)
+
+hydpy.models.hland.hland_model.calc_qt_v1(self)
+
+   Calculate the total discharge after possible abstractions.
+
+   Required control parameter:
+      Abstr
+
+   Required flux sequence:
+      OutUH
+
+   Calculated flux sequence:
+      QT
+
+   Basic equation:
+      QT = max(OutUH - Abstr, 0)
+
+   Examples:
+      Trying to abstract less then available, as much as available and
+      less then available results in:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> abstr(2.)
+      >>> fluxes.outuh = 2.
+      >>> model.calc_qt_v1()
+      >>> fluxes.qt
+      qt(1.0)
+      >>> fluxes.outuh = 1.
+      >>> model.calc_qt_v1()
+      >>> fluxes.qt
+      qt(0.0)
+      >>> fluxes.outuh = .5
+      >>> model.calc_qt_v1()
+      >>> fluxes.qt
+      qt(0.0)
+
+      Note that "negative abstractions" are allowed:
+
+      >>> abstr(-2.)
+      >>> fluxes.outuh = 1.
+      >>> model.calc_qt_v1()
+      >>> fluxes.qt
+      qt(2.0)
+
+hydpy.models.hland.hland_model.update_q_v1(self)
+
+   Update the outlet link sequence.
+
+Parameter features
+
+Parameter tools
+
+class hydpy.models.hland.hland_parameters.MultiParameter
+
+   Bases:
+
+   hydpy.core.parametertools.ZipParameter
+
+   Base class for handling parameters of the HydPy-H-Land model
+   (potentially) handling multiple values.
+
+   Due to inheriting from
+
+   ZipParameter
+
+   , additional keyword zipping functionality is offered.  The
+   optional *kwargs* are checked for the keywords *field*, *forest*,
+   *glacier*, *ilake,* and *default*. If available, the respective
+   values are used to define the values of those 1-dimensional arrays,
+   whose entries are related to the different zone types. Also the
+   method
+
+   compress_repr()
+
+    tries to find compressed string representations based on the
+   mentioned zone types.
+
+   Examples:
+
+      Prepare a
+
+      MultiParameter
+
+       instance:
+
+      >>> from hydpy.models.hland.hland_parameters import MultiParameter
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> mp = MultiParameter()
+      >>> mp.DIM, mp.TYPE, mp.TIME = 1, float, None
+      >>> mp.subpars = control
+
+      Usually, one would indirectly define its shape through parameter
+
+      NmbZones
+
+      :
+
+      >>> mp.shape
+      Traceback (most recent call last):
+      ...
+      RuntimeError: Shape information for parameter `multiparameter` can only be retrieved after it has been defined.  You can do this manually, but usually it is done automatically by defining the value of parameter `nmbzones` first in each parameter control file.
+
+      But here it is set manually to the value 5 for representing five
+      different zone types:
+
+      >>> zonetype.shape = 5
+      >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
+      >>> mp.shape = 5
+
+      Assign values to all four zone types explicitly:
+
+      >>> mp(field=2., forest=1., glacier=4., ilake=3.)
+      >>> mp
+      multiparameter(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+      >>> mp.values
+      array([ 2.,  1.,  4.,  3.,  2.])
+
+      Specify a default value for all zone types not included in the
+      keyword list:
+
+      >>> mp(field=2., forest=1., default=9.)
+      >>> mp
+      multiparameter(field=2.0, forest=1.0, glacier=9.0, ilake=9.0)
+      >>> mp.values
+      array([ 2.,  1.,  9.,  9.,  2.])
+
+      If no default value is given, numpys *nan* is applied:
+
+      >>> mp(field=2., forest=1.)
+      >>> mp
+      multiparameter(field=2.0, forest=1.0, glacier=nan, ilake=nan)
+      >>> mp.values
+      array([  2.,   1.,  nan,  nan,   2.])
+
+      Of course, the usual value assignments remain unaffected:
+
+      >>> mp.values = 5.
+      >>> mp
+      multiparameter(5.0)
+      >>> mp.values
+      array([ 5.,  5.,  5.,  5.,  5.])
+
+      >>> mp.values = 5., 4., 3., 2., 1.
+      >>> mp
+      multiparameter(5.0, 4.0, 3.0, 2.0, 1.0)
+      >>> mp.values
+      array([ 5.,  4.,  3.,  2.,  1.])
+
+   Another feature of
+
+   MultiParameter
+
+    is that it relates the
+
+   property
+
+
+   verifymask
+
+    to the defined zone types.  This requires the definition of the
+   class attribute
+
+   REQUIRED_VALUES
+
+    for
+
+   MultiParameter
+
+    subclasses.
+
+   Examples:
+
+      When values for all zone types are required, all entries of the
+      verification mask are *True*:
+
+      >>> mp.REQUIRED_VALUES = (FIELD, FOREST, GLACIER, ILAKE)
+      >>> mp.verifymask
+      array([ True,  True,  True,  True,  True], dtype=bool)
+
+      When values for field and forest zones are required only, the
+      entries related to glacier and ilake zones are *False*:
+
+      >>> mp.REQUIRED_VALUES = (FIELD, FOREST)
+      >>> mp.verifymask
+      array([ True,  True, False, False,  True], dtype=bool)
+
+   REQUIRED_VALUES = (1, 2, 3, 4)
+
+   MODEL_CONSTANTS = {'FIELD': 1, 'FOREST': 2, 'GLACIER': 3, 'ILAKE': 4}
+
+   refparameter
+
+      Alias for the associated instance of
+
+      ZoneType
+
+      .
+
+   shapeparameter
+
+      Alias for the associated instance of
+
+      NmbZones
+
+      .
+
+class hydpy.models.hland.hland_parameters.MultiParameterSoil
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Base class for handling parameters of the hland model (potentially)
+   handling multiple values relevant for *soil zones* (and
+   interception).
+
+   REQUIRED_VALUES = (1, 2)
+
+class hydpy.models.hland.hland_parameters.MultiParameterLand
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Base class for handling parameters of the hland model (potentially)
+   handling multiple values relevant for all *land zones*.
+
+   REQUIRED_VALUES = (1, 2, 3)
+
+class hydpy.models.hland.hland_parameters.MultiParameterLake
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Base class for handling parameters of the hland model (potentially)
+   handling multiple values relevant for *lake zones* only.
+
+   REQUIRED_VALUES = (4,)
+
+class hydpy.models.hland.hland_parameters.MultiParameterGlacier
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Base class for handling parameters of the hland model (potentially)
+   handling multiple values relevant for *glacier zones* only.
+
+   REQUIRED_VALUES = (3,)
+
+class hydpy.models.hland.hland_parameters.MultiParameterNoGlacier
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Base class for handling parameters of the hland model (potentially)
+   handling multiple values relevant for *glacier free zones* only.
+
+   REQUIRED_VALUES = (1, 2, 4)
+
+class hydpy.models.hland.hland_parameters.Parameters(kwargs)
+
+   Bases:
+
+   hydpy.core.parametertools.Parameters
+
+   All parameters of the hland model.
+
+   update()
+
+      Determine the values of the parameters handled by
+
+      DerivedParameters
+
+       based on the values of the parameters handled by
+
+      ControlParameters
+
+      .  The results of the different methods are not interdependent,
+      meaning their order could be changed.
+
+   calc_relzonearea()
+
+      Calculate the relative areas of all zones within the subbasin.
+
+      Required control parameters:
+         ZoneArea
+
+      Calculated derived parameters:
+         RelZoneArea
+
+      Examples:
+
+         With one single zone, its relative area is one by definition:
+
+         >>> from hydpy.models.hland import *
+         >>> parameterstep('1d')
+         >>> nmbzones(1)
+         >>> zonearea(1111.)
+         >>> model.parameters.calc_relzonearea()
+         >>> derived.relzonearea
+         relzonearea(1.0)
+
+         An example for three zones of different sizes:
+
+         >>> nmbzones(3)
+         >>> zonearea(1., 3., 2.)
+         >>> model.parameters.calc_relzonearea()
+         >>> derived.relzonearea
+         relzonearea(0.166667, 0.5, 0.333333)
+
+   calc_landzonearea()
+
+      Calculate the fraction of the summed area of all "land zones"
+      (of type FIELD, FOREST, or ILAKE) and the total subbasin area,
+      and calculate the fractions of all "land zones" and the total
+      "land area" of the subbasin.
+
+      Required control parameters:
+         Area
+
+
+         ZoneArea
+
+
+         ZoneType
+
+      Calculated derived parameters:
+         RelLandArea
+
+
+         RelLandZoneArea
+
+      Examples:
+
+         With all zones being "land zones", the relative land area is
+         one by definition and the relative "land zone" areas are in
+         accordance with the original zone areas:
+
+         >>> from hydpy.models.hland import *
+         >>> parameterstep('1d')
+         >>> nmbzones(3)
+         >>> zonetype(FIELD, FOREST, GLACIER)
+         >>> area(100.)
+         >>> zonearea(25., 25., 50.)
+         >>> model.parameters.calc_landzonearea()
+         >>> derived.rellandarea
+         rellandarea(1.0)
+         >>> derived.rellandzonearea
+         rellandzonearea(field=0.25, forest=0.25, glacier=0.5)
+
+         With one zone being a lake zone, the relative "land area" is
+         decreased and the relative "land zone" areas are increased
+         --- except the one related to the internal lake, which is set
+         to zero:
+
+         >>> zonetype(FIELD, FOREST, ILAKE)
+         >>> model.parameters.calc_landzonearea()
+         >>> derived.rellandarea
+         rellandarea(0.5)
+         >>> derived.rellandzonearea
+         rellandzonearea(field=0.5, forest=0.5, ilake=0.0)
+
+         With all zones being lake zones, all relative areas are zero:
+
+         >>> zonetype(ILAKE, ILAKE, ILAKE)
+         >>> model.parameters.calc_landzonearea()
+         >>> derived.rellandarea
+         rellandarea(0.0)
+         >>> derived.rellandzonearea
+         rellandzonearea(0.0)
+
+   calc_soilarea()
+
+      Calculate the fraction of the summed area of all "soil zones"
+      (of type FIELD or FOREST) and the total subbasin area, and
+      calculate the fractions of all "soil zones" and the total "soil
+      area" of the subbasin.
+
+      Required control parameters:
+         Area
+
+
+         ZoneArea
+
+
+         ZoneType
+
+      Calculated derived parameters:
+         RelSoilArea
+
+
+         RelSoilZoneArea
+
+      Examples:
+
+         With all zones being "soil zones", the relative land area is
+         one by definition and the relative "soil zone" areas are in
+         accordance with the original zone areas:
+
+         >>> from hydpy.models.hland import *
+         >>> parameterstep('1d')
+         >>> nmbzones(4)
+         >>> zonetype(FIELD, FOREST, FIELD, FOREST)
+         >>> area(100.)
+         >>> zonearea(25., 25., 25., 25.)
+         >>> model.parameters.calc_soilarea()
+         >>> derived.relsoilarea
+         relsoilarea(1.0)
+         >>> derived.relsoilzonearea
+         relsoilzonearea(0.25)
+
+         With one zone being a lake zone one one zone being a glacier
+         zone, the relative "soil area" is decreased and the relative
+         "soil zone" areas are increased --- except the ones related
+         to the internal lake and the glacier, which are set to zero:
+
+         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+         >>> model.parameters.calc_soilarea()
+         >>> derived.relsoilarea
+         relsoilarea(0.5)
+         >>> derived.relsoilzonearea
+         relsoilzonearea(field=0.5, forest=0.5, glacier=0.0, ilake=0.0)
+
+         With all zones being lake or glacier zones, all relative
+         areas are zero:
+
+         >>> zonetype(GLACIER, GLACIER, ILAKE, ILAKE)
+         >>> model.parameters.calc_soilarea()
+         >>> derived.relsoilarea
+         relsoilarea(0.0)
+         >>> derived.relsoilzonearea
+         relsoilzonearea(0.0)
+
+   calc_ttm()
+
+      Calculate the threshold temperature for melting and refreezing.
+
+      Required control parameters:
+         TT
+
+
+         DTTM
+
+      Calculated derived parameter:
+         TTM
+
+      Basic equation:
+         TTM = TT+DTTM
+
+      Example:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(1)
+      >>> tt(1.)
+      >>> dttm(-2.)
+      >>> model.parameters.calc_ttm()
+      >>> derived.ttm
+      ttm(-1.0)
+
+   calc_dt()
+
+      Determine the relative time step size for solving the upper zone
+      layer routine.
+
+      Required control parameter:
+         RecStep
+
+      Calculated derived parameter:
+         DT
+
+      Basic equation:
+         DT = \frac{1}{RecStep}
+
+      Examples:
+
+         >>> from hydpy.models.hland import *
+         >>> parameterstep('1d')
+         >>> simulationstep('12h')
+         >>> recstep(2.)
+         >>> model.parameters.calc_dt()
+         >>> derived.dt
+         dt(1.0)
+         >>> recstep(10.)
+         >>> model.parameters.calc_dt()
+         >>> derived.dt
+         dt(0.2)
+
+         Note that the value assigned to recstep is related to the
+         given parameter step size of one day.  The actually applied
+         recstep of the last example is:
+
+         >>> recstep.value
+         5
+
+   calc_qfactor()
+
+      Determine the factor for converting values of
+
+      QT
+
+       [mm/T] to values of
+
+      Q
+
+       [m³/s].
+
+      Required control parameter:
+         Area
+
+      Calculated derived parameter:
+         QFactor
+
+      Example:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> area(50.)
+      >>> model.parameters.calc_qfactor()
+      >>> derived.qfactor
+      qfactor(1.157407)
+
+   calc_nmbuh_uh()
+
+      Calculate the ordinates of the triangle unit hydrograph.
+
+      Note that also the shape of sequence
+
+      QUH
+
+       is defined in accordance with NmbUH.
+
+      Required control parameter:
+         MaxBaz
+
+      Calculated derived parameters:
+         NmbUH UH
+
+      Prepared log sequence:
+         QUH
+
+      Examples:
+
+         MaxBaz determines the end point of the triangle.  A value of
+         MaxBaz being not larger than the simulation step size is
+         identical with applying no unit hydrograph at all:
+
+         >>> from hydpy.models.hland import *
+         >>> parameterstep('1d')
+         >>> simulationstep('12h')
+         >>> maxbaz(0.)
+         >>> model.parameters.calc_nmbuh_uh()
+         >>> derived.nmbuh
+         nmbuh(1)
+         >>> logs.quh.shape
+         (1,)
+         >>> derived.uh
+         uh(1.0)
+
+         Note that, due to difference of the parameter and the
+         simulation step size in the given example, the largest
+         assignement resulting in a *inactive* unit hydrograph is 1/2:
+
+         >>> maxbaz(0.5)
+         >>> model.parameters.calc_nmbuh_uh()
+         >>> derived.nmbuh
+         nmbuh(1)
+         >>> logs.quh.shape
+         (1,)
+         >>> derived.uh
+         uh(1.0)
+
+         When MaxBaz is in accordance with two simulation steps, both
+         unit hydrograph ordinats must be 1/2, due to symmetry of the
+         triangle:
+
+         >>> maxbaz(1.)
+         >>> model.parameters.calc_nmbuh_uh()
+         >>> derived.nmbuh
+         nmbuh(2)
+         >>> logs.quh.shape
+         (2,)
+         >>> derived.uh
+         uh(0.5)
+
+         A MaxBaz value in accordance with three simulation steps
+         results --- when expressed as fractions --- in the ordinate
+         values 2/9, 5/9, and 2/9:
+
+         >>> maxbaz(1.5)
+         >>> model.parameters.calc_nmbuh_uh()
+         >>> derived.nmbuh
+         nmbuh(3)
+         >>> logs.quh.shape
+         (3,)
+         >>> derived.uh
+         uh(0.222222, 0.555556, 0.222222)
+
+         And a final example, where the end of the triangle lies
+         within a simulation step, resulting in the fractions 8/49,
+         23/49, 16/49, and 2/49:
+
+         >>> maxbaz(1.75)
+         >>> model.parameters.calc_nmbuh_uh()
+         >>> derived.nmbuh
+         nmbuh(4)
+         >>> logs.quh.shape
+         (4,)
+         >>> derived.uh
+         uh(0.163265, 0.469388, 0.326531, 0.040816)
+
+Constants
+
+The HydPy-H-Land model (
+
+hland
+
+) allows for the subdivision of subbasins into zones (hydrological
+response units).  Some processes, e.g. interception, are calculated
+separately for each zone.  This is why some parameters (e.g. the
+interception capacity
+
+IcMax
+
+) and some sequences (e.g. the actual interception storage
+
+Ic
+
+) are 1-dimensional.  Each entry represents the value of a different
+zone.
+
+In contrasts to the original HBV96 model, the HydPy-H-Land model
+allows for arbitrary definitions of zones.  Nevertheless, the original
+distinction in accordance with four different zone types is still
+supported.  The parameter
+
+ZoneType
+
+ defines e.g. which entry of
+
+IcMax
+
+ is related to which zone type via integer values.  Note that for
+zones of type
+
+FIELD
+
+ and
+
+FOREST
+
+ the same equations are applied. (Usually, larger
+
+IcMax
+
+ values and smaller
+
+CFMax
+
+ are assigned to
+
+FOREST
+
+ zones due to their higher leaf area index and the associated decrease
+in solar radiation.) On the contrary, zones of type
+
+GLACIER
+
+ and
+
+ILAKE
+
+ are partly connected to different process equations.
+
+For comprehensibility, this module introduces the relevant integer
+constants. Through performing a wildcard import
+
+>>> from hydpy.models.hland import *
+
+these are available in your local namespace:
+
+>>> FIELD, FOREST, GLACIER, ILAKE
+(1, 2, 3, 4)
+
+hydpy.models.hland.hland_constants.FIELD = 1
+
+   Constant for the zone type *field*.
+
+hydpy.models.hland.hland_constants.FOREST = 2
+
+   Constant for the zone type *forest*.
+
+hydpy.models.hland.hland_constants.GLACIER = 3
+
+   Constant for the zone type *glacier*.
+
+hydpy.models.hland.hland_constants.ILAKE = 4
+
+   Constant for the zone type *internal lake*.
+
+Control parameters
+
+class hydpy.models.hland.hland_control.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of HydPy-H-Land, directly defined by the user.
+
+   The following parameter classes are selected:
+      Area Subbasin area [km²].
+
+      NmbZones Number of zones (hydrological response units) in a
+      subbasin [-].
+
+      ZoneType Type of each zone: 1 (FIELD), 2 (FOREST), 3 (GLACIER),
+      or 4 (ILAKE).
+
+      ZoneArea Zone area [km²].
+
+      ZoneZ Zone elevation [100m].
+
+      ZRelP Subbasin-wide reference elevation level for precipitation
+      [100m].
+
+      ZRelT Subbasin-wide reference elevation level for temperature
+      [100m].
+
+      ZRelE Subbasin-wide reference elevation level for evaporation
+      [100m].
+
+      PCorr General precipitation correction factor [-].
+
+      PCAlt Elevation correction factor for precipitation [-1/100m].
+
+      RfCF Rainfall correction factor [-].
+
+      SfCF Snowfall correction factor [-].
+
+      TCAlt Elevation correction factor for temperature [-1°C/100m].
+
+      ECorr General evaporation correction factor [-].
+
+      ECAlt Elevation correction factor for evaporation [-1/100m].
+
+      EPF Decrease in potential evaporation due to precipitation
+      [T/mm].
+
+      ETF Temperature factor for evaporation [1/°C].
+
+      ERed Factor for restricting actual to potential evaporation [-].
+
+      TTIce Temperature threshold for lake evaporation [°C].
+
+      IcMax Maximum interception storage [mm].
+
+      TT Temperature threshold for snow/rain [°C].
+
+      TTInt Temperature interval with a mixture of snow and rain [°C].
+
+      DTTM Difference between TTM and TT [°C].
+
+      CFMax Degree day factor for snow (on glaciers or not) [mm/°C/T].
+
+      GMelt Degree day factor for glacial ice [mm/°C/T].
+
+      CFR Refreezing factor for water stored within the snow layer
+      [-].
+
+      WHC Relative water holding capacity of the snow layer [-].
+
+      FC Maximum soil moisture content (field capacity) [mm].
+
+      LP Relative limit for potential evaporation [-].
+
+      Beta Nonlinearity parameter of the soil routine [-].
+
+      PercMax Maximum percolation rate [mm/T].
+
+      CFlux Capacity (maximum) of the capillary return flux [mm/T].
+
+      RespArea Flag to enable the contributing area approach [-].
+
+      RecStep Number of internal computation steps per simulation time
+      step [-].
+
+      Alpha Nonlinearity parameter of the upper zone layer [-].
+
+      K Recession coefficient of the upper zone layer [1/T/mm^alpha].
+
+      K4 Recession coefficient of the lower zone layer [1/T].
+
+      Gamma Nonlinearity parameter of the lower zone layer [-].
+
+      MaxBaz Base length of the triangle unit hydrograph [T].
+
+      Abstr Abstraction of water from computed outflow [mm/T].
+
+class hydpy.models.hland.hland_control.Area
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Subbasin area [km²].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (1e-10, None)
+
+class hydpy.models.hland.hland_control.NmbZones
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Number of zones (hydrological response units) in a subbasin [-].
+
+   Note that
+
+   NmbZones
+
+    determines the length of most 1-dimensional HydPy-H-Land
+   parameters and sequences.  This required that the value of the
+   respective
+
+   NmbZones
+
+    instance is set before any of the values of these 1-dimensional
+   parameters or sequences are set.  Changing the value of the
+
+   NmbZones
+
+    instance necessitates setting their values again.
+
+   Examples:
+
+   >>> from hydpy.models.hland import *
+   >>> parameterstep('1d')
+   >>> nmbzones(5)
+   >>> icmax.shape
+   (5,)
+   >>> states.ic.shape
+   (5,)
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (1, None)
+
+class hydpy.models.hland.hland_control.ZoneType
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Type of each zone: 1 (FIELD), 2 (FOREST), 3 (GLACIER), or 4
+   (ILAKE).
+
+   For increasing legibility, the HydPy-H-Land constants are used for
+   string representions of
+
+   ZoneType
+
+    instances:
+
+   >>> from hydpy.models.hland import *
+   >>> parameterstep('1d')
+   >>> nmbzones(8)
+   >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, GLACIER, FOREST, FIELD)
+   >>> zonetype.values
+   array([1, 2, 3, 4, 4, 3, 2, 1])
+   >>> zonetype
+   zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, GLACIER, FOREST, FIELD)
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (1, 4)
+
+   compress_repr()
+
+      Returns a list which contains a string representation with zone
+      types being defined by the constants *FIELD*, *FOREST*...
+
+class hydpy.models.hland.hland_control.ZoneArea
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Zone area [km²].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.ZoneZ
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Zone elevation [100m].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.ZRelT
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Subbasin-wide reference elevation level for temperature [100m].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.ZRelP
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Subbasin-wide reference elevation level for precipitation [100m].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.ZRelE
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Subbasin-wide reference elevation level for evaporation [100m].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.PCorr
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   General precipitation correction factor [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.PCAlt
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Elevation correction factor for precipitation [-1/100m].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.RfCF
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Rainfall correction factor [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.SfCF
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Snowfall correction factor [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.TCAlt
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Elevation correction factor for temperature [-1°C/100m].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.ECorr
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterNoGlacier
+
+   General evaporation correction factor [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.ECAlt
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterNoGlacier
+
+   Elevation correction factor for evaporation [-1/100m].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.EPF
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterNoGlacier
+
+   Decrease in potential evaporation due to precipitation [T/mm].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.ETF
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterNoGlacier
+
+   Temperature factor for evaporation [1/°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.ERed
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterSoil
+
+   Factor for restricting actual to potential evaporation [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_control.TTIce
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterLake
+
+   Temperature threshold for lake evaporation [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.IcMax
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterSoil
+
+   Maximum interception storage [mm].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.TT
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Temperature threshold for snow/rain [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.TTInt
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Temperature interval with a mixture of snow and rain [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.DTTM
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterLand
+
+   Difference between
+
+   TTM
+
+    and
+
+   TT
+
+    [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_control.CFMax
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterLand
+
+   Degree day factor for snow (on glaciers or not) [mm/°C/T].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.GMelt
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterGlacier
+
+   Degree day factor for glacial ice [mm/°C/T].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.CFR
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterLand
+
+   Refreezing factor for water stored within the snow layer [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.WHC
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterLand
+
+   Relative water holding capacity of the snow layer [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.FC
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterSoil
+
+   Maximum soil moisture content (field capacity) [mm].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.LP
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterSoil
+
+   Relative limit for potential evaporation [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_control.Beta
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterSoil
+
+   Nonlinearity parameter of the soil routine [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.CFlux
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterSoil
+
+   Capacity (maximum) of the capillary return flux [mm/T].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.RespArea
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Flag to enable the contributing area approach [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.bool"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.RecStep
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Number of internal computation steps per simulation time step [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = True
+
+   SPAN = (1, None)
+
+class hydpy.models.hland.hland_control.PercMax
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Maximum percolation rate [mm/T].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.K
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Recession coefficient of the upper zone layer [1/T/mm^alpha].
+
+   In addition to the
+
+   SingleParameter
+
+    call method, it is possible to set the value of parameter
+
+   K
+
+    in accordance to the keyword arguments *khq*, *hq* and
+   (optionally) *alpha*.  If *alpha* is not given, the value of the
+   respective
+
+   Alpha
+
+    instance is taken.  This requires the
+
+   Alpha
+
+    instance to be initialized beforehand.
+
+   Basic Equation:
+      K = \frac{HQ}{(HQ/KHQ)^{1+Alpha}}
+
+   Examples:
+
+      When directly setting the value of parameter k, one only needs
+      to be aware of its time dependence:
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> k(2.)
+      >>> k
+      k(2.0)
+      >>> k.value
+      1.0
+
+      Alternatively, one can specify the following three keyword
+      arguments directly,...
+
+      >>> k(hq=10., khq=2., alpha=1.)
+      >>> k
+      k(0.4)
+      >>> k.value
+      0.2
+
+      ...or define the value of parameter alpha beforehand:
+
+      >>> alpha(2.)
+      >>> k(hq=10., khq=2.)
+      >>> k
+      k(0.08)
+      >>> k.value
+      0.04
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.Alpha
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Nonlinearity parameter of the upper zone layer [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.K4
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Recession coefficient of the lower zone layer [1/T].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.Gamma
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Nonlinearity parameter of the lower zone layer [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.MaxBaz
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Base length of the triangle unit hydrograph [T].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_control.Abstr
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Abstraction of water from computed outflow [mm/T].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (None, None)
+
+Derived parameters
+
+class hydpy.models.hland.hland_derived.DerivedParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Derived parameters of HydPy-H-Land, indirectly defined by the user.
+
+   The following parameter classes are selected:
+      RelZoneArea Relative zone area [-].
+
+      RelSoilArea Total area of all field and forest zones [km²].
+
+      RelSoilZoneArea Relative zone area of all field and forest zones
+      [-].
+
+      RelLandZoneArea Relative Zone area of all field, forest and
+      glacier zones [-].
+
+      RelLandArea Quotient of the sum of ZoneArea and Area for zones
+      that are not of type ILAKE [-].
+
+      TTM Threshold temperature for snow melting and refreezing [°C].
+
+      DT Relative time step length for the upper zone layer
+      calculations [-].
+
+      NmbUH Number of the required unit hydrograph ordinates [-].
+
+      UH Unit hydrograph ordinates [-].
+
+      QFactor Factor for converting mm/stepsize to m³/s.
+
+class hydpy.models.hland.hland_derived.RelZoneArea
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Relative zone area [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_derived.RelSoilArea
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Total area of all *field* and *forest* zones [km²].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_derived.RelSoilZoneArea
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Relative zone area of all *field* and *forest* zones [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_derived.RelLandZoneArea
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameter
+
+   Relative Zone area of all *field*, *forest* and *glacier* zones
+   [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_derived.RelLandArea
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Quotient of the sum of
+
+   ZoneArea
+
+    and
+
+   Area
+
+    for zones that are not of type
+
+   ILAKE
+
+    [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_derived.TTM
+
+   Bases:
+
+   hydpy.models.hland.hland_parameters.MultiParameterLand
+
+   Threshold temperature for snow melting and refreezing [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hland.hland_derived.DT
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Relative time step length for the upper zone layer calculations
+   [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_derived.NmbUH
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Number of the required unit hydrograph ordinates [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (0, None)
+
+class hydpy.models.hland.hland_derived.UH
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Unit hydrograph ordinates [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.hland.hland_derived.QFactor
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Factor for converting mm/stepsize to m³/s.
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+Sequence features
+
+Input sequences
+
+class hydpy.models.hland.hland_inputs.InputSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequences
+
+   Input sequences of the hland model.
+
+   The following sequence classes are selected:
+      P Precipitation [mm].
+
+      T Temperature [°C].
+
+      TN Normal temperature [°C].
+
+      EPN Normal potential evaporation [mm].
+
+class hydpy.models.hland.hland_inputs.P
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Precipitation [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_inputs.T
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Temperature [°C].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_inputs.TN
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Normal temperature [°C].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_inputs.EPN
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Normal potential evaporation [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+Flux sequences
+
+class hydpy.models.hland.hland_fluxes.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequences
+
+   Flux sequences of the HydPy-H-Land model.
+
+   The following sequence classes are selected:
+      TMean Mean subbasin temperature [°C].
+
+      TC Corrected temperature [°C].
+
+      FracRain Fraction rainfall / total precipitation [-].
+
+      RfC Actual precipitation correction related to liquid
+      precipitation [-].
+
+      SfC Actual precipitation correction related to frozen
+      precipitation [-].
+
+      PC Corrected precipitation [mm].
+
+      EP Potential evaporation [mm].
+
+      EPC Corrected potential evaporation [mm].
+
+      EI Interception evaporation [mm].
+
+      TF Throughfall [mm].
+
+      GlMelt Glacier melt [mm].
+
+      Melt Actual melting of frozen water stored in the snow layer
+      [mm].
+
+      Refr Actual (re)freezing of liquid water stored in the snow
+      layer [mm].
+
+      In_ Snow module release/soil module inflow [mm].
+
+      R Effective soil response [mm].
+
+      EA Actual soil evaporation [mm].
+
+      CFPot Potential capillary flow [mm].
+
+      CF Actual capillary flow [mm].
+
+      Perc Percolation from the upper to the lower zone layer [mm].
+
+      ContriArea Fraction of the soil area contributing to runoff
+      generation [-].
+
+      InUZ Inflow to the upper zone layer [mm].
+
+      Q0 Outflow from the upper zone layer [mm].
+
+      EL Actual lake evaporation [mm].
+
+      Q1 Outflow from the lower zone layer [mm].
+
+      InUH Input of the triangle unit hydrograph [m].
+
+      OutUH Output of the triangle unit hydrograph [m].
+
+      QT Total model outflow [mm].
+
+class hydpy.models.hland.hland_fluxes.TMean
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Mean subbasin temperature [°C].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.TC
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Corrected temperature [°C].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.FracRain
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Fraction rainfall / total precipitation [-].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.RfC
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Actual precipitation correction related to liquid precipitation
+   [-].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.SfC
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Actual precipitation correction related to frozen precipitation
+   [-].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.PC
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Corrected precipitation [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.EP
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Potential evaporation [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.EPC
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Corrected potential evaporation [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.EI
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Interception evaporation [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.TF
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Throughfall [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.GlMelt
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Glacier melt [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.Melt
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Actual melting of frozen water stored in the snow layer [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.Refr
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Actual (re)freezing of liquid water stored in the snow layer [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.In_
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Snow module release/soil module inflow [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.R
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Effective soil response [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.EA
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Actual soil evaporation [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.CFPot
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Potential capillary flow [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.CF
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Actual capillary flow [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.ContriArea
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Fraction of the *soil area* contributing to runoff generation [-].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.InUZ
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Inflow to the upper zone layer [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.Perc
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Percolation from the upper to the lower zone layer [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.Q0
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Outflow from the upper zone layer [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.EL
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Actual lake evaporation [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.Q1
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Outflow from the lower zone layer [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.InUH
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Input of the triangle unit hydrograph  [m].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.OutUH
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Output of the triangle unit hydrograph  [m].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hland.hland_fluxes.QT
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Total model outflow [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+State sequences
+
+class hydpy.models.hland.hland_states.StateSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequences
+
+   State sequences of the HydPy-H-Land model.
+
+   The following sequence classes are selected:
+      Ic Interception storage [mm].
+
+      SP Frozen water stored in the snow layer [mm].
+
+      WC Liquid water content of the snow layer [mm].
+
+      SM Soil moisture [mm].
+
+      UZ Storage in the upper zone layer [mm].
+
+      LZ Storage in the lower zone layer [mm].
+
+class hydpy.models.hland.hland_states.Ic
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Interception storage [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with IC \leq ICMAX.
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(5)
+      >>> icmax(2.)
+      >>> states.ic(-1.,0., 1., 2., 3.)
+      >>> states.ic
+      ic(0.0, 0.0, 1.0, 2.0, 2.0)
+
+class hydpy.models.hland.hland_states.SP
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Frozen water stored in the snow layer [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+   trim(lower=None, upper=None)
+
+      Trim values in accordance with WC \leq WHC \cdot SP.
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(7)
+      >>> whc(.1)
+      >>> states.wc.values = -1., 0., 1., -1., 0., .5, 1.
+      >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
+      >>> states.sp
+      sp(0.0, 0.0, 10.0, 5.0, 5.0, 5.0, 10.0)
+
+class hydpy.models.hland.hland_states.WC
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Liquid water content of the snow layer [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+   trim(lower=None, upper=None)
+
+      Trim values in accordance with WC \leq WHC \cdot SP.
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(7)
+      >>> whc(.1)
+      >>> states.sp = 0., 0., 0., 5., 5., 5., 5.
+      >>> states.wc(-1., 0., 1., -1., 0., .5, 1.)
+      >>> states.wc
+      wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
+
+class hydpy.models.hland.hland_states.SM
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Soil moisture [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+   trim(lower=None, upper=None)
+
+      Trim values in accordance with SM \leq FC.
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(5)
+      >>> fc(200.)
+      >>> states.sm(-100.,0., 100., 200., 300.)
+      >>> states.sm
+      sm(0.0, 0.0, 100.0, 200.0, 200.0)
+
+class hydpy.models.hland.hland_states.UZ
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Storage in the upper zone layer [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.hland.hland_states.LZ
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Storage in the lower zone layer [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+   trim(lower=None, upper=None)
+
+      Trim negative value whenever there is no internal lake within
+      the respective subbasin.
+
+      >>> from hydpy.models.hland import *
+      >>> parameterstep('1d')
+      >>> nmbzones(2)
+      >>> zonetype(FIELD, ILAKE)
+      >>> states.lz(-1.)
+      >>> states.lz
+      lz(-1.0)
+      >>> zonetype(FIELD, FOREST)
+      >>> states.lz(-1.0)
+      >>> states.lz
+      lz(0.0)
+      >>> states.lz(1.)
+      >>> states.lz
+      lz(1.0)
+
+Log sequences
+
+class hydpy.models.hland.hland_logs.LogSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LogSequences
+
+   Log sequences of the hland model.
+
+   The following sequence classes are selected:
+      QUH Whole outflow delayed by means of the unit hydrograph [mm].
+
+class hydpy.models.hland.hland_logs.QUH
+
+   Bases:
+
+   hydpy.core.sequencetools.LogSequence
+
+   Whole outflow delayed by means of the unit hydrograph [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+Outlet sequences
+
+class hydpy.models.hland.hland_outlets.OutletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Downstream link sequences of the hland model.
+
+   The following sequence classes are selected:
+      Q Runoff [m³/s].
+
+class hydpy.models.hland.hland_outlets.Q
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequence
+
+   Runoff [m³/s].
+
+   NDIM = 0
+
+   NUMERIC = False

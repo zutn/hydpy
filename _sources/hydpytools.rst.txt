@@ -1,0 +1,522 @@
+hydpytools
+
+This module implements superordinate tools for handling a HydPy
+project.
+
+Module
+
+hydpytools
+
+ implements the following members:
+
+   HydPy Main class for managing HydPy projects.
+
+
+class hydpy.core.hydpytools.HydPy(projectname=None)
+
+   Bases:
+
+   object
+
+   Main class for managing HydPy projects.
+
+   nmb_instances = 0
+
+   prepare_network()
+
+      Load all network files as
+
+      Selections
+
+       (stored in module "pub") and assign the "complete" selection to
+      the
+
+      HydPy
+
+       object.
+
+   init_models()
+
+      Call method
+
+      init_model()
+
+       of all
+
+      Element
+
+       objects currently handled by the
+
+      HydPy
+
+       object.
+
+   save_controls(controldir=None, projectdir=None, parameterstep=None, simulationstep=None, auxfiler=None)
+
+      Call method
+
+      save_controls()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   load_conditions(conditiondir=None, projectdir=None)
+
+      Call method
+
+      load_conditions()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_conditions(conditiondir=None, projectdir=None, controldir=None)
+
+      Call method
+
+      save_conditions()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   trim_conditions()
+
+      Call method
+
+      trim_conditions()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   reset_conditions()
+
+      Call method
+
+      reset_conditions()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   connect()
+
+      Call method
+
+      connect()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   networkproperties
+
+      Print out some properties of the network defined by the
+
+      Node
+
+       and
+
+      Element
+
+       objects currently handled by the
+
+      HydPy
+
+       object.
+
+   numberofnetworks
+
+      The number of distinct networks defined by the|Node| and
+
+      Element
+
+       objects currently handled by the
+
+      HydPy
+
+       object.
+
+   endnodes
+
+      Nodes
+
+       object containing all
+
+      Node
+
+       objects currently handled by the
+
+      HydPy
+
+       object which define a downstream end point of a network.
+
+   variables
+
+      Sorted list of strings summarizing all variables handled by the
+
+      Node
+
+       objects
+
+   simindices
+
+      Tuple containing the start and end index of the simulation
+      period regarding the initialization period defined by the
+
+      Timegrids
+
+       object stored in module "pub".
+
+   open_files(idx=0)
+
+      Call method
+
+      open_files()
+
+       of the
+
+      Nodes
+
+       and
+
+      Elements
+
+       objects currently handled by the
+
+      HydPy
+
+       object.
+
+   close_files()
+
+      Call method
+
+      close_files()
+
+       of the
+
+      Nodes
+
+       and
+
+      Elements
+
+       objects currently handled by the
+
+      HydPy
+
+       object.
+
+   update_devices(selection=None)
+
+      Determines the order, in which the
+
+      Node
+
+       and
+
+      Element
+
+       objects currently handled by the
+
+      HydPy
+
+       objects need to be processed during a simulation time step.
+      Optionally, a
+
+      Selection
+
+       object for defining new
+
+      Node
+
+       and
+
+      Element
+
+       objects can be passed.
+
+   methodorder
+
+      A list containing all methods of all
+
+      Node
+
+       and
+
+      Element
+
+       objects that need to be processed during a simulation time step
+      in the order they must be called.
+
+   doit()
+
+      Perform a simulation run over the actual simulation time period
+      defined by the
+
+      Timegrids
+
+       object stored in module "pub".
+
+   prepare_modelseries(ramflag=True)
+
+      Call method
+
+      prepare_allseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   prepare_inputseries(ramflag=True)
+
+      Call method
+
+      prepare_inputseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   prepare_fluxseries(ramflag=True)
+
+      Call method
+
+      prepare_fluxseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   prepare_stateseries(ramflag=True)
+
+      Call method
+
+      prepare_stateseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   prepare_nodeseries(ramflag=True)
+
+      Call method
+
+      prepare_allseries()
+
+       of the
+
+      Nodes
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   prepare_simseries(ramflag=True)
+
+      Call method
+
+      prepare_simseries()
+
+       of the
+
+      Nodes
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   prepare_obsseries(ramflag=True)
+
+      Call method
+
+      prepare_obsseries()
+
+       of the
+
+      Nodes
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_modelseries()
+
+      Call method
+
+      save_allseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_inputseries()
+
+      Call method
+
+      save_inputseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_fluxseries()
+
+      Call method
+
+      save_fluxseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_stateseries()
+
+      Call method
+
+      save_stateseries()
+
+       of the
+
+      Elements
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_nodeseries()
+
+      Call method
+
+      save_allseries()
+
+       of the
+
+      Nodes
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_simseries()
+
+      Call method
+
+      save_simseries()
+
+       of the
+
+      Nodes
+
+       object currently handled by the
+
+      HydPy
+
+       object.
+
+   save_obsseries()
+
+      Call method
+
+      save_obsseries()
+
+       of the
+
+      Nodes
+
+       object currently handled by the
+
+      HydPy
+
+       object.

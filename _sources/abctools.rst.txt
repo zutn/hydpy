@@ -1,0 +1,563 @@
+abctools
+
+This module provides some abstract base classes.
+
+There are some type checks within the HydPy framework relying on the
+build in  function
+
+isinstance()
+
+.  In order to keep HydPy "pythonic", the following abstract base
+classes are defined.  All calls to
+
+isinstance()
+
+ should rely these abstract base classes instead of the respective
+original classes.  This helps to build e.g. a new parameter class when
+one wants to avoid to inherit from
+
+Parameter
+
+.
+
+At the moment, the provided classes do not provide things like
+abstract methods (should be added later).  Just use them to register
+new classes that are not actual subclasses of the respective HydPy
+classes, but should be handled as if they were.  See class
+
+ANN
+
+ as an example.
+
+Module
+
+abctools
+
+ implements the following members:
+
+   DocABC ABC base class automatically documenting is registered
+   subclasses.
+
+   IterableNonStringABC Abstract base class for checking if an object
+   is iterable but not a string.
+
+   ElementABC Abstract base class for registering custom Element
+   classes.
+
+   NodeABC Abstract base class for registering custom Node classes.
+
+   VariableABC Abstract base class for registering custom Variable
+   classes.
+
+   ParameterABC Abstract base class for registering custom Parameter
+   classes.
+
+   ANNABC Abstract base class for registering custom ANN classes.
+
+   SeasonalANNABC Abstract base class for registering custom
+   SeasonalANN classes.
+
+   IOSequencesABC Abstract base class for registering custom
+   IOSequences classes.
+
+   InputSequencesABC Abstract base class for registering custom
+   InputSequences classes.
+
+   OutputSequencesABC Abstract base class for registering custom
+   "OutputSequences" classes like FluxSequences.
+
+   SequenceABC Abstract base class for registering custom Sequence
+   classes.
+
+   InputSequenceABC Abstract base class for registering custom
+   InputSequence classes.
+
+   FluxSequenceABC Abstract base class for registering custom
+   FluxSequence classes.
+
+   ConditionSequenceABC Abstract base class for registering custom
+   ConditionSequence classes.
+
+   StateSequenceABC Abstract base class for registering custom
+   StateSequence classes.
+
+   LogSequenceABC Abstract base class for registering custom
+   LogSequence classes.
+
+   AideSequenceABC Abstract base class for registering custom
+   AideSequence classes.
+
+   LinkSequenceABC Abstract base class for registering custom
+   LinkSequence classes.
+
+   NodeSequenceABC Abstract base class for registering custom
+   NodeSequence classes.
+
+   DateABC Abstract base class for registering custom Date classes.
+
+   PeriodABC Abstract base class for registering custom Period
+   classes.
+
+   TimegridABC Abstract base class for registering custom Timegrid
+   classes.
+
+   TimegridsABC Abstract base class for registering custom Timegrids
+   classes.
+
+   TOYABC Abstract base class for registering custom TOY classes.
+
+   ModelABC Abstract base class for registering custom Model classes.
+
+
+class hydpy.core.abctools.DocABC
+
+   Bases:
+
+   abc.ABC
+
+   ABC base class automatically documenting is registered subclasses.
+
+   classmethod register(subclass)
+
+      Add information to the documentation of the given abstract base
+      class and register the subclass afterwards.
+
+      Subclass the new abstract base class *NewABC* and define some
+      new concrete classes (*New1*, *New2*, *New3*) which do not
+      inherit from *NewABC*:
+
+      >>> from hydpy.core.abctools import DocABC
+      >>> class NewABC(DocABC):
+      ...    "A new base class."
+      >>> class New1(object):
+      ...     "First new class"
+      >>> class New2(object):
+      ...     "Second new class"
+      >>> class New3(object):
+      ...     "Third new class"
+
+      The docstring *NewABC* is still the same as defined above:
+
+      >>> print(NewABC.__doc__)
+      A new base class.
+
+      Now we register the concrete classes *New1* and *New2*:
+
+      >>> NewABC.register(New2)
+      >>> NewABC.register(New1)
+      >>> NewABC.register(New2)
+
+      Now the docstring of *NewABC* includes the information about the
+      concrete classes already registered:
+
+      >>> print(NewABC.__doc__)
+      A new base class.
+      <BLANKLINE>
+      At the moment, the following classes are registered:
+           * :class:`~hydpy.core.abctools.New2`
+           * :class:`~hydpy.core.abctools.New1`
+
+      Note that the docstring order is the registration order. Also
+      note that the "accidental reregistration" of class *New2* does
+      not modify the docstring.
+
+      Now the concrete classes *New1* and *New2* are handled as if
+      they were actual subclasses of *NewABC*, but class *New3* --
+      which had not been registered -- is not:
+
+      >>> issubclass(New1, NewABC)
+      True
+      >>> isinstance(New1(), NewABC)
+      True
+      >>> issubclass(New2, NewABC)
+      True
+      >>> isinstance(New2(), NewABC)
+      True
+      >>> issubclass(New3, NewABC)
+      False
+      >>> isinstance(New3(), NewABC)
+      False
+
+class hydpy.core.abctools.IterableNonStringABC
+
+   Bases:
+
+   abc.ABC
+
+   Abstract base class for checking if an object is iterable but not a
+   string.
+
+class hydpy.core.abctools.ElementABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Element
+
+    classes.
+
+   At the moment, the following classes are registered:
+      Element
+
+class hydpy.core.abctools.NodeABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Node
+
+    classes.
+
+   At the moment, the following classes are registered:
+      Node
+
+class hydpy.core.abctools.VariableABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Variable
+
+    classes.
+
+      Usually, new classes should either be registered as a parameter
+      or a sequence.  Afterwards, they are automatically handled as
+
+      Variable
+
+       subclasses:
+
+      >>> from hydpy.core.abctools import VariableABC, ParameterABC
+      >>> class New(object):
+      ...     pass
+      >>> issubclass(New, VariableABC)
+      False
+      >>> ParameterABC.register(New)
+      >>> issubclass(New, VariableABC)
+      True
+
+   At the moment, the following classes are registered:
+      Variable
+
+class hydpy.core.abctools.ParameterABC
+
+   Bases:
+
+   hydpy.core.abctools.VariableABC
+
+   Abstract base class for registering custom
+
+   Parameter
+
+    classes. *
+
+   Parameter
+
+    *
+
+   ANN
+
+    *
+
+   SeasonalANN
+
+class hydpy.core.abctools.ANNABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   ANN
+
+    classes.
+
+   At the moment, the following classes are registered:
+      ANN
+
+class hydpy.core.abctools.SeasonalANNABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+   SeasonalANN
+
+      classes.
+
+   At the moment, the following classes are registered:
+      SeasonalANN
+
+class hydpy.core.abctools.IOSequencesABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   IOSequences
+
+    classes.
+
+   At the moment, the following classes are registered:
+      IOSequences
+
+class hydpy.core.abctools.InputSequencesABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   InputSequences
+
+    classes.
+
+   At the moment, the following classes are registered:
+      InputSequences
+
+class hydpy.core.abctools.OutputSequencesABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom "OutputSequences"
+   classes
+      like
+
+      FluxSequences
+
+      .
+
+   At the moment, the following classes are registered:
+      FluxSequences
+
+      StateSequences
+
+class hydpy.core.abctools.SequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.VariableABC
+
+   Abstract base class for registering custom
+
+   Sequence
+
+    classes. *
+
+   Sequence
+
+class hydpy.core.abctools.InputSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.SequenceABC
+
+   Abstract base class for registering custom
+
+   InputSequence
+
+    classes. *
+
+   InputSequence
+
+class hydpy.core.abctools.FluxSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.SequenceABC
+
+   Abstract base class for registering custom
+
+   FluxSequence
+
+    classes. *
+
+   FluxSequence
+
+class hydpy.core.abctools.ConditionSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.SequenceABC
+
+   Abstract base class for registering custom
+
+   ConditionSequence
+
+    classes.
+
+class hydpy.core.abctools.StateSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.ConditionSequenceABC
+
+   Abstract base class for registering custom
+
+   StateSequence
+
+    classes. *
+
+   StateSequence
+
+class hydpy.core.abctools.LogSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.ConditionSequenceABC
+
+   Abstract base class for registering custom
+
+   LogSequence
+
+    classes. *
+
+   LogSequence
+
+class hydpy.core.abctools.AideSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.SequenceABC
+
+   Abstract base class for registering custom
+
+   AideSequence
+
+    classes. *
+
+   AideSequence
+
+class hydpy.core.abctools.LinkSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.SequenceABC
+
+   Abstract base class for registering custom
+
+   LinkSequence
+
+    classes. *
+
+   LinkSequence
+
+class hydpy.core.abctools.NodeSequenceABC
+
+   Bases:
+
+   hydpy.core.abctools.SequenceABC
+
+   Abstract base class for registering custom
+
+   NodeSequence
+
+    classes. *
+
+   NodeSequence
+
+class hydpy.core.abctools.DateABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Date
+
+    classes.
+
+   At the moment, the following classes are registered:
+      Date
+
+class hydpy.core.abctools.PeriodABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Period
+
+    classes.
+
+   At the moment, the following classes are registered:
+      Period
+
+class hydpy.core.abctools.TimegridABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Timegrid
+
+    classes.
+
+   At the moment, the following classes are registered:
+      Timegrid
+
+class hydpy.core.abctools.TimegridsABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Timegrids
+
+    classes.
+
+   At the moment, the following classes are registered:
+      Timegrids
+
+class hydpy.core.abctools.TOYABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   TOY
+
+    classes.
+
+   At the moment, the following classes are registered:
+      TOY
+
+class hydpy.core.abctools.ModelABC
+
+   Bases:
+
+   hydpy.core.abctools.DocABC
+
+   Abstract base class for registering custom
+
+   Model
+
+    classes.
+
+   At the moment, the following classes are registered:
+      Model

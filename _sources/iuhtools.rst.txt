@@ -1,0 +1,415 @@
+iuhtools
+
+This module supports modelling based on instantaneous unit
+hydrographs.
+
+This module implements some abstract descriptor classes, metaclasses
+and base classes.  If you are just interested in applying a certain
+instantaneous unit hydrograph (iuh) function or if you want to
+implement an additional iuh, see the examples or the source code of
+class
+
+TranslationDiffusionEquation
+
+.
+
+Module
+
+iuhtools
+
+ implements the following members:
+
+   IUH_Parameter Descriptor base class for PrimaryParameter and
+   SecondaryParameter.
+
+   PrimaryParameter Descriptor base class for parameters of
+   instantaneous unit hydrograph functions to be defined by the user.
+
+   SecondaryParameter Descriptor base class for parameters of
+   instantaneous unit hydrograph functions which can be determined
+   automatically.
+
+   MetaIUH Metaclass for class IUH.
+
+   IUH Base class for instantaneous unit hydrograph function objects.
+
+   TranslationDiffusionEquation An instantaneous unit hydrograph based
+   on the translation diffusion equation.
+
+   LinearStorageCascade An instantaneous unit hydrograph based on the
+   linear storage cascade.
+
+
+class hydpy.auxs.iuhtools.IUH_Parameter(name, type_=<class 'float'>, doc=None)
+
+   Bases:
+
+   object
+
+   Descriptor base class for
+
+   PrimaryParameter
+
+    and
+
+   SecondaryParameter
+
+   .
+
+   The first initialization argument is the parameters name.
+   Optionally, an alternative type (the default type is
+
+   float
+
+   ) and a documentation string can be passed.
+
+class hydpy.auxs.iuhtools.PrimaryParameter(name, type_=<class 'float'>, doc=None)
+
+   Bases:
+
+   hydpy.auxs.iuhtools.IUH_Parameter
+
+   Descriptor base class for parameters of instantaneous unit
+   hydrograph functions to be defined by the user.
+
+   When a primary parameter value is set or deleted, the master
+   instance is instructed to
+
+   update()
+
+    all secondary parameter values.
+
+class hydpy.auxs.iuhtools.SecondaryParameter(name, type_=<class 'float'>, doc=None)
+
+   Bases:
+
+   hydpy.auxs.iuhtools.IUH_Parameter
+
+   Descriptor base class for parameters of instantaneous unit
+   hydrograph functions which can be determined automatically.
+
+class hydpy.auxs.iuhtools.MetaIUH
+
+   Bases:
+
+   type
+
+   Metaclass for class
+
+   IUH
+
+   .
+
+   For storing
+
+   PrimaryParameter
+
+    and
+
+   SecondaryParameter
+
+    in separate dictionaries.
+
+class hydpy.auxs.iuhtools.IUH(**kwargs)
+
+   Bases: "hydpy.auxs.iuhtools._MetaIUH"
+
+   Base class for instantaneous unit hydrograph function objects.
+
+   See class
+
+   TranslationDiffusionEquation
+
+    for explanations and application examples.
+
+   For developers: The string representation does also work for
+   parameter-free
+
+   IUH
+
+    subclasses:
+
+   >>> from hydpy.auxs.iuhtools import IUH
+   >>> class Test(IUH):
+   ...     pass
+   >>> Test()
+   Test()
+
+   dt_response = 0.01
+
+      Relative stepsize for plotting and analyzing iuh functions.
+
+   smallest_response = 1e-09
+
+      Smallest value taken into account for plotting and analyzing iuh
+      functions.
+
+   set_primary_parameters(**kwargs)
+
+      Set all primary parameters at once.
+
+   are_primary_parameters_complete
+
+      True/False flag that indicates wheter the values of all primary
+      parameters are defined or not.
+
+   update()
+
+      Delete the coefficients of the pure MA model and also all MA and
+      AR coefficients of the ARMA model.  Also calculate or delete the
+      values of all secondary iuh parameters, depending on the
+      completeness of the values of the primary parameters.
+
+   delay_response_series
+
+      A tuple of two numpy arrays, which hold the time delays and the
+      associated iuh values respectively.
+
+   plot(threshold=None, **kwargs)
+
+      Plot the instanteneous unit hydrograph.
+
+      The optional argument allows for defining a threshold of the
+      cumulative sum uf the hydrograph, used to adjust the largest
+      value of the x-axis. It must be a value between zero and one.
+
+   moment1
+
+      The first time delay weighted statistical moment of the
+      instantaneous unit hydrograph.
+
+   moment2
+
+      The second time delay weighted statistical momens of the
+      instantaneous unit hydrograph.
+
+   moments
+
+      The first two time delay weighted statistical moments of the
+      instantaneous unit hydrograph.
+
+class hydpy.auxs.iuhtools.TranslationDiffusionEquation(**kwargs)
+
+   Bases:
+
+   hydpy.auxs.iuhtools.IUH
+
+   An instantaneous unit hydrograph based on the *translation
+   diffusion equation*.
+
+   The equation used is a linear approximation of the Saint-Venant
+   equations for channel routing:
+
+      h(t) = \frac{a}{t \cdot \sqrt{\pi \cdot t}} \cdot e^{-t \cdot
+      (a/t-b)^2}
+
+   with:
+      a = \frac{x}{2 \cdot \sqrt{d}}
+
+      b = \frac{u}{2 \cdot \sqrt{d}}
+
+   There are three primary parameter whichs values need to be defined
+   by the user:
+
+   >>> from hydpy import TranslationDiffusionEquation
+   >>> tde = TranslationDiffusionEquation(u=5., d=15., x=50.)
+   >>> tde
+   TranslationDiffusionEquation(d=15.0, u=5.0, x=50.0)
+
+   The values of both secondary parameters are determined
+   automatically:
+
+   >>> from hydpy import round_
+   >>> round_((tde.a, tde.b))
+   6.454972, 0.645497
+
+   The function can principally be evaluated for time delays larger
+   zero, but not for zero time delay, which can cause trouble when
+   applying numerical integration algorithms.  This is why we clip the
+   given time delay to minimum value of 1e-10 internally.  In most
+   cases (like the following), the returned result should be workable
+   for integration algorithms:
+
+   >>> import numpy
+   >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
+   0.0, 0.040559, 0.115165, 0.031303, 0.00507
+
+   The first delay weighted central moment of the translation
+   diffusion equation corresponds to the time lag (*x*/*u*), the
+   second one to wave diffusion:
+
+   >>> round_(tde.moments)
+   10.0, 3.464101
+
+   Class
+
+   TranslationDiffusionEquation
+
+    implements its own property *moment1* (used in the example above),
+   which is computationally more efficient and robust than the one of
+   its base class
+
+   IUH
+
+   . But both normally, both should return very similar values:
+
+   >>> from hydpy.auxs.iuhtools import IUH
+   >>> round_(IUH.moment1.fget(tde))
+   10.0
+
+   You can also plot the graph corresponding to the actual
+   parameterization:
+
+   >>> tde.plot(threshold=0.9)
+
+   All instances of the subclasses of
+
+   IUH
+
+    provide a pure Moving Average and an Autoregressive-Moving Average
+   approximation to the dt standard impulse of the instantaneous unit
+   hydrograph function.  In the given example, the MA approximation
+   involves 57 coefficients, and the ARMA approximation invoves 17
+   coefficients:
+
+   >>> tde.ma.order
+   57
+   >>> tde.arma.order
+   (3, 14)
+
+   The diffusion of the MA model deviates from the iuh function due to
+   aggregation.  For the ARMA model, there is also a slight deviation
+   in time delay, as the ARMA model itself is only a approximation of
+   the MA model:
+
+   >>> round_(tde.ma.moments)
+   10.0, 3.488074
+   >>> round_(tde.arma.moments)
+   10.000091, 3.488377
+
+   For further information on using MA and ARMA models, read the
+   documentation on module
+
+   armatools
+
+   .
+
+   Changing a primary parameter results in an updating of the
+   secondary parameters as well as the MA and the ARMA model:
+
+   >>> tde.x = 5.
+   >>> round_((tde.a, tde.b))
+   0.645497, 0.645497
+   >>> tde.ma.order
+   37
+   >>> tde.arma.order
+   (4, 5)
+
+   As long as the primary parameter values are incomplete, no
+   secondary parameter values are available:
+
+   >>> del tde.x
+   >>> round_((tde.a, tde.b))
+   None, None
+
+   Suitable type conversions are performed when new parameter values
+   are set:
+
+   >>> tde.x = '1.'
+   >>> tde.x
+   1.0
+
+   It a new value cannot be converted, an error is raised:
+
+   >>> tde.x = 'a'
+   Traceback (most recent call last):
+   ...
+   TypeError: The value `a` of type `str` could not be converted to type `float` of the instantaneous unit hydrograph parameter `x`.
+
+   When passing parameter values as initialization arguments or when
+   using method *set_primary_parameters*, tests for completeness are
+   performed:
+
+   >>> TranslationDiffusionEquation(u=5.0, d=15.0)
+   Traceback (most recent call last):
+   ...
+   ValueError: When passing primary parameter values as initialization arguments of the instantaneous unit hydrograph class `TranslationDiffusionEquation`, or when using method `set_primary_parameters, one has to to define all values at once via keyword arguments.  But instead of the primary parameter names `d, u, x` the following keywords were given: d, u.
+
+   u
+
+      Wave velocity.
+
+   d
+
+      Diffusion coefficient.
+
+   x
+
+      Routing distance.
+
+   a
+
+      Distance related coefficient.
+
+   b
+
+      Velocity related coefficient.
+
+   calc_secondary_parameters()
+
+      Determine the values of the secondary parameters *a* and *b*.
+
+   moment1
+
+      The first time delay weighted statistical moment of the
+      translation diffusion equation.
+
+class hydpy.auxs.iuhtools.LinearStorageCascade(**kwargs)
+
+   Bases:
+
+   hydpy.auxs.iuhtools.IUH
+
+   An instantaneous unit hydrograph based on the *linear storage
+   cascade*.
+
+   The equation involves the gamma function, allowing for a fractional
+   number of storages:
+
+      h(t) = c \cdot (t/k)^{n-1} \cdot e^{-t/k}
+
+   with:
+      c = \frac{1}{k \cdot \gamma(n)}
+
+   After defining the values of the two primary parameters, the
+   function object can be applied:
+
+   >>> from hydpy import LinearStorageCascade
+   >>> lsc = LinearStorageCascade(n=2.5, k=2.)
+   >>> from hydpy import round_
+   >>> round_(lsc.c)
+   0.376126
+   >>> import numpy
+   >>> round_(lsc(numpy.array([5., 10., 15., 20.])))
+   0.122042, 0.028335, 0.004273, 0.00054
+
+   n
+
+      Number of linear storages.
+
+   k
+
+      Time of concentration of each individual storage.
+
+   c
+
+      Proportionality factor.
+
+   calc_secondary_parameters()
+
+      Determine the value of the secondary parameter *c*.
+
+   moment1
+
+      The first time delay weighted statistical moment of the linear
+      storage cascade.

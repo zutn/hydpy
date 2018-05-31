@@ -1,0 +1,17 @@
+.. |ControlManager.clear_registry| replace:: :func:`~hydpy.core.filetools.ControlManager.clear_registry`
+.. |ControlManager.load_file| replace:: :func:`~hydpy.core.filetools.ControlManager.load_file`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |dict| replace:: :class:`dict`
+.. |filetools| replace:: :mod:`~hydpy.core.filetools`
+
+.. _filetools:
+
+filetools
+=========
+
+.. automodule:: hydpy.core.filetools
+    :members:
+    :show-inheritance:

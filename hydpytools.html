@@ -1,0 +1,397 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>hydpytools &#8212; HydPy 2.1-dev documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="importtools" href="importtools.html" />
+    <link rel="prev" title="filetools" href="filetools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="importtools.html" title="importtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="filetools.html" title="filetools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Modules</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hydpytools">
+<span id="id1"></span><h1>hydpytools<a class="headerlink" href="#hydpytools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.hydpytools"></span><p>This module implements superordinate tools for handling a HydPy project.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.hydpytools" title="hydpy.core.hydpytools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hydpytools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> Main class for managing HydPy projects.</li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="class">
+<dt id="hydpy.core.hydpytools.HydPy">
+<em class="property">class </em><code class="descclassname">hydpy.core.hydpytools.</code><code class="descname">HydPy</code><span class="sig-paren">(</span><em>projectname=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Main class for managing HydPy projects.</p>
+<dl class="attribute">
+<dt id="hydpy.core.hydpytools.HydPy.nmb_instances">
+<code class="descname">nmb_instances</code><em class="property"> = 0</em><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.nmb_instances" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_network">
+<code class="descname">prepare_network</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_network"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load all network files as <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> (stored in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>)
+and assign the “complete” selection to the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.init_models">
+<code class="descname">init_models</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.init_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.init_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element.init_model" title="hydpy.core.devicetools.Element.init_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_model()</span></code></a> of all <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_controls">
+<code class="descname">save_controls</code><span class="sig-paren">(</span><em>controldir=None</em>, <em>projectdir=None</em>, <em>parameterstep=None</em>, <em>simulationstep=None</em>, <em>auxfiler=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_controls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_controls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.save_controls" title="hydpy.core.devicetools.Elements.save_controls"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_controls()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.load_conditions">
+<code class="descname">load_conditions</code><span class="sig-paren">(</span><em>conditiondir=None</em>, <em>projectdir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.load_conditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.load_conditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.load_conditions" title="hydpy.core.devicetools.Elements.load_conditions"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_conditions()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_conditions">
+<code class="descname">save_conditions</code><span class="sig-paren">(</span><em>conditiondir=None</em>, <em>projectdir=None</em>, <em>controldir=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_conditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_conditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.save_conditions" title="hydpy.core.devicetools.Elements.save_conditions"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_conditions()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.trim_conditions">
+<code class="descname">trim_conditions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.trim_conditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.trim_conditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.trim_conditions" title="hydpy.core.devicetools.Elements.trim_conditions"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim_conditions()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.reset_conditions">
+<code class="descname">reset_conditions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.reset_conditions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.reset_conditions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.reset_conditions" title="hydpy.core.devicetools.Elements.reset_conditions"><code class="xref py py-func docutils literal notranslate"><span class="pre">reset_conditions()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.connect">
+<code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.connect" title="hydpy.core.devicetools.Elements.connect"><code class="xref py py-func docutils literal notranslate"><span class="pre">connect()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object currently
+handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.hydpytools.HydPy.networkproperties">
+<code class="descname">networkproperties</code><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.networkproperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out some properties of the network defined by the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and
+<a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.hydpytools.HydPy.numberofnetworks">
+<code class="descname">numberofnetworks</code><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.numberofnetworks" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of distinct networks defined by the|Node| and
+<a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.hydpytools.HydPy.endnodes">
+<code class="descname">endnodes</code><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.endnodes" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object containing all <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects currently handled by
+the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object which define a downstream end point of a network.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.hydpytools.HydPy.variables">
+<code class="descname">variables</code><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sorted list of strings summarizing all variables handled by the
+<a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.hydpytools.HydPy.simindices">
+<code class="descname">simindices</code><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.simindices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple containing the start and end index of the simulation period
+regarding the initialization period defined by the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object
+stored in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.open_files">
+<code class="descname">open_files</code><span class="sig-paren">(</span><em>idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.open_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.open_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Devices.open_files" title="hydpy.core.devicetools.Devices.open_files"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_files()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a>
+objects currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.close_files">
+<code class="descname">close_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.close_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.close_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Devices.close_files" title="hydpy.core.devicetools.Devices.close_files"><code class="xref py py-func docutils literal notranslate"><span class="pre">close_files()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a>
+objects currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.update_devices">
+<code class="descname">update_devices</code><span class="sig-paren">(</span><em>selection=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.update_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.update_devices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the order, in which the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> objects need to be processed during
+a simulation time step.  Optionally, a <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> object for defining
+new <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects can be passed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.hydpytools.HydPy.methodorder">
+<code class="descname">methodorder</code><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.methodorder" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list containing all methods of all <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects
+that need to be processed during a simulation time step in the
+order they must be called.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.doit">
+<code class="descname">doit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.doit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.doit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a simulation run over the actual simulation time period
+defined by the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object stored in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_modelseries">
+<code class="descname">prepare_modelseries</code><span class="sig-paren">(</span><em>ramflag=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_modelseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_modelseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.prepare_allseries" title="hydpy.core.devicetools.Elements.prepare_allseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_allseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_inputseries">
+<code class="descname">prepare_inputseries</code><span class="sig-paren">(</span><em>ramflag=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_inputseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_inputseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.prepare_inputseries" title="hydpy.core.devicetools.Elements.prepare_inputseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_inputseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a>
+object currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_fluxseries">
+<code class="descname">prepare_fluxseries</code><span class="sig-paren">(</span><em>ramflag=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_fluxseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_fluxseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.prepare_fluxseries" title="hydpy.core.devicetools.Elements.prepare_fluxseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_fluxseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_stateseries">
+<code class="descname">prepare_stateseries</code><span class="sig-paren">(</span><em>ramflag=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_stateseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_stateseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.prepare_stateseries" title="hydpy.core.devicetools.Elements.prepare_stateseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_stateseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a>
+object currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_nodeseries">
+<code class="descname">prepare_nodeseries</code><span class="sig-paren">(</span><em>ramflag=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_nodeseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_nodeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes.prepare_allseries" title="hydpy.core.devicetools.Nodes.prepare_allseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_allseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_simseries">
+<code class="descname">prepare_simseries</code><span class="sig-paren">(</span><em>ramflag=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_simseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_simseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes.prepare_simseries" title="hydpy.core.devicetools.Nodes.prepare_simseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_simseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.prepare_obsseries">
+<code class="descname">prepare_obsseries</code><span class="sig-paren">(</span><em>ramflag=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.prepare_obsseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.prepare_obsseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes.prepare_obsseries" title="hydpy.core.devicetools.Nodes.prepare_obsseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_obsseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_modelseries">
+<code class="descname">save_modelseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_modelseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_modelseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.save_allseries" title="hydpy.core.devicetools.Elements.save_allseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_allseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_inputseries">
+<code class="descname">save_inputseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_inputseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_inputseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.save_inputseries" title="hydpy.core.devicetools.Elements.save_inputseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_inputseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_fluxseries">
+<code class="descname">save_fluxseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_fluxseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_fluxseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.save_fluxseries" title="hydpy.core.devicetools.Elements.save_fluxseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_fluxseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_stateseries">
+<code class="descname">save_stateseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_stateseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_stateseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements.save_stateseries" title="hydpy.core.devicetools.Elements.save_stateseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_stateseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object
+currently handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_nodeseries">
+<code class="descname">save_nodeseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_nodeseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_nodeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes.save_allseries" title="hydpy.core.devicetools.Nodes.save_allseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_allseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object currently
+handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_simseries">
+<code class="descname">save_simseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_simseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_simseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes.save_simseries" title="hydpy.core.devicetools.Nodes.save_simseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_simseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object currently
+handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="hydpy.core.hydpytools.HydPy.save_obsseries">
+<code class="descname">save_obsseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/hydpytools.html#HydPy.save_obsseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.hydpytools.HydPy.save_obsseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes.save_obsseries" title="hydpy.core.devicetools.Nodes.save_obsseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_obsseries()</span></code></a> of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object currently
+handled by the <a class="reference internal" href="#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Modules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="abctools.html">abctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="connectiontools.html">connectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dummytools.html">dummytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modelimports.html">modelimports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cythons Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="filetools.html"
+                        title="previous chapter">filetools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="importtools.html"
+                        title="next chapter">importtools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/hydpytools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="importtools.html" title="importtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="filetools.html" title="filetools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Modules</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Christoph Tyralla.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

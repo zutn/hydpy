@@ -1,0 +1,1164 @@
+timetools
+
+This module specifies how  dates and periods are handled in HydPy.
+
+Module
+
+timetools
+
+ implements the following members:
+
+   Date Handles a single date.
+
+   Period Handles the length of a single time period.
+
+   Timegrid Handle a time period defined by to dates and a step size
+   in between.
+
+   Timegrids Handles all Timegrid instances of a HydPy project.
+
+   TOY Time of year handler.
+
+
+class hydpy.core.timetools.Date(date)
+
+   Bases:
+
+   object
+
+   Handles a single date.
+
+   Classes
+
+   Date
+
+    is build on top of the Python module
+
+   datetime
+
+   . In essence, it wraps the
+
+   datetime
+
+    class
+
+   datetime
+
+   , and is supposed to specialise this general class on the needs of
+   HydPy users.
+
+   Be aware of the different minimum time resolution of module
+
+   datetime
+
+    (microseconds) and module
+
+   timetools
+
+    (seconds).
+
+   Date
+
+    objects can be initialized via
+
+   datetime
+
+    objects directly, e.g.:
+
+   >>> from datetime import datetime
+   >>> from hydpy import Date
+   >>> # Initialize a `datetime` object...
+   >>> datetime_object = datetime(1996, 11, 1, 0, 0, 0)
+   >>> # ...and use it to initialise a `Date` object.
+   >>> date1 = Date(datetime_object)
+
+   Alternatively, one can use
+
+   str
+
+    objects as initialization arguments, which need to match one of
+   the following format styles:
+
+   >>> # The `os` style without empty space and colon, which is applied in
+   >>> # text files and folder names:
+   >>> date2 = Date('1997_11_01_00_00_00')
+   >>> # The `iso` style, which is more legible and in accordance with the
+   >>> # international ISO norm:
+   >>> date2 = Date('1997.11.01 00:00:00')
+   >>> # The `din` style, which is more legible for users in countries
+   >>> # where the position of day and year are interchanged (DIN refers
+   >>> # to a german norm):
+   >>> date2 = Date('01.11.1997 00:00:00')
+
+   Date
+
+    keeps the chosen style in mind and uses it for printing. But the
+   user is also allowed to change it:
+
+   >>> # Print in accordance with the `iso` style...
+   >>> date2.string('iso')
+   '1997.11.01 00:00:00'
+   >>> # ...without changing the memorized `din` style:
+   >>> date2.style
+   'din'
+
+   >>> # Alternatively, the style property can be set permanentely:
+   >>> date2.style = 'iso'
+   >>> str(date2)
+   '1997.11.01 00:00:00'
+
+   It is allowed to abbreviate the input strings. Using the *iso*
+   style as an example:
+
+   >>> # The following three input arguments...
+   >>> test1 = Date('1996.11.01 00:00:00')
+   >>> test2 = Date('1996.11.01 00:00')
+   >>> test3 = Date('1996.11.01 00')
+   >>> test4 = Date('1996.11.01')
+   >>> # ...all lead to identical `Date` instances.
+   >>> for test in (test1, test2, test3, test4):
+   ...     print(test)
+   1996.11.01 00:00:00
+   1996.11.01 00:00:00
+   1996.11.01 00:00:00
+   1996.11.01 00:00:00
+
+   If
+
+   Date
+
+    has not been initialized via a
+
+   str
+
+    object and the style property has not been set manually, the
+   default style *iso* is selected.
+
+   One can change the year, month... of a
+
+   Date
+
+    object via numbers:
+
+   >>> # Assign an integer...
+   >>> test4.year = 1997
+   >>> # ...or something that can be converted to an integer.
+   >>> test4.month = '10'
+   >>> print(test4)
+   1997.10.01 00:00:00
+
+   One can ask for the actual water year, which depends on the
+   selected reference month:
+
+   >>> oct = Date('1996.10.01')
+   >>> nov = Date('1996.11.01')
+   >>> # Under the standard settings, the water year is assumed to start
+   >>> # November.
+   >>> oct.wateryear
+   1996
+   >>> nov.wateryear
+   1997
+   >>> # Changing the reference month via one `Date` object affects all
+   >>> # objects.
+   >>> test4.refmonth = 10
+   >>> oct.wateryear
+   1997
+   >>> nov.wateryear
+   1997
+   >>> test4.refmonth = 'November'
+   >>> oct.wateryear
+   1996
+   >>> nov.wateryear
+   1997
+
+   Note that
+
+   Date
+
+    objects are mutable.  Use the *copy* method to prevent from
+   unintentional results:
+
+   >>> date1 = Date('1996.11.01 00:00')
+   >>> date2 = date1
+   >>> date3 = date1.copy()
+   >>> date1.year = 1997
+   >>> for date in (date1, date2, date3):
+   ...     print(date)
+   1997.11.01 00:00:00
+   1997.11.01 00:00:00
+   1996.11.01 00:00:00
+
+   classmethod fromarray(array)
+
+      Returns a
+
+      Date
+
+       instance based on date information (year, month, day, hour,
+      minute, second) stored as the first entries of the successive
+      rows of a
+
+      ndarray
+
+       object.
+
+   toarray()
+
+      Returns a 1-dimensional
+
+      numpy
+
+
+      ndarray
+
+       with six entries defining the actual date (year, month, day,
+      hour, minute, second).
+
+   refmonth
+
+      First month of the hydrological year. The default value is 11
+      (November which is the german reference month). Setting it e.g.
+      to 10 (October is another common reference month many different
+      countries) affects all
+
+      Date
+
+       instances.
+
+   style
+
+      Date format style to be applied in printing.
+
+   second
+
+      The actual second.
+
+   minute
+
+      The actual minute.
+
+   hour
+
+      The actual hour.
+
+   day
+
+      The actual day.
+
+   month
+
+      The actual month.
+
+   year
+
+      The actual year.
+
+   wateryear
+
+      The actual hydrological year according selected reference month.
+
+   dayofyear
+
+      Day of year as an integer value.
+
+   leapyear
+
+      Return whether the actual date falls in a leap year or not.
+
+   copy()
+
+      Returns a deep copy of the
+
+      Date
+
+       instance.
+
+   string(style)
+
+      Returns a
+
+      str
+
+       object representing the actual date in accordance with the
+      given style.
+
+class hydpy.core.timetools.Period(period=None)
+
+   Bases:
+
+   object
+
+   Handles the length of a single time period.
+
+   Class
+
+   Period
+
+    is build on top of the Python module
+
+   datetime
+
+   . In essence, it wraps the
+
+   datetime
+
+    class
+
+   timedelta
+
+    and is supposed to specialise this general classes on the needs of
+   HydPy users.
+
+   Be aware of the different minimum time resolution of module
+
+   datetime
+
+    (microseconds) and module
+
+   timetools
+
+    (seconds).
+
+   Period
+
+    objects can be directly initialized via
+
+   timedelta
+
+    objects, e.g.:
+
+   >>> from datetime import timedelta
+   >>> from hydpy import Period
+   >>> # Initialize a `timedelta` object...
+   >>> timedelta_object = timedelta(1, 0)
+   >>> # ...and use it to initialise a `Period` object
+   >>> period = Period(timedelta_object)
+
+   Alternatively, one can initialize from
+
+   str
+
+    objects.  These must consist of some characters defining an
+   integer value directly followed by a single character defining the
+   unit:
+
+   >>> # 30 seconds:
+   >>> period = Period('30s')
+   >>> # 5 minutes:
+   >>> period = Period('5m')
+   >>> # 6 hours:
+   >>> period = Period('6h')
+   >>> # 1 day:
+   >>> period = Period('1d')
+
+   In case you need an "empty" period object, just pass nothing or
+   "None":
+
+   >>> Period()
+   Period()
+   >>> Period(None)
+   Period()
+
+   Period
+
+    always determines the unit leading to the most legigible
+   expression:
+
+   >>> # Print using the unit leading to the smallest integer value:
+   >>> print(period)
+   1d
+   >>> # Alternatively, the values of all time units are directly
+   >>> # available as `float` objects:
+   >>> period.days
+   1.0
+   >>> period.hours
+   24.0
+   >>> period.minutes
+   1440.0
+   >>> period.seconds
+   86400.0
+
+   If considered useful, logic and arithmetic operations are
+   supported. Some examples:
+
+   >>> # Determine the period length between two dates.
+   >>> from hydpy import Date
+   >>> date1, date2 = Date('1997.11.01'), Date('1996.11.01')
+   >>> wholeperiod = date1 - date2
+   >>> print(wholeperiod)
+   365d
+   >>> # Determine, how often one period fits into the other.
+   >>> wholeperiod / period
+   365.0
+   >>> # Get one sixths of period:
+   >>> period / 6
+   Period('4h')
+   >>> # But when trying to get one seventh of period, the following
+   >>> # error is raised:
+   >>> period / 7
+   Traceback (most recent call last):
+   ...
+   ValueError: For `Period` instances, microseconds must be zero.  However, for the given `timedelta` object, it is`857142` instead.
+
+   >>> # Double a period duration.
+   >>> period *= 2
+   >>> period
+   Period('2d')
+   >>> # Shift a date.
+   >>> date1 - period
+   Date('1997.10.30 00:00:00')
+   >>> # Note that the modulo operator returns a boolean value, indicating
+   >>> # whether division results in a remainder or not:
+   >>> Period('1d') % Period('12h')
+   False
+   >>> Period('1d') % Period('13h')
+   True
+   >>> # Following the same line of thinking, floor division leads to the
+   >>> # opposite results:
+   >>> Period('1d') // Period('12h')
+   True
+   >>> Period('1d') // Period('13h')
+   False
+   >>> # Compare dates or periods.
+   >>> date1 < date2
+   False
+   >>> min(date1, date2)
+   Date('1996.11.01 00:00:00')
+   >>> period == wholeperiod
+   False
+   >>> # Operations on initialisation arguments are supported.
+   >>> date1 + '5m'
+   Date('1997.11.01 00:05:00')
+   >>> period != '12h'
+   True
+
+   Note that
+
+   Period
+
+    objects are mutable.  Use the *copy* method to prevent from
+   unintentional results:
+
+      >>> period1 = Period('6h')
+      >>> period2 = period1
+      >>> period3 = period1.copy()
+      >>> period1 -= '2h'
+      >>> period1, period2, period3
+      (Period('4h'), Period('4h'), Period('6h'))
+
+   timedelta
+
+   classmethod fromseconds(seconds)
+
+      Return a
+
+      Period
+
+       instance based on a given number of seconds.
+
+   unit
+
+      Guess the unit of the period as the largest one, which results
+      in an integer duration.
+
+   seconds
+
+      Period length in seconds.
+
+   minutes
+
+      Period length in minutes.
+
+   hours
+
+      Period length in hours.
+
+   days
+
+      Period length in days.
+
+   copy()
+
+      Returns a deep copy of the
+
+      Period
+
+       instance.
+
+class hydpy.core.timetools.Timegrid(firstdate, lastdate, stepsize)
+
+   Bases:
+
+   object
+
+   Handle a time period defined by to dates and a step size in
+   between.
+
+   In hydrological modelling, input (and output) data are usually only
+   available with a certain resolution, which also determines the
+   possible resolution of the actual simulation.  This is reflected by
+   the class
+
+   Timegrid
+
+   , which represents the first and the last date of e.g. a simulation
+   period as well as the intermediate dates. A
+
+   Timegrid
+
+    object is initialized by defining its first date, its last date
+   and its stepsize:
+
+   >>> from hydpy import Date, Period, Timegrid
+   >>> # Either pass the proper attributes directly...
+   >>> firstdate = Date('1996.11.01')
+   >>> lastdate = Date('1997.11.01')
+   >>> stepsize = Period('1d')
+   >>> timegrid_sim = Timegrid(firstdate, lastdate, stepsize)
+   >>> timegrid_sim
+   Timegrid('1996.11.01 00:00:00',
+            '1997.11.01 00:00:00',
+            '1d')
+   >>> # ...or pass their initialization arguments:
+   >>> timegrid_sim = Timegrid('1996.11.01', '1997.11.01', '1d')
+   >>> timegrid_sim
+   Timegrid('1996.11.01 00:00:00',
+            '1997.11.01 00:00:00',
+            '1d')
+
+   Timegrid
+
+    provides functionalities to ease and secure the handling of dates
+   in HydPy. Here some examples:
+
+   >>> # Retrieve a date via indexing, e.g. the second one:
+   >>> date = timegrid_sim[1]
+   >>> date
+   Date('1996.11.02 00:00:00')
+   >>> # Or the other way round, retrieve the index belonging to a date:
+   >>> timegrid_sim[date]
+   1
+   >>> # Indexing beyond the ranges of the actual time period is allowed:
+   >>> timegrid_sim[-366]
+   Date('1995.11.01 00:00:00')
+   >>> timegrid_sim[timegrid_sim[date+'365d']]
+   Date('1997.11.02 00:00:00')
+   >>> # Iterate through all time grid points (e.g. to print the first
+   >>> # day of each month):
+   >>> for date in timegrid_sim:
+   ...     if date.day == 1:
+   ...         print(date)
+   1996.11.01 00:00:00
+   1996.12.01 00:00:00
+   1997.01.01 00:00:00
+   1997.02.01 00:00:00
+   1997.03.01 00:00:00
+   1997.04.01 00:00:00
+   1997.05.01 00:00:00
+   1997.06.01 00:00:00
+   1997.07.01 00:00:00
+   1997.08.01 00:00:00
+   1997.09.01 00:00:00
+   1997.10.01 00:00:00
+
+   After doing some changes one should call the
+
+   verify()
+
+    method:
+
+   >>> # `verify` keeps silent if everything seems to be alright...
+   >>> timegrid_sim.verify()
+   >>> # ...but raises an suitable exception otherwise:
+   >>> timegrid_sim.firstdate.minute = 30
+   >>> timegrid_sim.verify()
+   Traceback (most recent call last):
+   ...
+   ValueError: Unplausible timegrid. The period span between the given dates 1996.11.01 00:30:00 and 1997.11.01 00:00:00 is not a multiple of the given step size 1d.
+
+   One can check two
+
+   Timegrid
+
+    instances for equality:
+
+   >>> # Make a deep copy of the timegrid already existing.
+   >>> timegrid_test = timegrid_sim.copy()
+   >>> # Test for equality and non-equality.
+   >>> timegrid_sim == timegrid_test
+   True
+   >>> timegrid_sim != timegrid_test
+   False
+   >>> # Modify one date of the new timegrid.
+   >>> timegrid_test.firstdate += '1d'
+   >>> # Again, test for equality and non-equality.
+   >>> timegrid_sim == timegrid_test
+   False
+   >>> timegrid_sim != timegrid_test
+   True
+
+   Also, one can check if a date or even the whole timegrid lies
+   within a span defined by a
+
+   Timegrid
+
+    instance:
+
+      >>> # Define a long timegrid:
+      >>> timegrid_long = Timegrid('1996.11.01', '2006.11.01', '1d')
+      >>> # Check different dates for lying in the defined time period:
+      >>> '1996.10.31' in timegrid_long
+      False
+      >>> '1996.11.01' in timegrid_long
+      True
+      >>> '1996.11.02' in timegrid_long
+      True
+      >>> # For dates not alligned on the grid `False` is returned:
+      >>> '1996.11.01 12:00' in timegrid_long
+      False
+
+      >>> # Now define a timegrid containing only the first year of the
+      >>> # long one:
+      >>> timegrid_short = Timegrid('1996.11.01', '1997.11.01', '1d')
+      >>> # Check which timegrid is contained by the other:
+      >>> timegrid_short in timegrid_long
+      True
+      >>> timegrid_long in timegrid_short
+      False
+      >>> # For timegrids with different stepsizes `False` is returned:
+      >>> timegrid_short.stepsize = Period('1h')
+      >>> timegrid_short in timegrid_long
+      False
+
+   firstdate
+
+   lastdate
+
+   stepsize
+
+   classmethod fromarray(array)
+
+      Returns a
+
+      Timegrid
+
+       instance based on two date and one period information stored in
+      the first 13 rows of a
+
+      ndarray
+
+       object.
+
+   toarray()
+
+      Returns a 1-dimensional
+
+      numpy
+
+
+      ndarray
+
+       with thirteen entries first defining the start date, secondly
+      defining the end date and thirdly the step size in seconds.
+
+   array2series(array)
+
+      Prefix the information of the actual Timegrid object to the
+      given array and return it.
+
+      The Timegrid information is stored in the first thirteen values
+      of the first axis of the returned series.  Initialize a Timegrid
+      object and apply its *array2series* method on a simple list
+      containing numbers:
+
+      >>> from hydpy import Timegrid
+      >>> timegrid = Timegrid('2000.11.01 00:00', '2000.11.01 04:00', '1h')
+      >>> series = timegrid.array2series([1, 2, 3.5, '5.0'])
+
+      The first six entries contain the first date of the timegrid
+      (year, month, day, hour, minute, second):
+
+      >>> from hydpy import round_
+      >>> round_(series[:6])
+      2000.0, 11.0, 1.0, 0.0, 0.0, 0.0
+
+      The six subsequent entries contain the last date:
+
+      >>> round_(series[6:12])
+      2000.0, 11.0, 1.0, 4.0, 0.0, 0.0
+
+      The thirteens value is the step size in seconds:
+
+      >>> round_(series[12])
+      3600.0
+
+      The last four value are the ones of the given vector:
+
+      >>> round_(series[-4:])
+      1.0, 2.0, 3.5, 5.0
+
+      The given array can have an arbitrary number of dimensions:
+
+      >>> import numpy
+      >>> array = numpy.eye(4)
+      >>> series = timegrid.array2series(array)
+
+      Now the timegrid information is stored in the first column:
+
+      >>> round_(series[:13, 0])
+      2000.0, 11.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 11.0, 1.0, 4.0, 0.0, 0.0, 3600.0
+
+      All other columns of the first thirteen rows contain nan values,
+      e.g.:
+
+      >>> round_(series[12, :])
+      3600.0, nan, nan, nan
+
+      The original values are stored in the last four rows, e.g.:
+
+      >>> round_(series[13, :])
+      1.0, 0.0, 0.0, 0.0
+
+      Inappropriate array objects result in error messages like:
+
+      >>> timegrid.array2series([[1, 2], [3]])
+      Traceback (most recent call last):
+      ...
+      ValueError: While trying to prefix timegrid information to the given array, the following error occured: setting an array element with a sequence.
+
+      If the given array does not fit to the defined timegrid, a
+      special error message is returned:
+
+      >>> timegrid.array2series([[1, 2], [3, 4]])
+      Traceback (most recent call last):
+      ...
+      ValueError: When converting an array to a sequence, the lengths of the timegrid and the given array must be equal, but the length of the timegrid object is `4` and the length of the array object is `2`.
+
+   verify()
+
+      Raise an
+
+      ValueError
+
+       if the dates or the step size of the time frame are
+      inconsistent.
+
+   copy()
+
+      Returns a deep copy of the
+
+      Timegrid
+
+       instance.
+
+   assignrepr(prefix)
+
+      Return a
+
+      repr()
+
+       string with an prefixed assignement.
+
+      Argument:
+         prefix(str): Usually something like 'x = '.
+
+class hydpy.core.timetools.Timegrids(init, sim=None, data=None)
+
+   Bases:
+
+   object
+
+   Handles all
+
+   Timegrid
+
+    instances of a HydPy project.
+
+   The HydPy framework distinguishes three *time frames*, one
+   associated with the input date available on disk (*data*), one
+   associated, with the initialisation period (*init*), and one
+   associated with the actual simulation period (*sim*).  The last two
+   latter time frames are represented by two different
+
+   Timegrid
+
+    objects, which are both handled by a single
+
+   Timegrids
+
+    object.  (The *data* time frames are also defined via
+
+   Timegrid
+
+    objects, but for each input data file separately. See module
+
+   sequencetools
+
+    for further information.)
+
+   There is usually only one
+
+   Timegrids
+
+    object required within each HydPy project.  Usually It is
+   instantiated in the project's main file or at the top of script
+   defining a HydPy workflow and assigned to the "pub" module, which
+   provides access to "global" project settings:
+
+   >>> from hydpy import Timegrid, Timegrids
+   >>> from hydpy import pub
+
+   In many cases, one want to perform the simulation over the whole
+   initialization period.  Then only one Timegrid instance must be
+   defined:
+
+   >>> pub.timegrids = Timegrids(Timegrid('2000.11.11',
+   ...                                    '2003.11.11',
+   ...                                     '1d'))
+   >>> pub.timegrids
+   Timegrids(Timegrid('2000.11.11 00:00:00',
+                      '2003.11.11 00:00:00',
+                      '1d'))
+
+   Otherwise, two Timegrid instances must be given:
+
+   >>> pub.timegrids = Timegrids(init=Timegrid('2000.11.11',
+   ...                                         '2003.11.11',
+   ...                                         '1h'),
+   ...                           sim=Timegrid('2001.11.11',
+   ...                                        '2002.11.11',
+   ...                                        '1h'))
+   >>> pub.timegrids
+   Timegrids(init=Timegrid('2000.11.11 00:00:00',
+                           '2003.11.11 00:00:00',
+                           '1h'),
+             sim=Timegrid('2001.11.11 00:00:00',
+                          '2002.11.11 00:00:00',
+                          '1h'))
+
+   Some examples on the usage of this
+
+   Timegrids
+
+    instance:
+
+   >>> # Get the general data and simulation step size:
+   >>> pub.timegrids.stepsize
+   Period('1h')
+   >>> # Get the factor to convert `mm/stepsize` to m^3/s for an area
+   >>> # of 36 km^2:
+   >>> pub.timegrids.qfactor(36.)
+   10.0
+   >>> # Get the index of the first values of the `initialization frame`
+   >>> # which belong to the `simulation frame`.
+   >>> pub.timegrids.init[pub.timegrids.sim.firstdate]
+   8760
+
+   Each manual change should be followed by calling the
+
+   verify()
+
+    method, which calls the
+
+   verify()
+
+    method of the single
+
+   Timegrid
+
+    instances and performs some additional tests:
+
+   >>> # To postpone the end of the `simulation time frame` exactly
+   >>> # one year is fine:
+   >>> pub.timegrids.sim.lastdate += '365d'
+   >>> pub.timegrids.verify()
+   >>> # But any additional day shifts it outside the `initialisation
+   >>> # time frame`, so verification raises a value error:
+   >>> pub.timegrids.sim.lastdate += '1d'
+   >>> pub.timegrids.verify()
+   Traceback (most recent call last):
+   ...
+   ValueError: The last date of the initialisation period (2003.11.11 00:00:00) must not be earlier than the last date of the simulation period (2003.11.12 00:00:00).
+   >>> pub.timegrids.sim.lastdate -= '1d'
+
+   >>> # The other boundary is also checked:
+   >>> pub.timegrids.sim.firstdate -= '366d'
+   >>> pub.timegrids.verify()
+   Traceback (most recent call last):
+   ...
+   ValueError: The first date of the initialisation period (2000.11.11 00:00:00) must not be later than the first date of the simulation period (2000.11.10 00:00:00).
+
+   >>> # Both timegrids are checked to have the same step size:
+   >>> pub.timegrids.sim = Timegrid('2001.11.11',
+   ...                              '2002.11.11',
+   ...                              '1d')
+   >>> pub.timegrids.verify()
+   Traceback (most recent call last):
+   ...
+   ValueError: The initialization stepsize (1h) must be identical with the simulation stepsize (1d).
+
+   >>> # Also, they are checked to be properly aligned:
+   >>> pub.timegrids.sim = Timegrid('2001.11.11 00:30',
+   ...                              '2002.11.11 00:30',
+   ...                              '1h')
+   >>> pub.timegrids.verify()
+   Traceback (most recent call last):
+   ...
+   ValueError: The simulation time grid is not properly alligned on the initialization time grid.
+
+   stepsize
+
+      Stepsize of all handled
+
+      Timegrid
+
+       objects.
+
+   verify()
+
+      Raise an
+
+      ValueError
+
+       it the different time grids are inconsistent.
+
+   qfactor(area)
+
+      Return the factor for converting *mm/stepsize* to *m^3/s*.
+
+      Argument:
+         area (float): Reference area, which must be given in the unit
+         km^2.
+
+   parfactor(stepsize)
+
+      Return the factor for converting parameter to simulation step
+      size.
+
+      Argument:
+         stepsize (Period or an suitable initialization argument
+         thereof): Time interval, to which the parameter values refer.
+
+   copy()
+
+      Returns a deep copy of the
+
+      Timegrids
+
+       instance.
+
+   assignrepr(prefix)
+
+      Return a
+
+      repr()
+
+       string with an prefixed assignement.
+
+      Argument:
+         prefix(str): Usually something like 'x = '.
+
+class hydpy.core.timetools.TOY(value='')
+
+   Bases:
+
+   object
+
+   Time of year handler.
+
+   TOY
+
+    objects are used to define certain things that are true for a
+   certain time point in each year.  The smallest supported time unit
+   is seconds.
+
+   Normally, for initialization a string is passed, defining the
+   month, the day, the hour, the minute and the second in the order
+   they are mentioned, separated by a single underscore:
+
+   >>> from hydpy.core.timetools import TOY
+   >>> t = TOY('3_13_23_33_43')
+   >>> t.month
+   3
+   >>> t.day
+   13
+   >>> t.hour
+   23
+   >>> t.minute
+   33
+   >>> t.second
+   43
+
+   If a lower precision is required, one can shorten the string, which
+   implicitely sets the omitted property to the lowest possible value:
+
+   >>> TOY('3_13_23_33')
+   TOY('3_13_23_33_0')
+
+   The most extreme example would be, to pass not string at all:
+
+   >>> TOY()
+   TOY('1_1_0_0_0')
+
+   One can prefix some information to the string, which is usefull
+   when the string is to be used as a valid variable name somewhere
+   else:
+
+   >>> TOY('something_3_13_23_33_2')
+   TOY('3_13_23_33_2')
+
+   As one can see, the prefixed information is lost in the printed
+   string representation.  But a string with a standard prefix is
+   returned through applying
+
+   str
+
+    on
+
+   TOY
+
+    instances:
+
+   >>> str(TOY('something_3_13_23_33_2'))
+   'toy_3_13_23_33_2'
+
+   Alternatively, one can use a
+
+   Date
+
+    object as a initialization argument, ommitting the year:
+
+   >>> TOY(Date('2001.02.03 04:05:06'))
+   TOY('2_3_4_5_6')
+
+   It is only allowed to modify the mentioned properties, not to
+   define new ones:
+
+   >>> t.microsecond = 53
+   Traceback (most recent call last):
+   ...
+   AttributeError: TOY (time of year) objects only allow to set the properties month, day, hour, minute, and second, but `microsecond` is given.
+
+   It is allowed to pass objects that can be converted to integers:
+
+   >>> t.second = '53'
+   >>> t.second
+   53
+
+   If the passed object cannot be converted properly, an exception is
+   raised:
+
+   >>> t.second = 'fiftythree'
+   Traceback (most recent call last):
+   ...
+   ValueError: For TOY (time of year) objects, all properties must be of type `int`, but the value `fiftythree` of type `str` given for property `second` cannot be converted to `int`.
+
+   Additionally, given values are checked to lie within a suitable
+   range:
+
+   >>> t.second = 60
+   Traceback (most recent call last):
+   ...
+   ValueError: The value of property `second` of TOY (time of year) objects must lie within the range `(0, 59)`, but the given value is `60`.
+
+   Note that the allowed values for *month* and *day* depend on each
+   other, which is why the order one defines them might be of
+   importance.  So, if January is predefined, one can set day to the
+   31th:
+
+   >>> t.month = 1
+   >>> t.day = 31
+
+   But afterwards one cannot directly change the month to February:
+
+   >>> t.month = 2
+   Traceback (most recent call last):
+   ...
+   ValueError: The value of property `month` of the actual TOY (time of year) object must not be the given value `2`, as the day has already been set to `31`.
+
+   Hence first set *day* to a smaller value and then change *month*:
+
+   >>> t.day = 28
+   >>> t.month = 2
+
+   For February it is important to note, that the 29th is generally
+   disallowed:
+
+   >>> t.day = 29
+   Traceback (most recent call last):
+   ...
+   ValueError: The value of property `day` of the actual TOY (time of year) object must lie within the range `(1, 28)`, as the month has already been set to `2`, but the given value is `29`.
+
+   It is possible to compare two
+
+   TOY
+
+    instances:
+
+   >>> t1, t2 = TOY('1'), TOY('2')
+   >>> (t1 < t1, t1 < t2, t2 < t1)
+   (False, True, False)
+   >>> (t1 <= t1, t1 <= t2, t2 <= t1)
+   (True, True, False)
+   >>> (t1 == t1, t1 == t2)
+   (True, False)
+   >>> (t1 != t1, t1 != t2)
+   (False, True)
+   >>> (t1 >= t1, t1 >= t2, t2 >= t1)
+   (True, False, True)
+   >>> (t1 > t1, t1 > t2, t2 > t1)
+   (False, False, True)
+
+   Subtracting two
+
+   TOY
+
+    object gives their time difference in seconds:
+
+   >>> TOY('1_1_0_3_0') - TOY('1_1_0_1_30')
+   90
+
+   Instead of negative values, it is always assumed that the first
+
+   TOY
+
+    object lies within the future (eventually within the subsequent
+   year):
+
+   >>> TOY('1_1_0_1_30') - TOY('12_31_23_58_30')
+   180
+
+   passed_seconds
+
+      Amount of time passed in seconds since the beginning of the
+      year.
+
+      In the first example, the year is only one minute and thirty
+      seconds old:
+
+      >>> from hydpy.core.timetools import TOY
+      >>> TOY('1_1_0_1_30').passed_seconds
+      90
+
+      The second example shows that the 29th February is generally
+      included:
+
+      >>> TOY('3').passed_seconds
+      5184000
+
+   left_seconds
+
+      Remaining part of the year in seconds.
+
+      In the first example, only one minute and thirty seconds of the
+      year remain:
+
+      >>> from hydpy.core.timetools import TOY
+      >>> TOY('12_31_23_58_30').left_seconds
+      90
+
+      The second example shows that the 29th February is generally
+      included:
+
+      >>> TOY('2').left_seconds
+      28944000

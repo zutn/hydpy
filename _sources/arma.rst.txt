@@ -1,0 +1,1218 @@
+arma
+
+The HydPy-A base model provides features to implement flood routing
+models based on autoregressive (AR) and moving-average (MA) methods.
+
+Model features
+
+class hydpy.models.arma.arma_model.Model
+
+   Bases:
+
+   hydpy.core.modeltools.Model
+
+   Base model ARMA.
+
+   The following "run methods" are called each simulation step run in
+   the given sequence:
+      calc_qpin_v1() Calculate the input discharge portions of the
+      different response functions.
+
+      calc_login_v1() Refresh the input log sequence for the different
+      MA processes.
+
+      calc_qma_v1() Calculate the discharge responses of the different
+      MA processes.
+
+      calc_qar_v1() Calculate the discharge responses of the different
+      AR processes.
+
+      calc_qpout_v1() Calculate the ARMA results for the different
+      response functions.
+
+      calc_logout_v1() Refresh the log sequence for the different AR
+      processes.
+
+      calc_qout_v1() Sum up the results of the different response
+      functions.
+
+   The following "inlet update methods" are called in the given
+   sequence immediately  before solving the differential equations of
+   the respective model:
+      pick_q_v1() Update inflow.
+
+   The following "outlet update methods" are called in the given
+   sequence immediately  after solving the differential equations of
+   the respective model:
+      pass_q_v1() Update outflow.
+
+hydpy.models.arma.arma_model.calc_qpin_v1(self)
+
+   Calculate the input discharge portions of the different response
+   functions.
+
+   Required derived parameters:
+      Nmb
+
+
+      MaxQ
+
+
+      DiffQ
+
+   Required flux sequence:
+      QIn
+
+   Calculated flux sequences:
+      QPIn
+
+   Examples:
+
+      Initialize an arma model with three different response
+      functions:
+
+      >>> from hydpy.models.arma import *
+      >>> parameterstep()
+      >>> derived.nmb = 3
+      >>> derived.maxq.shape = 3
+      >>> derived.diffq.shape = 2
+      >>> fluxes.qpin.shape = 3
+
+      Define the maximum discharge value of the respective response
+      functions and their successive differences:
+
+      >>> derived.maxq(0.0, 2.0, 6.0)
+      >>> derived.diffq(2., 4.)
+
+      The first six examples are performed for inflow values ranging
+      from 0 to 12 m³/s:
+
+      >>> from hydpy import UnitTest
+      >>> test = UnitTest(
+      ...     model, model.calc_qpin_v1,
+      ...     last_example=6,
+      ...     parseqs=(fluxes.qin, fluxes.qpin))
+      >>> test.nexts.qin = 0., 1., 2., 4., 6., 12.
+      >>> test()
+      | ex. |  qin |           qpin |
+      -------------------------------
+      |   1 |  0.0 | 0.0  0.0   0.0 |
+      |   2 |  1.0 | 1.0  0.0   0.0 |
+      |   3 |  2.0 | 2.0  0.0   0.0 |
+      |   4 |  4.0 | 2.0  2.0   0.0 |
+      |   5 |  6.0 | 2.0  4.0   0.0 |
+      |   6 | 12.0 | 2.0  4.0   6.0 |
+
+      The following two additional examples are just supposed to
+      demonstrate method
+
+      calc_qpin_v1()
+
+       also functions properly if there is only one response function,
+      wherefore total discharge does not need to be divided:
+
+      >>> derived.nmb = 1
+      >>> derived.maxq.shape = 1
+      >>> derived.diffq.shape = 0
+      >>> fluxes.qpin.shape = 1
+      >>> derived.maxq(0.)
+
+      >>> test = UnitTest(
+      ...     model, model.calc_qpin_v1,
+      ...     first_example=7, last_example=8,
+      ...                 parseqs=(fluxes.qin,
+      ...                          fluxes.qpin))
+      >>> test.nexts.qin = 0., 12.
+      >>> test()
+      | ex. |  qin | qpin |
+      ---------------------
+      |   7 |  0.0 |  0.0 |
+      |   8 | 12.0 | 12.0 |
+
+hydpy.models.arma.arma_model.calc_login_v1(self)
+
+   Refresh the input log sequence for the different MA processes.
+
+   Required derived parameters:
+      Nmb
+
+
+      MA_Order
+
+   Required flux sequence:
+      QPIn
+
+   Updated log sequence:
+      LogIn
+
+   Example:
+
+      Assume there are three response functions, involving one, two
+      and three MA coefficients respectively:
+
+      >>> from hydpy.models.arma import *
+      >>> parameterstep()
+      >>> derived.nmb(3)
+      >>> derived.ma_order.shape = 3
+      >>> derived.ma_order = 1, 2, 3
+      >>> fluxes.qpin.shape = 3
+      >>> logs.login.shape = (3, 3)
+
+      The "memory values" of the different MA processes are defined as
+      follows (one row for each process):
+
+      >>> logs.login = ((1.0, nan, nan),
+      ...               (2.0, 3.0, nan),
+      ...               (4.0, 5.0, 6.0))
+
+      These are the new inflow discharge portions to be included into
+      the memories of the different processes:
+
+      >>> fluxes.qpin = 7.0, 8.0, 9.0
+
+      Through applying method
+
+      calc_login_v1()
+
+       all values already existing are shifted to the right ("into the
+      past").  Values, which are no longer required due to the limited
+      order or the different MA processes, are discarded.  The new
+      values are inserted in the first column:
+
+      >>> model.calc_login_v1()
+      >>> logs.login
+      login([[7.0, nan, nan],
+             [8.0, 2.0, nan],
+             [9.0, 4.0, 5.0]])
+
+hydpy.models.arma.arma_model.calc_qma_v1(self)
+
+   Calculate the discharge responses of the different MA processes.
+
+   Required derived parameters:
+      Nmb
+
+
+      MA_Order
+
+
+      MA_Coefs
+
+   Required log sequence:
+      LogIn
+
+   Calculated flux sequence:
+      QMA
+
+   Examples:
+
+      Assume there are three response functions, involving one, two
+      and three MA coefficients respectively:
+
+      >>> from hydpy.models.arma import *
+      >>> parameterstep()
+      >>> derived.nmb(3)
+      >>> derived.ma_order.shape = 3
+      >>> derived.ma_order = 1, 2, 3
+      >>> derived.ma_coefs.shape = (3, 3)
+      >>> logs.login.shape = (3, 3)
+      >>> fluxes.qma.shape = 3
+
+      The coefficients of the different MA processes are stored in
+      separate rows of the 2-dimensional parameter *ma_coefs*:
+
+      >>> derived.ma_coefs = ((1.0, nan, nan),
+      ...                     (0.8, 0.2, nan),
+      ...                     (0.5, 0.3, 0.2))
+
+      The "memory values" of the different MA processes are defined as
+      follows (one row for each process).  The current values are
+      stored in first column, the values of the last time step in the
+      second column, and so on:
+
+      >>> logs.login = ((1.0, nan, nan),
+      ...               (2.0, 3.0, nan),
+      ...               (4.0, 5.0, 6.0))
+
+      Applying method
+
+      calc_qma_v1()
+
+       is equivalent to calculating the inner product of the different
+      rows of both matrices:
+
+      >>> model.calc_qma_v1()
+      >>> fluxes.qma
+      qma(1.0, 2.2, 4.7)
+
+hydpy.models.arma.arma_model.calc_qar_v1(self)
+
+   Calculate the discharge responses of the different AR processes.
+
+   Required derived parameters:
+      Nmb
+
+
+      AR_Order
+
+
+      AR_Coefs
+
+   Required log sequence:
+      LogOut
+
+   Calculated flux sequence:
+      QAR
+
+   Examples:
+
+      Assume there are four response functions, involving zero, one,
+      two, and three AR coefficients respectively:
+
+      >>> from hydpy.models.arma import *
+      >>> parameterstep()
+      >>> derived.nmb(4)
+      >>> derived.ar_order.shape = 4
+      >>> derived.ar_order = 0, 1, 2, 3
+      >>> derived.ar_coefs.shape = (4, 3)
+      >>> logs.logout.shape = (4, 3)
+      >>> fluxes.qar.shape = 4
+
+      The coefficients of the different AR processes are stored in
+      separate rows of the 2-dimensional parameter *ma_coefs*. Note
+      the special case of the first AR process of zero order (first
+      row), which involves no autoregressive memory at all:
+
+      >>> derived.ar_coefs = ((nan, nan, nan),
+      ...                     (1.0, nan, nan),
+      ...                     (0.8, 0.2, nan),
+      ...                     (0.5, 0.3, 0.2))
+
+      The "memory values" of the different AR processes are defined as
+      follows (one row for each process).  The values of the last time
+      step are stored in first column, the values of the last time
+      step in the second column, and so on:
+
+      >>> logs.logout = ((nan, nan, nan),
+      ...                (1.0, nan, nan),
+      ...                (2.0, 3.0, nan),
+      ...                (4.0, 5.0, 6.0))
+
+      Applying method
+
+      calc_qar_v1()
+
+       is equivalent to calculating the inner product of the different
+      rows of both matrices:
+
+      >>> model.calc_qar_v1()
+      >>> fluxes.qar
+      qar(0.0, 1.0, 2.2, 4.7)
+
+hydpy.models.arma.arma_model.calc_qpout_v1(self)
+
+   Calculate the ARMA results for the different response functions.
+
+   Required derived parameter:
+      Nmb
+
+   Required flux sequences:
+      QMA
+
+
+      QAR
+
+   Calculated flux sequence:
+      QPOut
+
+   Examples:
+
+      Initialize an arma model with three different response
+      functions:
+
+      >>> from hydpy.models.arma import *
+      >>> parameterstep()
+      >>> derived.nmb(3)
+      >>> fluxes.qma.shape = 3
+      >>> fluxes.qar.shape = 3
+      >>> fluxes.qpout.shape = 3
+
+      Define the output values of the MA and of the AR processes
+      associated with the three response functions and apply method
+
+      calc_qpout_v1()
+
+      :
+
+      >>> fluxes.qar = 4.0, 5.0, 6.0
+      >>> fluxes.qma = 1.0, 2.0, 3.0
+      >>> model.calc_qpout_v1()
+      >>> fluxes.qpout
+      qpout(5.0, 7.0, 9.0)
+
+hydpy.models.arma.arma_model.calc_logout_v1(self)
+
+   Refresh the log sequence for the different AR processes.
+
+   Required derived parameters:
+      Nmb
+
+
+      AR_Order
+
+   Required flux sequence:
+      QPOut
+
+   Updated log sequence:
+      LogOut
+
+   Example:
+
+      Assume there are four response functions, involving zero, one,
+      two and three AR coefficients respectively:
+
+      >>> from hydpy.models.arma import *
+      >>> parameterstep()
+      >>> derived.nmb(4)
+      >>> derived.ar_order.shape = 4
+      >>> derived.ar_order = 0, 1, 2, 3
+      >>> fluxes.qpout.shape = 4
+      >>> logs.logout.shape = (4, 3)
+
+      The "memory values" of the different AR processes are defined as
+      follows (one row for each process).  Note the special case of
+      the first AR process of zero order (first row), which is why
+      there are no autoregressive memory values required:
+
+      >>> logs.logout = ((nan, nan, nan),
+      ...                (0.0, nan, nan),
+      ...                (1.0, 2.0, nan),
+      ...                (3.0, 4.0, 5.0))
+
+      These are the new outflow discharge portions to be included into
+      the memories of the different processes:
+
+      >>> fluxes.qpout = 6.0, 7.0, 8.0, 9.0
+
+      Through applying method
+
+      calc_logout_v1()
+
+       all values already existing are shifted to the right ("into the
+      past").  Values, which are no longer required due to the limited
+      order or the different AR processes, are discarded.  The new
+      values are inserted in the first column:
+
+      >>> model.calc_logout_v1()
+      >>> logs.logout
+      logout([[nan, nan, nan],
+              [7.0, nan, nan],
+              [8.0, 1.0, nan],
+              [9.0, 3.0, 4.0]])
+
+hydpy.models.arma.arma_model.calc_qout_v1(self)
+
+   Sum up the results of the different response functions.
+
+   Required derived parameter:
+      Nmb
+
+   Required flux sequences:
+      QPOut
+
+   Calculated flux sequence:
+      QOut
+
+   Examples:
+
+      Initialize an arma model with three different response
+      functions:
+
+      >>> from hydpy.models.arma import *
+      >>> parameterstep()
+      >>> derived.nmb(3)
+      >>> fluxes.qpout.shape = 3
+
+      Define the output values of the three response functions and
+      apply method
+
+      calc_qout_v1()
+
+      :
+
+      >>> fluxes.qpout = 1.0, 2.0, 3.0
+      >>> model.calc_qout_v1()
+      >>> fluxes.qout
+      qout(6.0)
+
+hydpy.models.arma.arma_model.pick_q_v1(self)
+
+   Update inflow.
+
+hydpy.models.arma.arma_model.pass_q_v1(self)
+
+   Update outflow.
+
+Parameter features
+
+Control parameters
+
+class hydpy.models.arma.arma_control.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of arma, directly defined by the user.
+
+   The following parameter classes are selected:
+      Responses Assigns different ARMA models to different discharge
+      thresholds.
+
+class hydpy.models.arma.arma_control.Responses(*args, **kwargs)
+
+   Bases:
+
+   hydpy.core.parametertools.Parameter
+
+   Assigns different ARMA models to different discharge thresholds.
+
+   Parameter
+
+   Responses
+
+    is not involved in the actual calculations during the simulation
+   run.  Instead, it is thought for the intuitive handling of
+   different ARMA models.  It can be applied as follows.
+
+   Initially, each new *responses* object is emtpy:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep()
+   >>> responses
+   responses()
+
+   One can assign ARMA models as attributes to it:
+
+   >>> responses.th_0_0 = ((1, 2), (3, 4, 6))
+
+   *th_0_0* stands for a threshold discharge value of 0.0 m³/s, which
+   the given ARMA model corresponds to.  For integer discharge values,
+   one can omit the decimal digit:
+
+   >>> responses.th_1 = ((), (7,))
+
+   One can also omit the leading letters, but not the underscore:
+
+   >>> responses.th_2_5 = ([8], range(9, 20))
+
+   Internally, all threshold keys are brought into the standard
+   format:
+
+   >>> responses
+   responses(th_0_0=((1.0, 2.0),
+                     (3.0, 4.0, 6.0)),
+             th_1_0=((),
+                     (7.0,)),
+             th_2_5=((8.0,),
+                     (9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0,
+                      18.0, 19.0)))
+
+   All ARMA models are available via attribute access and their
+   attribute names are made available to function
+
+   dir()
+
+   :
+
+   >>> 'th_1_0' in dir(responses)
+   True
+
+   Note that all iterables containing the AR and MA coefficients are
+   converted to tuples, to prevent them from being changed by
+   accident:
+
+   >>> responses.th_1[1][0]
+   7.0
+   >>> responses.th_1_0[1][0] = 77
+   Traceback (most recent call last):
+   ...
+   TypeError: 'tuple' object does not support item assignment
+
+   Instead, one can delete and or overwrite existing ARMA models:
+
+   >>> del responses.th_2_5
+   >>> responses.th_1 = ((), (77,))
+   >>> responses
+   responses(th_0_0=((1.0, 2.0),
+                     (3.0, 4.0, 6.0)),
+             th_1_0=((),
+                     (77.0,)))
+
+   Names that cannot be identified as threshold values result in an
+   exception:
+
+   >>> responses.test = ((), ())
+   Traceback (most recent call last):
+   ...
+   AttributeError: To define different response functions for parameter `responses` of element `?`, one has to pass them as keyword arguments or set them as additional attributes.  The used name must meet a specific format (see the documentation for further information).  The given name `test` does not meet this format.
+
+   Suitable get-related attribute exceptions are also implemented:
+
+   >>> responses.test
+   Traceback (most recent call last):
+   ...
+   AttributeError: Parameter `responses` of element `?` does not have an attribute named `test` and the name `test` is also not a valid threshold value identifier.
+
+   >>> responses._0_1
+   Traceback (most recent call last):
+   ...
+   AttributeError: Parameter `responses` of element `?` does not have an attribute attribute named `_0_1` nor an arma model corresponding to a threshold value named `th_0_1`.
+
+   The above examples show that all AR and MA coefficients are
+   converted to floating point values.  It this is not possible or
+   something else goes totally wrong during the definition of a new
+   ARMA model, errors like the following are raised:
+
+   >>> responses.th_10 = ()
+   Traceback (most recent call last):
+   ...
+   IndexError: While trying to set a new threshold (th_10) coefficient pair for parameter `responses` of element `?`, the following error occured: tuple index out of range
+
+   Except for the mentioned conversion to floating point values, there
+   are no plausibility checks performed.  You have to use other tools
+   to gain plausible coefficients.  The HydPy framework offers the
+   module
+
+   iuhtools
+
+    for such purposes.
+
+   Prepare one instantaneous unit hydrograph (iuh) based on the
+   Translation Diffusion Equation and another one based on the Linear
+   Storage Cascade:
+
+   >>> from hydpy.auxs.iuhtools import TranslationDiffusionEquation
+   >>> tde = TranslationDiffusionEquation(d=5., u=2., x=4.)
+   >>> from hydpy.auxs.iuhtools import LinearStorageCascade
+   >>> lsc = LinearStorageCascade(n=2.5, k=1.)
+
+   The following line deletes the coefficients defined above and
+   assigns the ARMA approximations of both iuh models:
+
+   >>> responses(lsc, _2=tde)
+
+   One can change the parameter values of the translation diffusion
+   iuh and assign it to the *responses* parameter, without affecting
+   the ARMA coefficients of the first tde parametrization:
+
+   >>> tde.u = 1.
+   >>> responses._5 = tde
+   >>> responses
+   responses(th_0_0=((1.001744, -0.32693, 0.034286),
+                     (0.050456, 0.199156, 0.04631, -0.004812, -0.00021)),
+             th_2_0=((2.028483, -1.447371, 0.420257, -0.039595, -0.000275),
+                     (0.165732, 0.061819, -0.377523, 0.215754, -0.024597,
+                      -0.002684)),
+             th_5_0=((3.032315, -3.506645, 1.908546, -0.479333, 0.042839,
+                      0.00009),
+                     (0.119252, -0.054959, -0.342744, 0.433585, -0.169102,
+                      0.014189, 0.001967)))
+
+   One may have noted the Linear Storage Cascade model was passed as a
+   positional argument and was assigned to a treshold value of 0.0
+   m³/s automatically, which is the default value.  As each treshold
+   value has to be unique, one can pass only one positional argument:
+
+   >>> responses(tde, lsc)
+   Traceback (most recent call last):
+   ...
+   ValueError: For parameter `responses` of element `?` at most one positional argument is allowed, but `2` are given.
+
+   Checks for the repeated definition of the same threshold values are
+   also performed:
+
+   >>> responses(tde, _0=lsc, _1=tde, _1_0=lsc)
+   Traceback (most recent call last):
+   ...
+   ValueError: For parameter `responses` of element `?` `4` arguments have been given but only `2` response functions could be prepared.  Most probably, you defined the same threshold value(s) twice.
+
+   The number of response functions and the number of the respective
+   AR and MA coefficients of a given *responses* parameter can be
+   easily queried:
+
+   >>> responses(_0=((1.0, 2.0),
+   ...               (3.0, 4.0, 6.0)),
+   ...           _1=((),
+   ...               (7.0,)))
+   >>> len(responses)
+   2
+   >>> responses.ar_orders
+   (2, 0)
+   >>> responses.ma_orders
+   (3, 1)
+
+   The threshold values and AR coefficients and the MA coefficients
+   can all be queried as numpy arrays:
+
+   >>> responses.thresholds
+   array([ 0.,  1.])
+   >>> responses.ar_coefs
+   array([[  1.,   2.],
+          [ nan,  nan]])
+   >>> responses.ma_coefs
+   array([[  3.,   4.,   6.],
+          [  7.,  nan,  nan]])
+
+   Technical notes:
+
+   The implementation of this class is much to tricky for subpackage
+   *models*. It should be generalized and moved to the framework core
+   later.
+
+   Furthermore, it would be nice to avoid the *nan* values in the
+   coefficent representations.  But this would possibly require to
+   define a specialized *arrays in list* type in Cython.
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   connect(subpars)
+
+   thresholds
+
+      Threshold values of the response functions.
+
+   ar_orders
+
+      Number of AR coefficients of the different response functions.
+
+   ma_orders
+
+      Number of MA coefficients of the different response functions.
+
+   ar_coefs
+
+      AR coefficients of the different response functions.
+
+      The first row contains the AR coefficients related to the the
+      smallest threshold value, the last row contains the AR
+      coefficients related to the highest threshold value.  The number
+      of columns depend on the highest number of AR coefficients among
+      all response functions.
+
+   ma_coefs
+
+      AR coefficients of the different response functions.
+
+      The first row contains the MA coefficients related to the the
+      smallest threshold value, the last row contains the AR
+      coefficients related to the highest threshold value.  The number
+      of columns depend on the highest number of MA coefficients among
+      all response functions.
+
+Derived parameters
+
+class hydpy.models.arma.arma_derived.DerivedParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Derived parameters of arma, indirectly defined by the user.
+
+   The following parameter classes are selected:
+      Nmb Number of response functions [-].
+
+      MaxQ Maximum discharge values of the respective ARMA models
+      [m³/s].
+
+      DiffQ Differences between the values of MaxQ [m³/s].
+
+      AR_Order Number of AR coefficients of the different responses
+      [-].
+
+      MA_Order Number of MA coefficients of the different responses
+      [-].
+
+      AR_Coefs AR coefficients of the different responses [-].
+
+      MA_Coefs MA coefficients of the different responses [-].
+
+class hydpy.models.arma.arma_derived.Nmb
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Number of response functions [-].
+
+   Example:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep('1d')
+   >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+   >>> derived.nmb.update()
+   >>> derived.nmb
+   nmb(2)
+
+   Note that updating parameter *nmb* sets the shape of the flux
+   sequences
+
+   QPIn
+
+   ,
+
+   QPOut
+
+   ,
+
+   QMA
+
+   , and
+
+   QAR
+
+    automatically.
+
+   >>> fluxes.qpin
+   qpin(nan, nan)
+   >>> fluxes.qpout
+   qpout(nan, nan)
+   >>> fluxes.qma
+   qma(nan, nan)
+   >>> fluxes.qar
+   qar(nan, nan)
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (0, None)
+
+   update()
+
+class hydpy.models.arma.arma_derived.MaxQ
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Maximum discharge values of the respective ARMA models [m³/s].
+
+   Example:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep('1d')
+   >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+   >>> derived.maxq.update()
+   >>> derived.maxq
+   maxq(0.0, 3.0)
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0, None)
+
+   update()
+
+class hydpy.models.arma.arma_derived.DiffQ
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Differences between the values of
+
+   MaxQ
+
+    [m³/s].
+
+   Example:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep('1d')
+   >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+   >>> derived.diffq.update()
+   >>> derived.diffq
+   diffq(3.0)
+    >>> responses(((1., 2.), (1.,)))
+   >>> derived.diffq.update()
+   >>> derived.diffq
+   diffq()
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0, None)
+
+   update()
+
+class hydpy.models.arma.arma_derived.AR_Order
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Number of AR coefficients of the different responses [-].
+
+   Example:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep('1d')
+   >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+   >>> derived.ar_order.update()
+   >>> derived.ar_order
+   ar_order(2, 1)
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (0, None)
+
+   update()
+
+class hydpy.models.arma.arma_derived.MA_Order
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Number of MA coefficients of the different responses [-].
+
+   Example:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep('1d')
+   >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+   >>> derived.ma_order.update()
+   >>> derived.ma_order
+   ma_order(1, 3)
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (0, None)
+
+   update()
+
+class hydpy.models.arma.arma_derived.AR_Coefs
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   AR coefficients of the different responses [-].
+
+   Example:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep('1d')
+   >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+   >>> derived.ar_coefs.update()
+   >>> derived.ar_coefs
+   ar_coefs([[1.0, 2.0],
+             [1.0, nan]])
+
+   Note that updating parameter *ar_coefs* sets the shape of the log
+   sequence
+
+   LogOut
+
+    automatically.
+
+   >>> logs.logout
+   logout([[nan, nan],
+           [nan, nan]])
+
+   NDIM = 2
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   update()
+
+class hydpy.models.arma.arma_derived.MA_Coefs
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   MA coefficients of the different responses [-].
+
+   Example:
+
+   >>> from hydpy.models.arma import *
+   >>> parameterstep('1d')
+   >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+   >>> derived.ma_coefs.update()
+   >>> derived.ma_coefs
+   ma_coefs([[1.0, nan, nan],
+             [1.0, 2.0, 3.0]])
+
+   Note that updating parameter *ar_coefs* sets the shape of the log
+   sequence
+
+   LogIn
+
+    automatically.
+
+   >>> logs.login
+   login([[nan, nan, nan],
+          [nan, nan, nan]])
+
+   NDIM = 2
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   update()
+
+Sequence features
+
+Flux sequences
+
+class hydpy.models.arma.arma_fluxes.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequences
+
+   Flux sequences of the ARMA model.
+
+   The following sequence classes are selected:
+      QIn Total inflow [m³/s].
+
+      QPIn Inflow portions corresponding to the different thresholds
+      [m³/s].
+
+      QMA MA result for the different thresholds [m³/s].
+
+      QAR AR result for the different thresholds [m³/s].
+
+      QPOut Outflow portions corresponding to the different thresholds
+      [m³/s].
+
+      QOut Total outflow [m³/s].
+
+class hydpy.models.arma.arma_fluxes.QIn
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Total inflow [m³/s].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.arma.arma_fluxes.QPIn
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Inflow portions corresponding to the different thresholds [m³/s].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.arma.arma_fluxes.QMA
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   MA result for the different thresholds [m³/s].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.arma.arma_fluxes.QAR
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   AR result for the different thresholds [m³/s].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.arma.arma_fluxes.QPOut
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Outflow portions corresponding to the different thresholds [m³/s].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.arma.arma_fluxes.QOut
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Total outflow [m³/s].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+Log sequences
+
+class hydpy.models.arma.arma_logs.LogSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LogSequences
+
+   Log sequences of the ARMA model.
+
+   The following sequence classes are selected:
+      LogIn The recent and the past inflow portions for the
+      application of the different MA processes [m³/s].
+
+      LogOut The past outflow portions for the application of the
+      different AR processes [m³/s].
+
+class hydpy.models.arma.arma_logs.LogIn
+
+   Bases:
+
+   hydpy.core.sequencetools.LogSequence
+
+   The recent and the past inflow portions for the application of the
+   different MA processes [m³/s].
+
+   NDIM = 2
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+class hydpy.models.arma.arma_logs.LogOut
+
+   Bases:
+
+   hydpy.core.sequencetools.LogSequence
+
+   The past outflow portions for the application of the different AR
+   processes [m³/s].
+
+   NDIM = 2
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+Inlet sequences
+
+class hydpy.models.arma.arma_inlets.InletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Upstream link sequences of the ARMA model.
+
+   The following sequence classes are selected:
+      Q Runoff [m³/s].
+
+class hydpy.models.arma.arma_inlets.Q
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequence
+
+   Runoff [m³/s].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+Outlet sequences
+
+class hydpy.models.arma.arma_outlets.OutletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Downstream link sequences of the ARMA model.
+
+   The following sequence classes are selected:
+      Q Runoff [m³/s].
+
+class hydpy.models.arma.arma_outlets.Q
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequence
+
+   Runoff [m³/s].
+
+   NDIM = 0
+
+   NUMERIC = False

@@ -1,0 +1,46 @@
+connectiontools
+
+This modules implements tools for handling connections between
+
+Node
+
+ and
+
+Element
+
+ instances.
+
+Module
+
+connectiontools
+
+ implements the following members:
+
+   Connections Connection between Node and Element instances.
+
+
+class hydpy.core.connectiontools.Connections(master, name)
+
+   Bases:
+
+   object
+
+   Connection between
+
+   Node
+
+    and
+
+   Element
+
+    instances.
+
+   master
+
+   name
+
+   names
+
+   slaves
+
+   variables

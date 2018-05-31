@@ -1,0 +1,29 @@
+.. |Date| replace:: :class:`~hydpy.core.timetools.Date`
+.. |None| replace:: :const:`None`
+.. |Period| replace:: :class:`~hydpy.core.timetools.Period`
+.. |TOY| replace:: :class:`~hydpy.core.timetools.TOY`
+.. |Timegrid.verify| replace:: :func:`~hydpy.core.timetools.Timegrid.verify`
+.. |Timegrids.verify| replace:: :func:`~hydpy.core.timetools.Timegrids.verify`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |ValueError| replace:: :class:`ValueError`
+.. |datetime| replace:: :mod:`~datetime`
+.. |float| replace:: :class:`float`
+.. |numpy| replace:: :mod:`~numpy`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |repr| replace:: :func:`repr`
+.. |sequencetools| replace:: :mod:`~hydpy.core.sequencetools`
+.. |str| replace:: :class:`str`
+.. |timetools| replace:: :mod:`~hydpy.core.timetools`
+.. |datetime.datetime| replace:: :class:`~datetime.datetime`
+.. |datetime.timedelta| replace:: :class:`~datetime.timedelta`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _timetools:
+
+timetools
+=========
+
+.. automodule:: hydpy.core.timetools
+    :members:
+    :show-inheritance:

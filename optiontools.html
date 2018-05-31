@@ -1,0 +1,328 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>optiontools &#8212; HydPy 2.1-dev documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="parametertools" href="parametertools.html" />
+    <link rel="prev" title="objecttools" href="objecttools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parametertools.html" title="parametertools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="objecttools.html" title="objecttools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Modules</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="optiontools">
+<span id="id1"></span><h1>optiontools<a class="headerlink" href="#optiontools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.optiontools"></span><p>This module implements classes that help to manage global HydPy options.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.optiontools" title="hydpy.core.optiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optiontools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a> Singleton class for <cite>global</cite> options placed in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="class">
+<dt id="hydpy.core.optiontools.Options">
+<em class="property">class </em><code class="descclassname">hydpy.core.optiontools.</code><code class="descname">Options</code><a class="reference internal" href="_modules/hydpy/core/optiontools.html#Options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#hydpy.core.optiontools.Options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Singleton class for <cite>global</cite> options placed in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+<p>Note that Most options are simple True/False or 0/1 flags.</p>
+<p>You can change all options in two ways.  By using the <cite>with</cite> statement,
+you make sure that the change is undone after leaving the corresponding
+code block (even if an error occurs):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.pub</span> <span class="k">import</span> <span class="n">options</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>Alternatively, you can change all options via simple assignements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>But then you might have to keep in mind to undo the change later:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.checkseries">
+<code class="descname">checkseries</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.checkseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether an error shall be raised
+when e.g. an incomplete input time series, not spanning the whole
+initialization time period, is loaded.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.ellipsis">
+<code class="descname">ellipsis</code><em class="property"> = -999</em><a class="headerlink" href="#hydpy.core.optiontools.Options.ellipsis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ellipsis points are used to shorten the string representations
+of iterable HydPy objects containing many entries.  Set a value
+to define the maximum number of entries before and behind ellipsis
+points.  Set it to zero, if no ellipsis points should be drawn at
+all.  Set it to -999 (the default value) to rely on the default
+values of the respective iterables.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.fastcython">
+<code class="descname">fastcython</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.fastcython" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether Cythonization shall be
+configured in a fast but unsafe (True) or in a slow but safe (False)
+mode.  The fast mode is the default.  Setting this flag to False
+can be helpful when the implementation of new models or other
+Cython related features introduces errors that do not result in
+informative error messages.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.printprogress">
+<code class="descname">printprogress</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.printprogress" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether information about the progress
+of certain processes shall be printed to the standard output or not.
+The default is <cite>True</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.printincolor">
+<code class="descname">printincolor</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.printincolor" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether information shall be printed
+in color eventually or not. The default is <cite>True</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.reprcomments">
+<code class="descname">reprcomments</code><em class="property"> = 0</em><a class="headerlink" href="#hydpy.core.optiontools.Options.reprcomments" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicationg whether comments shall be included
+in string representations of some classes of the HydPy framework or
+not.  The default is <cite>False</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.reprdigits">
+<code class="descname">reprdigits</code><em class="property"> = -999</em><a class="headerlink" href="#hydpy.core.optiontools.Options.reprdigits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required precision of string representations of floating point
+numbers, defined as the minimum number of digits to be reproduced
+by the string representation (see function <code class="xref py py-const docutils literal notranslate"><span class="pre">repr_</span></code>).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.skipdoctests">
+<code class="descname">skipdoctests</code><em class="property"> = 0</em><a class="headerlink" href="#hydpy.core.optiontools.Options.skipdoctests" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether documetation tests shall be
+performed under certain situations.  Applying tests increases
+reliabilty and is thus the default.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.usecython">
+<code class="descname">usecython</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.usecython" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether Cython models (True) or pure
+Python models (False) shall be applied if possible.  Using Cython
+models is more time efficient and thus the default.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.usedefaultvalues">
+<code class="descname">usedefaultvalues</code><em class="property"> = 0</em><a class="headerlink" href="#hydpy.core.optiontools.Options.usedefaultvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether parameters values shall be
+initialized with standard values or not.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.dirverbose">
+<code class="descname">dirverbose</code><em class="property"> = 0</em><a class="headerlink" href="#hydpy.core.optiontools.Options.dirverbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicationg whether the listboxes for the member
+selection of the classes of the HydPy framework should be complete
+(True) or restrictive (False).  The latter is more viewable and hence
+the default.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.warnmissingcontrolfile">
+<code class="descname">warnmissingcontrolfile</code><em class="property"> = 0</em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingcontrolfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether only a warning shall be raised
+when a required control file is missing, or an exception.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.warnmissingobsfile">
+<code class="descname">warnmissingobsfile</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingobsfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether a warning shall be raised
+when a requested observation sequence demanded by a node instance
+is missing.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.warnmissingsimfile">
+<code class="descname">warnmissingsimfile</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingsimfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether a warning shall be raised
+when a requested simulation sequence demanded by a node instance
+is missing.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.warnsimulationstep">
+<code class="descname">warnsimulationstep</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnsimulationstep" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether a warning shall be raised
+when function <a class="reference internal" href="importtools.html#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a> called for the first time.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="hydpy.core.optiontools.Options.warntrim">
+<code class="descname">warntrim</code><em class="property"> = 1</em><a class="headerlink" href="#hydpy.core.optiontools.Options.warntrim" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag indicating whether a warning shall be raised
+whenever certain values needed to be trimmed due to violating
+certain boundaries. Such warnings increase safety and are thus
+the default is <cite>True</cite>.  However, to cope with the limited precision
+of floating point numbers only those violations beyond a small
+tolerance value are reported (see function <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.trim" title="hydpy.core.variabletools.trim"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim()</span></code></a>).  Warnings
+with identical information are reported only once.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Modules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="abctools.html">abctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="connectiontools.html">connectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dummytools.html">dummytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modelimports.html">modelimports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cythons Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="objecttools.html"
+                        title="previous chapter">objecttools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="parametertools.html"
+                        title="next chapter">parametertools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/optiontools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parametertools.html" title="parametertools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="objecttools.html" title="objecttools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Modules</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Christoph Tyralla.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

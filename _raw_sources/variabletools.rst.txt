@@ -1,0 +1,19 @@
+.. |False| replace:: :const:`False`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Sequence| replace:: :class:`~hydpy.core.sequencetools.Sequence`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |all| replace:: :func:`all`
+.. |any| replace:: :func:`any`
+.. |parametertools| replace:: :mod:`~hydpy.core.parametertools`
+.. |sequencetools| replace:: :mod:`~hydpy.core.sequencetools`
+.. |tolerance| replace:: :func:`~hydpy.core.variabletools.tolerance`
+.. |trim| replace:: :func:`~hydpy.core.variabletools.trim`
+
+.. _variabletools:
+
+variabletools
+=============
+
+.. automodule:: hydpy.core.variabletools
+    :members:
+    :show-inheritance:

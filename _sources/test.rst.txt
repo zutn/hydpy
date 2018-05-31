@@ -1,0 +1,204 @@
+test
+
+The base model
+
+test
+
+ is intended for implementing small application model that allow for
+testing or demonstrating specific features of the HydPy framework.
+
+Model features
+
+class hydpy.models.test.test_model.Model
+
+   Bases:
+
+   hydpy.core.modeltools.ModelELS
+
+   Test model.
+
+   The following methods define the relevant components of a system of
+   ODE equations (e.g. direct runoff):
+      calc_q_v1() Calculate the actual storage loss.
+
+      calc_q_v2() Calculate the actual storage loss.
+
+   The following methods define the complete equations of an ODE
+   system (e.g. change in storage of *fast water* due to  effective
+   precipitation and direct runoff):
+      calc_s_v1() Calculate the actual storage content.
+
+hydpy.models.test.test_model.calc_q_v1(self)
+
+   Calculate the actual storage loss.
+
+   This simple equation is continuous but potentially stiff.
+
+   Required control parameter:
+      K
+
+   Required state sequence:
+      S
+
+   Calculated flux sequence:
+      Q
+
+   Basic equation:
+      Q = K \cdot S
+
+   Example:
+
+   >>> from hydpy.models.test import *
+   >>> parameterstep()
+   >>> k(0.5)
+   >>> states.s = 2.0
+   >>> model.calc_q_v1()
+   >>> fluxes.q
+   q(1.0)
+
+hydpy.models.test.test_model.calc_q_v2(self)
+
+   Calculate the actual storage loss.
+
+   This simple equation is discontinuous.
+
+   Required control parameter:
+      K
+
+   Required state sequence:
+      S
+
+   Calculated flux sequence:
+      Q
+
+   Basic equation:
+      Q = \Bigl \lbrace { {K \ | \ S > 0} \atop {0 \ | \ S \leq 0} }
+
+   Example:
+
+   >>> from hydpy.models.test import *
+   >>> parameterstep()
+   >>> k(0.5)
+   >>> states.s = 2.0
+   >>> model.calc_q_v2()
+   >>> fluxes.q
+   q(0.5)
+
+hydpy.models.test.test_model.calc_s_v1(self)
+
+   Calculate the actual storage content.
+
+   Required flux sequence:
+      Q
+
+   Calculated state sequence:
+      S
+
+   Basic equation:
+      \frac{dS}{dt} = Q
+
+   Example:
+
+   >>> from hydpy.models.test import *
+   >>> parameterstep()
+   >>> states.s.old = 1.0
+   >>> fluxes.q = 0.8
+   >>> model.calc_s_v1()
+   >>> states.s
+   s(0.2)
+
+Parameter features
+
+Control parameters
+
+class hydpy.models.test.test_control.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of the Test model, directly defined by the user.
+
+   The following parameter classes are selected:
+      K Storage coefficient [1/T].
+
+class hydpy.models.test.test_control.K
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Storage coefficient [1/T].
+
+   For educational purposes, the actual value of parameter
+
+   K
+
+    does not depend on the difference between the actual simulation
+   time step and the actual parameter time step.
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+Sequence features
+
+Flux sequences
+
+class hydpy.models.test.test_fluxes.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequences
+
+   Flux sequences of the Test model.
+
+   The following sequence classes are selected:
+      Q Storage loss [mm/T]
+
+class hydpy.models.test.test_fluxes.Q
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Storage loss [mm/T]
+
+   NDIM = 0
+
+   NUMERIC = True
+
+   SPAN = (0.0, None)
+
+State sequences
+
+class hydpy.models.test.test_states.StateSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequences
+
+   State sequences of the Test model.
+
+   The following sequence classes are selected:
+      S Storage content [mm].
+
+class hydpy.models.test.test_states.S
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Storage content [mm].
+
+   NDIM = 0
+
+   NUMERIC = True
+
+   SPAN = (0.0, None)

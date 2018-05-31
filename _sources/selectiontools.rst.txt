@@ -1,0 +1,207 @@
+selectiontools
+
+This module implements tools for selecting certain models in large
+HydPy projects.
+
+Module
+
+selectiontools
+
+ implements the following members:
+
+   Selections Collects Selection instances.
+
+   Selection Defines a combination of Node and Element objects
+   suitable for a specific task.
+
+
+class hydpy.core.selectiontools.Selections(*selections)
+
+   Bases:
+
+   object
+
+   Collects
+
+   Selection
+
+    instances.
+
+   Attributes:
+      ? (Selection): An arbitrary number of Selection objects, which
+      can be added (and removed) on demand.  Choose attribute names
+      that are meaningfull within your specific project.
+
+   names
+
+      Names of the actual selections.
+
+   save(path='', write_nodes=False)
+
+      Save all selections in separate network files.
+
+   selections
+
+      The actual selections themselves.
+
+   assignrepr(prefix)
+
+      Return a
+
+      repr()
+
+       string with an prefixed assignement.
+
+      Argument:
+         prefix(str): Usually something like 'x = '.
+
+class hydpy.core.selectiontools.Selection(name, nodes=None, elements=None)
+
+   Bases:
+
+   object
+
+   Defines a combination of
+
+   Node
+
+    and
+
+   Element
+
+    objects suitable for a specific task.
+
+   Attributes:
+      name (str): Name of the selection.
+
+      nodes (Nodes): Currently selected nodes.
+
+      elements (Elements): Currently selected elements.
+
+   select_upstream(device)
+
+      Limit the current selection to the network upstream of the given
+      starting point, including the starting point itself.
+
+      Argument:
+         device (Node or Element): Lowest point to be selected.
+
+   deselect_upstream(device)
+
+      Remove the network upstream of the given starting point from the
+      current selection, including the starting point itself.
+
+      Argument:
+         device (Node or Element): Highest point to be deselected.
+
+   getby_upstream(device)
+
+      Returns the network upstream of the given starting point,
+      including the starting point itself.
+
+      Argument:
+         device (Node or Element): Lowest point to be selected.
+
+   select_modelclasses(*modelclass)
+
+      Limits the current selection to all elements containing the
+      given modelclass(es).  (All nodes are removed.)
+
+      Argument:
+         modelclass (subclass of Model): Model type(s) as the
+         selection criterion/criteria.
+
+   deselect_modelclasses(*modelclasses)
+
+      Limits the current selection to all elements not containing the
+      given modelclass(es).  (All nodes are removed.)
+
+      Argument:
+         modelclass (subclass of Model): Model type(s) as the
+         selection criterion/criteria.
+
+   getby_modelclasses(*modelclasses)
+
+      Returns all elements of the current selection containing the
+      given modelclass(es).
+
+      Argument:
+         modelclass (subclass of Model): Model type(s) as the
+         selection criterion/criteria.
+
+   select_nodenames(*substrings)
+
+      Limits the current selection to all nodes with a name containing
+      the given substring(s).  (All elements are unaffected.)
+
+      Argument:
+         substrings (str): (Possible) Part(s) of the nodes name as the
+         selection criterion/criteria.
+
+   deselect_nodenames(*substrings)
+
+      Limits the current selection to all nodes with a name not
+      containing the given substring(s).  (All elements are
+      unaffected.)
+
+      Argument:
+         substrings (str): (Possible) Part(s) of the nodes name as the
+         selection criterion/criteria.
+
+   getby_nodenames(*substrings)
+
+      Returns all nodes of the current selection with a name
+      containing the given substrings(s).
+
+      Argument:
+         substrings (str): (Possible) Part(s) of the nodes name as the
+         selection criterion/criteria.
+
+   select_elementnames(*substrings)
+
+      Limits the current selection to all elements with a name
+      containing the given substring(s).  (All nodes are unaffected.)
+
+      Argument:
+         substrings (str): (Possible) Part(s) of the elements name as
+         the selection criterion/criteria.
+
+   deselect_elementnames(*substrings)
+
+      Limits the current selection to all elements with a name not
+      containing the given substring(s).  (All nodes are unaffected.)
+
+      Argument:
+         substrings (str): (Possible) Part(s) of the elements name as
+         the selection criterion/criteria.
+
+   getby_elementnames(*substrings)
+
+      Returns all elements of the current selection with a name
+      containing the given substrings(s).
+
+      Argument:
+         substrings (str): (Possible) Part(s) of the elements name as
+         the selection criterion/criteria.
+
+   copy(name)
+
+      Returns a semi-deep copy of the current selection.
+
+      Arguments:
+         name (str): Name of the new Selection instance.
+
+   save(path=None, write_nodes=False)
+
+      Save the selection as a network file.
+
+   assignrepr(prefix)
+
+      Return a
+
+      repr()
+
+       string with an prefixed assignement.
+
+      Argument:
+         prefix(str): Usually something like 'x = '.

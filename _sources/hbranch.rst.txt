@@ -1,0 +1,432 @@
+hbranch
+
+The HydPy-H-Branch model allows for branching the input from a single
+inlet
+
+Node
+
+ instance to an arbitrary number of outlet
+
+Node
+
+ instances.  In the original HBV96 implementation, it is supposed to
+separate inflowing discharge, but in
+
+HydPy
+
+ it can be used for arbitrary variables.  Calculations are performed
+for each branch individually by linear interpolation (or
+extrapolation) in accordance with tabulated supporting points.
+
+Model features
+
+class hydpy.models.hbranch.hbranch_model.Model
+
+   Bases:
+
+   hydpy.core.modeltools.Model
+
+   The HydPy-H-Branch model.
+
+   Additional attribute:
+      nodenames (list): Names of the outlet node names, the actual
+      model shall be connected to.
+
+   The following "run methods" are called each simulation step run in
+   the given sequence:
+      calc_outputs_v1() Performs the actual interpolation or
+      extrapolation.
+
+   The following "inlet update methods" are called in the given
+   sequence immediately  before solving the differential equations of
+   the respective model:
+      pick_input_v1() Updates Input based on Total.
+
+   The following "outlet update methods" are called in the given
+   sequence immediately  after solving the differential equations of
+   the respective model:
+      pass_outputs_v1() Updates Branched based on Outputs.
+
+   connect()
+
+      Connect the
+
+      LinkSequence
+
+       instances handled by the actual model to the
+
+      NodeSequence
+
+       instances handled by one inlet node and multiple oulet nodes.
+
+      The HydPy-H-Branch model passes multiple output values to
+      different outlet nodes.  This requires additional information
+      regarding the *direction* of each output value.  Therefore, node
+      names are used as keywords.  Assume, the discharge value of *n1*
+      shall be branched to *n1a* and *n1b* via element *e1*:
+
+      >>> from hydpy import *
+      >>> n1, n1a, n1b = Node('n1'), Node('n1a'), Node('n1b')
+      >>> e1 = Element('e1', inlets=n1, outlets=[n1a, n1b])
+
+      Then parameter
+
+      YPoints
+
+       relates different supporting points via its keyword arguments
+      to the respective nodes:
+
+      >>> from hydpy.models.hbranch import *
+      >>> parameterstep()
+      >>> xpoints(0., 3.)
+      >>> ypoints(n1a=[0., 1.], n1b=[0., 2.])
+
+      After doing some preparations which are normally handled by
+
+      HydPy
+
+       automatically ...
+
+      >>> model.element = e1
+      >>> model.parameters.update()
+      >>> model.connect()
+
+      ...you can see that an example discharge value handled by the
+
+      Node
+
+       instance *n1* is properly divided:
+
+      >>> n1.sequences.sim = 6.
+      >>> model.doit(0)
+      >>> print(n1a.sequences.sim, n1b.sequences.sim)
+      sim(2.0) sim(4.0)
+
+hydpy.models.hbranch.hbranch_model.calc_outputs_v1(self)
+
+   Performs the actual interpolation or extrapolation.
+
+   Required control parameters:
+      XPoints
+
+
+      YPoints
+
+   Required derived parameter:
+      NmbPoints
+
+
+      NmbBranches
+
+   Required flux sequence:
+      Input
+
+   Calculated flux sequence:
+      Outputs
+
+   Examples:
+
+      As a simple example, assume a weir directing all discharge into
+      *branch1* until the capacity limit of 2 m³/s is reached.  The
+      discharge exceeding this threshold is directed into *branch2*:
+
+      >>> from hydpy.models.hbranch import *
+      >>> parameterstep()
+      >>> xpoints(0., 2., 4.)
+      >>> ypoints(branch1=[0., 2., 2.],
+      ...         branch2=[0., 0., 2.])
+      >>> model.parameters.update()
+
+      Low discharge example (linear interpolation between the first
+      two supporting point pairs):
+
+      >>> fluxes.input = 1.
+      >>> model.calc_outputs_v1()
+      >>> fluxes.outputs
+      outputs(branch1=1.0,
+              branch2=0.0)
+
+      Medium discharge example (linear interpolation between the
+      second two supporting point pairs):
+
+      >>> fluxes.input = 3.
+      >>> model.calc_outputs_v1()
+      >>> print(fluxes.outputs)
+      outputs(branch1=2.0,
+              branch2=1.0)
+
+      High discharge example (linear extrapolation beyond the second
+      two supporting point pairs):
+
+      >>> fluxes.input = 5.
+      >>> model.calc_outputs_v1()
+      >>> fluxes.outputs
+      outputs(branch1=2.0,
+              branch2=3.0)
+
+      Non-monotonous relationships and balance violations are allowed,
+      e.g.:
+
+      >>> xpoints(0., 2., 4., 6.)
+      >>> ypoints(branch1=[0., 2., 0., 0.],
+      ...         branch2=[0., 0., 2., 4.])
+      >>> model.parameters.update()
+      >>> fluxes.input = 7.
+      >>> model.calc_outputs_v1()
+      >>> fluxes.outputs
+      outputs(branch1=0.0,
+              branch2=5.0)
+
+hydpy.models.hbranch.hbranch_model.pick_input_v1(self)
+
+   Updates
+
+   Input
+
+    based on
+
+   Total
+
+   .
+
+hydpy.models.hbranch.hbranch_model.pass_outputs_v1(self)
+
+   Updates
+
+   Branched
+
+    based on
+
+   Outputs
+
+   .
+
+Parameter features
+
+Control parameters
+
+class hydpy.models.hbranch.hbranch_control.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of hbranch, directly defined by the user.
+
+   Note that the number of supporting points handled parameter
+
+   XPoints
+
+    and
+
+   YPoints
+
+    must be identical.  First define the values of parameter
+
+   XPoints
+
+   , then the values  of parameter
+
+   YPoints
+
+   .
+
+   The following parameter classes are selected:
+      XPoints Supporting points for the independent input variable
+      [eg. m³/s].
+
+      YPoints Supporting points for the dependent output variables
+      [eg. m³/s].
+
+class hydpy.models.hbranch.hbranch_control.XPoints
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Supporting points for the independent input variable [eg. m³/s].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.hbranch.hbranch_control.YPoints
+
+   Bases:
+
+   hydpy.core.parametertools.MultiParameter
+
+   Supporting points for the dependent output variables [eg. m³/s].
+
+   The documentation on method
+
+   calc_outputs_v1()
+
+    gives examples on how to set the values of
+
+   YPoints
+
+    properly.
+
+   NDIM = 2
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+Derived parameters
+
+class hydpy.models.hbranch.hbranch_derived.DerivedParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Derived parameters of hbranch, indirectly defined by the user.
+
+   The following parameter classes are selected:
+      NmbBranches Number of branches [-].
+
+      NmbPoints Number of supporting points for linear interpolation
+      [-].
+
+class hydpy.models.hbranch.hbranch_derived.NmbBranches
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Number of branches [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (1, None)
+
+   update()
+
+class hydpy.models.hbranch.hbranch_derived.NmbPoints
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Number of supporting points for linear interpolation [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (2, None)
+
+   update()
+
+Sequence features
+
+Flux sequences
+
+class hydpy.models.hbranch.hbranch_fluxes.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequences
+
+   Flux sequences of the hbranch model.
+
+   The following sequence classes are selected:
+      Input Total input [e.g. m³/s].
+
+      Outputs Branched outputs [e.g. m³/s].
+
+class hydpy.models.hbranch.hbranch_fluxes.Input
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Total input [e.g. m³/s].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.hbranch.hbranch_fluxes.Outputs
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Branched outputs [e.g. m³/s].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+Inlet sequences
+
+class hydpy.models.hbranch.hbranch_inlets.InletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Upstream link sequences of the hbranch model.
+
+   The following sequence classes are selected:
+      Total Total input [e.g. m³/s].
+
+class hydpy.models.hbranch.hbranch_inlets.Total
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequence
+
+   Total input [e.g. m³/s].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+Outlet sequences
+
+class hydpy.models.hbranch.hbranch_outlets.OutletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Downstream link sequences of the hbranch model.
+
+   The following sequence classes are selected:
+      Branched Branched outputs [e.g. m³/s].
+
+class hydpy.models.hbranch.hbranch_outlets.Branched
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequence
+
+   Branched outputs [e.g. m³/s].
+
+   NDIM = 1
+
+   NUMERIC = False

@@ -1,0 +1,284 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pointerutils &#8212; HydPy 2.1-dev documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="smoothutils" href="smoothutils.html" />
+    <link rel="prev" title="modelutils" href="modelutils.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="smoothutils.html" title="smoothutils"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modelutils.html" title="modelutils"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="cythons.html" accesskey="U">Cythons Modules</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pointerutils">
+<span id="id1"></span><h1>pointerutils<a class="headerlink" href="#pointerutils" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.cythons.pointerutils"></span><p>This module gives Python objects pointer access to C variables of type
+<cite>double</cite> via Cython.</p>
+<dl class="docutils">
+<dt>The following <cite>cdef classes</cite> (Cython extension types) are implemented:</dt>
+<dd><ul class="first last simple">
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">DoubleBase</span></code>: Base class, only for inheritance.</li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">Double</span></code>: For C variables of type double.</li>
+<li><code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code>: For C pointers referencing C variables of type double.</li>
+</ul>
+</dd>
+</dl>
+<p>Classes <code class="xref py py-class docutils literal notranslate"><span class="pre">Double</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code> support arithmetic operations in a similar
+manner as the immutable standard data type for floating operations <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>.
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Double</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code> should be preferred to <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> only in cases, where
+their mutability and pointer functionality is required.  At the moment,
+the only usage of <code class="xref py py-class docutils literal notranslate"><span class="pre">Double</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code> within HydPy is to directly share
+information between <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a> objects of <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> instances and
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> objects of <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> instances.</p>
+<p>The following examples try to give an idea of the purpose of using pointers
+in HydPy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.cythons.pointer</span> <span class="k">import</span> <span class="n">Double</span><span class="p">,</span> <span class="n">PDouble</span>
+
+<span class="c1"># Using numpy&#39;s ndarray gives the great advantage to be able to adress</span>
+<span class="c1"># the same data with different Python and Cython objects.</span>
+<span class="c1"># A pure Python / numpy example:</span>
+<span class="n">xs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">ys</span> <span class="o">=</span> <span class="n">xs</span>
+<span class="n">xs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">ys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.</span>
+<span class="nb">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">xs</span>
+<span class="nb">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">ys</span><span class="p">),</span> <span class="n">ys</span>
+<span class="c1"># Obviously, both `names` x and y refer to the same data.  Hence data can</span>
+<span class="c1"># easily be shared between different objects, no matter if they are Python</span>
+<span class="c1"># or Cython types.  However, unfortunately ndarray are primarily designed</span>
+<span class="c1"># to handle at least 1-dimensional data.  Using ndarray for scalar values</span>
+<span class="c1"># stored within a `0-dimesional array` is possible, but has some drawbacks.</span>
+<span class="c1"># Hence, one would usually use the Python build in `float` for scalar</span>
+<span class="c1"># values.</span>
+<span class="c1"># A pure Python example:</span>
+<span class="n">x</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+<span class="n">x</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="nb">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x</span>
+<span class="nb">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">y</span>
+<span class="c1"># Obviously, x and y refer to different data.  This behaviour is due to x</span>
+<span class="c1"># and y being not typed and Python float objects being immutable</span>
+<span class="c1"># (thoroughly explained in the official documentation of Python).</span>
+<span class="c1"># In C the result would be the same, but the reason were that both</span>
+<span class="c1"># variables x and y constantly address a different position in the working</span>
+<span class="c1"># memory and &#39;y = x&#39; just passes information from one position to the</span>
+<span class="c1"># other.</span>
+<span class="c1"># As an alternative, C implements the concept of pointers.  Wrapped in</span>
+<span class="c1"># Cython objects of the types Double and PDouble, this concept provides</span>
+<span class="c1"># the following benefit:</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+<span class="nb">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">x</span>
+<span class="n">px</span> <span class="o">=</span> <span class="n">PDouble</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="nb">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="n">px</span>
+<span class="n">x</span><span class="o">.</span><span class="n">setvalue</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">px</span>
+<span class="n">px</span><span class="o">.</span><span class="n">setvalue</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">px</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Double</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code> implement many convenience functions
+(Python’s <cite>special methods</cite>). Accordingly, their instances can for example be
+included into numerical calculations as one knows from <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> objects.
+In order to increase the compatibility with external modules, when new objects
+are generated, these are of type <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> (except for type conversions
+and comparision which await <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> objects). Some examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hydpy.cythons.pointer</span> <span class="k">import</span> <span class="n">Double</span><span class="p">,</span> <span class="n">PDouble</span>
+
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span> <span class="n">Double</span><span class="p">(</span><span class="o">-</span><span class="mf">2.3</span><span class="p">)</span>
+<span class="n">px</span><span class="p">,</span> <span class="n">py</span> <span class="o">=</span> <span class="n">PDouble</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">PDouble</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+<span class="c1"># A simple arithmetic operation returning a new float object:</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">py</span> <span class="o">+</span> <span class="mf">3.</span>
+<span class="nb">print</span> <span class="nb">type</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">z</span>
+<span class="c1"># A more fancy example:</span>
+<span class="n">z</span> <span class="o">=</span> <span class="o">-</span><span class="n">x</span> <span class="o">%</span> <span class="o">~</span><span class="n">py</span>
+<span class="nb">print</span> <span class="nb">type</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">z</span>
+<span class="c1"># Some type conversion:</span>
+<span class="nb">print</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">px</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">py</span><span class="p">)</span>
+<span class="c1"># Some comparisions:</span>
+<span class="nb">print</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">px</span><span class="p">,</span> <span class="n">px</span> <span class="o">==</span> <span class="n">py</span>
+<span class="c1"># Some in-place operations:</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">py</span>
+<span class="n">x</span> <span class="o">+=</span> <span class="mf">1.</span>
+<span class="n">py</span> <span class="o">*=</span> <span class="mf">2.</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">py</span>
+<span class="c1"># Assignments to to ndarrays.</span>
+<span class="n">zs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">zs</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zs</span>
+<span class="n">zs</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">py</span>
+<span class="nb">print</span> <span class="n">zs</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">zs</span>
+
+<span class="c1"># To increase consistency between Python code and Cython code (Cython</span>
+<span class="c1"># uses &#39;[0]&#39; as dereferencing syntax) as well as between PDouble and numpy</span>
+<span class="c1"># arrays (numpy arrays support &#39;[:]&#39; slicing) arbitrary objects as can</span>
+<span class="c1"># be used as indices (actually, they are ignored).</span>
+<span class="n">py</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">999.</span>
+<span class="nb">print</span> <span class="n">py</span><span class="p">[:]</span>
+<span class="n">x</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">123.</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># To resemble 0-dimensional numpy arrays, Double and PDouble return empty</span>
+<span class="c1"># tuples as shape information.</span>
+<span class="nb">print</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">px</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+<p>Always remember that, even if not immediately evident, you are working with
+pointers:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hydpy.cythons.pointer</span> <span class="k">import</span> <span class="n">Double</span><span class="p">,</span> <span class="n">PDouble</span>
+
+<span class="c1"># You are allowed to initialize a PDouble object without giving an Double</span>
+<span class="c1"># instance to the constructor.  Do not do this unless you have an idea</span>
+<span class="c1"># how to specify the proper working memory memory adress later.</span>
+<span class="n">px</span> <span class="o">=</span> <span class="n">PDouble</span><span class="p">()</span>
+<span class="nb">print</span> <span class="n">px</span>
+
+<span class="c1"># You can construct multiple pointers.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+<span class="n">px1</span><span class="p">,</span> <span class="n">px2</span> <span class="o">=</span> <span class="n">PDouble</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">PDouble</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">px1</span><span class="p">,</span> <span class="n">px2</span>
+<span class="n">x</span> <span class="o">+=</span> <span class="mf">1.</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">px1</span><span class="p">,</span> <span class="n">px2</span>
+<span class="n">px1</span> <span class="o">-=</span> <span class="mf">1.</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">px1</span><span class="p">,</span> <span class="n">px2</span>
+
+<span class="c1"># But when you delete the original Double object, further using the</span>
+<span class="c1"># associated PDouble object(s) corrupts your program, as the pointed</span>
+<span class="c1"># position in working memory is freed for other purposes.</span>
+<span class="k">del</span> <span class="n">x</span>
+<span class="nb">print</span> <span class="n">px1</span><span class="p">,</span> <span class="n">px2</span> <span class="c1"># Returns possibly useless results.</span>
+<span class="n">px1</span> <span class="o">+=</span> <span class="mf">1.</span> <span class="c1"># Possibly corrupts your (or another) program.</span>
+
+<span class="c1"># Instead of C pointers, you can also build Python references, which might</span>
+<span class="c1"># also happen unintentional:</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">1.</span><span class="p">),</span> <span class="n">Double</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">-=</span> <span class="n">z</span>
+<span class="nb">print</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span>
+<span class="nb">print</span> <span class="nb">id</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">id</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Note:</dt>
+<dd><code class="xref py py-class docutils literal notranslate"><span class="pre">Double</span></code> is used in Python mode only; in Cython mode, the usual
+C type <cite>double</cite> is applied.  <code class="xref py py-class docutils literal notranslate"><span class="pre">PDouble</span></code> is also used in Cython mode,
+where it essentially serves the purpose pass C a pointers of type
+‘double’ from Cython module to another.</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Modules</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="cythons.html">Cythons Modules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="modelutils.html">modelutils</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">pointerutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="smoothutils.html">smoothutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="annutils.html">annutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configutils.html">configutils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="modelutils.html"
+                        title="previous chapter">modelutils</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="smoothutils.html"
+                        title="next chapter">smoothutils</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pointerutils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="smoothutils.html" title="smoothutils"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="modelutils.html" title="modelutils"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="cythons.html" >Cythons Modules</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Christoph Tyralla.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

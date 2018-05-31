@@ -1,0 +1,8 @@
+smoothutils
+
+This Cython module implements the performance-critical functions of
+the Python module
+
+smoothtools
+
+.

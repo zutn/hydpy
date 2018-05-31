@@ -1,0 +1,80 @@
+test_v2
+
+This simple test model is thought for testing numerical integration
+strategies.  It can be seen from two perspectives.  On the one hand it
+implements a simple discontinous equation, bringing numerical
+integration algorithms into trouble.  On the other hand it describes a
+simple storage with a loss that is constant over time, as long as some
+storage content is left.  The loss rate
+
+Q
+
+ and the initial storage content
+
+S
+
+ can be set as required.
+
+class hydpy.models.test_v2.Model
+
+   Bases:
+
+   hydpy.core.modeltools.ModelELS
+
+   Test model, Version 2.
+
+   The following methods define the relevant components of a system of
+   ODE equations (e.g. direct runoff):
+      calc_q_v2() Calculate the actual storage loss.
+
+   The following methods define the complete equations of an ODE
+   system (e.g. change in storage of *fast water* due to  effective
+   precipitation and direct runoff):
+      calc_s_v1() Calculate the actual storage content.
+
+class hydpy.models.test_v2.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of Test model, Version 2.
+
+   The following parameter classes are selected:
+      K Storage coefficient [1/T].
+
+class hydpy.models.test_v2.SolverParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Solver parameters of the Test model,.
+
+   The following parameter classes are selected:
+      AbsErrorMax Absolute numerical error tolerance [mm/T].
+
+      RelDTMin Smallest relative integration time step size allowed
+      [-].
+
+class hydpy.models.test_v2.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequences
+
+   Flux sequences of Test model, Version 2.
+
+   The following sequence classes are selected:
+      Q Storage loss [mm/T]
+
+class hydpy.models.test_v2.StateSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequences
+
+   State sequences of Test model, Version 2.
+
+   The following sequence classes are selected:
+      S Storage content [mm].

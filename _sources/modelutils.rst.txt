@@ -1,0 +1,434 @@
+modelutils
+
+This module provides utilities to build and apply cython models.
+
+Module
+
+modelutils
+
+ implements the following members:
+
+   Lines Handles lines to be written into a .pyx file.
+
+   method_header() Returns the Cython method header for methods
+   without arguments except self.
+
+   decorate_method() The decorated method will return a Lines object
+   including a method header. However, the Lines object will be empty
+   if the respective model does not implement a method with the same
+   name as the wrapped method.
+
+   Cythonizer Handles the writing, compiling and initialization of
+   cython models.
+
+   PyxWriter Writes a new pyx file into framework.models.cython when
+   initialized.
+
+   FuncConverter no description available
+
+   exp() Cython wrapper for numpys exp function applied on a single
+   float.
+
+   log() Cython wrapper for numpys log function applied on a single
+   float.
+
+   fabs() Cython wrapper for maths fabs function applied on a single
+   float.
+
+
+hydpy.cythons.modelutils.dllextension = '.so'
+
+   The dll file extension on the respective system.
+
+hydpy.cythons.modelutils.TYPE2STR = {<class 'bool'>: 'bint', <class 'int'>: 'numpy.int64_t', <class 'hydpy.core.parametertools.IntConstant'>: 'numpy.int64_t', <class 'float'>: 'double', <class 'str'>: 'str', None: 'void'}
+
+   Maps Python types to Cython compatible type declarations.
+
+   The Cython type belonging to Python's
+
+   int
+
+    is selected to be in agreement with numpy's default integer type
+   on the respective platform/system.
+
+class hydpy.cythons.modelutils.Lines(*args)
+
+   Bases:
+
+   list
+
+   Handles lines to be written into a *.pyx* file.
+
+   add(indent, line)
+
+      Appends the given text line with prefixed spaces in accordance
+      with the given number of indentation levels.
+
+hydpy.cythons.modelutils.method_header(method_name, nogil=False, idx_as_arg=False)
+
+   Returns the Cython method header for methods without arguments
+   except *self*.
+
+hydpy.cythons.modelutils.decorate_method(wrapped)
+
+   The decorated method will return a
+
+   Lines
+
+    object including a method header.  However, the
+
+   Lines
+
+    object will be empty if the respective model does not implement a
+   method with the same name as the wrapped method.
+
+class hydpy.cythons.modelutils.Cythonizer
+
+   Bases:
+
+   object
+
+   Handles the writing, compiling and initialization of cython models.
+
+   complete()
+
+   doit()
+
+   pyname
+
+      Name of the compiled module.
+
+   cyname
+
+      Name of the compiled module.
+
+   cydirpath
+
+      Absolute path of the directory containing the compiled modules.
+
+   cymodule
+
+      The compiled module.
+
+   cyfilepath
+
+      Absolute path of the compiled module.
+
+   buildpath
+
+      Absolute path for temporarily build files.
+
+   pyxwriter
+
+      Update the pyx file.
+
+   pysourcefiles
+
+      All source files of the actual models Python classes and their
+      respective base classes.
+
+   outdated
+
+      True if at least one of the
+
+      pysourcefiles
+
+       is newer than the compiled file under
+
+      cyfilepath
+
+      , otherwise False.
+
+   compile_()
+
+      Translate cython code to C code and compile it.
+
+   move_dll()
+
+      Try to find the resulting dll file and to move it into the
+      *cythons* package.
+
+      Things to be aware of:
+         The file extension either pyd (Window) or so (Linux).
+
+         The folder containing the dll file is system dependent, but
+         is always a subfolder of the cythons package.
+
+         Under Linux, the filename might contain system information,
+         e.g. ...cpython-36m-x86_64-linux-gnu.so.
+
+class hydpy.cythons.modelutils.PyxWriter(cythonizer, model, pyxpath)
+
+   Bases:
+
+   object
+
+   Writes a new pyx file into framework.models.cython when
+   initialized.
+
+   write()
+
+   cythonoptions
+
+      Cython option lines.
+
+   cimports
+
+      Import command lines.
+
+   constants
+
+      Constants declaration lines.
+
+   parameters
+
+      Parameter declaration lines.
+
+   sequences
+
+      Sequence declaration lines.
+
+   iosequence(seq)
+
+      Special declaration lines for the given
+
+      IOSequence
+
+       object.
+
+   open_files(subseqs)
+
+      Open file statements.
+
+   close_files(subseqs)
+
+      Close file statements.
+
+   load_data(subseqs)
+
+      Load data statements.
+
+   save_data(subseqs)
+
+      Save data statements.
+
+   set_pointer(subseqs)
+
+      Set_pointer functions for link sequences.
+
+   set_pointer0d(subseqs)
+
+      Set_pointer function for 0-dimensional link sequences.
+
+   alloc(subseqs)
+
+      Allocate memory for 1-dimensional link sequences.
+
+   dealloc(subseqs)
+
+      Deallocate memory for 1-dimensional link sequences.
+
+   set_pointer1d(subseqs)
+
+      Set_pointer function for 1-dimensional link sequences.
+
+   numericalparameters
+
+      Numeric parameter declaration lines.
+
+   modeldeclarations
+
+      Attribute declarations of the model class.
+
+   modelstandardfunctions
+
+      Standard functions of the model class.
+
+   modelnumericfunctions
+
+      Numerical functions of the model class.
+
+   doit
+
+      Do (most of) it function of the model class.
+
+   iofunctions
+
+      Input/output functions of the model class.
+
+   new2old
+
+   update_receivers
+
+      Lines of model method with the same name.
+
+   update_inlets
+
+      Lines of model method with the same name.
+
+   run
+
+      Lines of model method with the same name.
+
+   update_outlets
+
+      Lines of model method with the same name.
+
+   update_senders
+
+      Lines of model method with the same name.
+
+   calculate_single_terms
+
+      Lines of model method with the same name.
+
+   calculate_full_terms
+
+      Lines of model method with the same name.
+
+   listofmodeluserfunctions
+
+      User functions of the model class.
+
+   modeluserfunctions
+
+   solve
+
+   get_point_states
+
+      Lines of model method get_point_states.
+
+   set_point_states
+
+      Lines of model method set_point_states.
+
+   set_result_states
+
+      Lines of model method set_result_states.
+
+   get_sum_fluxes
+
+      Lines of model method get_sum_fluxes.
+
+   set_point_fluxes
+
+      Lines of model method set_point_fluxes.
+
+   set_result_fluxes
+
+      Lines of model method set_result_fluxes.
+
+   integrate_fluxes
+
+      Lines of model method integrate_fluxes.
+
+   reset_sum_fluxes
+
+      Lines of model method reset_sum_fluxes.
+
+   addup_fluxes
+
+      Lines of model method addup_fluxes.
+
+   calculate_error
+
+      Lines of model method calculate_error.
+
+   extrapolate_error
+
+class hydpy.cythons.modelutils.FuncConverter(model, funcname, func)
+
+   Bases:
+
+   object
+
+   argnames
+
+   varnames
+
+   locnames
+
+   sourcelines
+
+   collectornames
+
+   collectorshortcuts
+
+   untypedvarnames
+
+   untypedarguments
+
+   untypedinternalvarnames
+
+   cleanlines
+
+      Cleaned code lines.
+
+      Implemented cleanups:
+         eventually remove method version
+
+         remove docstrings
+
+         remove comments
+
+         remove empty lines
+
+         remove line brackes within brackets
+
+         replace modelutils with nothing
+
+         remove complete lines containing fastaccess
+
+         replace shortcuts with complete references
+
+   static remove_linebreaks_within_equations(code)
+
+      Remove line breaks within equations.
+
+      This is not a exhaustive test, but shows how the method works:
+
+      >>> code = 'asdf = \\\n(a\n+b)'
+      >>> from hydpy.cythons.modelutils import FuncConverter
+      >>> FuncConverter.remove_linebreaks_within_equations(code)
+      'asdf = (a+b)'
+
+   static remove_imath_operators(lines)
+
+      Remove mathematical expressions that require Pythons global
+      interpreter locking mechanism.
+
+      This is not a exhaustive test, but shows how the method works:
+
+      >>> lines = ['    x += 1*1']
+      >>> from hydpy.cythons.modelutils import FuncConverter
+      >>> FuncConverter.remove_imath_operators(lines)
+      >>> lines
+      ['    x = x + (1*1)']
+
+   pyxlines
+
+      Cython code lines.
+
+      Assumptions:
+         Function shall be a method
+
+         Method shall be inlined
+
+         Method returns nothing
+
+         Method arguments are of type int (except self)
+
+         Local variables are generally of type int but of type double
+         when their name starts with d_
+
+hydpy.cythons.modelutils.exp(double)
+
+   Cython wrapper for numpys exp function applied on a single float.
+
+hydpy.cythons.modelutils.log(double)
+
+   Cython wrapper for numpys log function applied on a single float.
+
+hydpy.cythons.modelutils.fabs(double)
+
+   Cython wrapper for maths fabs function applied on a single float.

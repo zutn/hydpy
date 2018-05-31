@@ -1,0 +1,5297 @@
+lland
+
+The L-Land model is the core of the HydPy implementation of the LARSIM
+model.  It consists of routines for the preparation of meteorological
+input, the calculation of potential evaporation, the simulation of
+water stored on plants, in the snow layer and in the soil, as well as
+runoff concentration.
+
+Model features
+
+class hydpy.models.lland.lland_model.Model
+
+   Bases:
+
+   hydpy.core.modeltools.Model
+
+   Base model for HydPy-L-Land.
+
+   The following "run methods" are called each simulation step run in
+   the given sequence:
+      calc_nkor_v1() Adjust the given precipitation values.
+
+      calc_tkor_v1() Adjust the given air temperature values.
+
+      calc_et0_v1() Calculate reference evapotranspiration after Turc-
+      Wendling.
+
+      calc_et0_wet0_v1() Correct the given reference
+      evapotranspiration and update the corresponding log sequence.
+
+      calc_evpo_v1() Calculate land use and month specific values of
+      potential evapotranspiration.
+
+      calc_nbes_inzp_v1() Calculate stand precipitation and update the
+      interception storage accordingly.
+
+      calc_evi_inzp_v1() Calculate interception evaporation and update
+      the interception storage accordingly.
+
+      calc_sbes_v1() Calculate the frozen part of stand precipitation.
+
+      calc_wgtf_v1() Calculate the potential snowmelt.
+
+      calc_schm_wats_v1() Calculate the actual amount of water melting
+      within the snow cover.
+
+      calc_wada_waes_v1() Calculate the actual water release from the
+      snow cover.
+
+      calc_evb_v1() Calculate the actual water release from the snow
+      cover.
+
+      calc_qbb_v1() Calculate the amount of base flow released from
+      the soil.
+
+      calc_qib1_v1() Calculate the first inflow component released
+      from the soil.
+
+      calc_qib2_v1() Calculate the first inflow component released
+      from the soil.
+
+      calc_qdb_v1() Calculate direct runoff released from the soil.
+
+      calc_bowa_v1() Update soil moisture and correct fluxes if
+      necessary.
+
+      calc_qbgz_v1() Aggregate the amount of base flow released by all
+      "soil type" HRUs and the "net precipitation" above water areas
+      of type SEE.
+
+      calc_qigz1_v1() Aggregate the amount of the first interflow
+      component released by all HRUs.
+
+      calc_qigz2_v1() Aggregate the amount of the second interflow
+      component released by all HRUs.
+
+      calc_qdgz_v1() Aggregate the amount of total direct flow
+      released by all HRUs.
+
+      calc_qdgz1_qdgz2_v1() Seperate total direct flow into a small
+      and a fast component.
+
+      calc_qbga_v1() Perform the runoff concentration calculation for
+      base flow.
+
+      calc_qiga1_v1() Perform the runoff concentration calculation for
+      the first interflow component.
+
+      calc_qiga2_v1() Perform the runoff concentration calculation for
+      the second interflow component.
+
+      calc_qdga1_v1() Perform the runoff concentration calculation for
+      "slow" direct runoff.
+
+      calc_qdga2_v1() Perform the runoff concentration calculation for
+      "fast" direct runoff.
+
+      calc_q_v1() Calculate the final runoff.
+
+   The following "outlet update methods" are called in the given
+   sequence immediately  after solving the differential equations of
+   the respective model:
+      pass_q_v1() Update the outlet link sequence.
+
+hydpy.models.lland.lland_model.calc_nkor_v1(self)
+
+   Adjust the given precipitation values.
+
+   Required control parameters:
+      NHRU
+
+
+      KG
+
+   Required input sequence:
+      Nied
+
+   Calculated flux sequence:
+      NKor
+
+   Basic equation:
+      NKor = KG \cdot Nied
+
+   Example:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep('1d')
+   >>> nhru(3)
+   >>> kg(0.8, 1.0, 1.2)
+   >>> inputs.nied = 10.
+   >>> model.calc_nkor_v1()
+   >>> fluxes.nkor
+   nkor(8.0, 10.0, 12.0)
+
+hydpy.models.lland.lland_model.calc_tkor_v1(self)
+
+   Adjust the given air temperature values.
+
+   Required control parameters:
+      NHRU
+
+
+      KT
+
+   Required input sequence:
+      TemL
+
+   Calculated flux sequence:
+      TKor
+
+   Basic equation:
+      TKor = KT + TemL
+
+   Example:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep('1d')
+   >>> nhru(3)
+   >>> kt(-2.0, 0.0, 2.0)
+   >>> inputs.teml(1.)
+   >>> model.calc_tkor_v1()
+   >>> fluxes.tkor
+   tkor(-1.0, 1.0, 3.0)
+
+hydpy.models.lland.lland_model.calc_et0_v1(self)
+
+   Calculate reference evapotranspiration after Turc-Wendling.
+
+   Required control parameters:
+      NHRU
+
+
+      KE
+
+
+      KF
+
+
+      HNN
+
+   Required input sequence:
+      Glob
+
+   Required flux sequence:
+      TKor
+
+   Calculated flux sequence:
+      ET0
+
+   Basic equation:
+      ET0 = KE \cdot \frac{(8.64 \cdot Glob+93 \cdot KF) \cdot
+      (TKor+22)} {165 \cdot (TKor+123) \cdot (1 + 0.00019 \cdot
+      min(HNN, 600))}
+
+   Example:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep('1d')
+   >>> simulationstep('12h')
+   >>> nhru(3)
+   >>> ke(1.1)
+   >>> kf(0.6)
+   >>> hnn(200.0, 600.0, 1000.0)
+   >>> inputs.glob = 200.0
+   >>> fluxes.tkor = 15.0
+   >>> model.calc_et0_v1()
+   >>> fluxes.et0
+   et0(3.07171, 2.86215, 2.86215)
+
+hydpy.models.lland.lland_model.calc_et0_wet0_v1(self)
+
+   Correct the given reference evapotranspiration and update the
+   corresponding log sequence.
+
+   Required control parameters:
+      NHRU
+
+
+      KE
+
+
+      WfET0
+
+   Required input sequence:
+      PET
+
+   Calculated flux sequence:
+      ET0
+
+   Updated log sequence:
+      WET0
+
+   Basic equations:
+      ET0_{new} = WfET0 \cdot KE \cdot PET + (1-WfET0) \cdot ET0_{alt}
+
+   Example:
+
+      Prepare four hydrological response units with different value
+      combinations of parameters
+
+      KE
+
+       and
+
+      WfET0
+
+      :
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(4)
+      >>> ke(0.8, 1.2, 0.8, 1.2)
+      >>> wfet0(2.0, 2.0, 0.2, 0.2)
+
+      Note that the actual value of time dependend parameter
+
+      WfET0
+
+       is reduced due the difference between the given parameter and
+      simulation time steps:
+
+      >>> from hydpy import round_
+      >>> round_(wfet0.values)
+      1.0, 1.0, 0.1, 0.1
+
+      For the first two hydrological response units, the given
+
+      PET
+
+       value is modified by -0.4 mm and +0.4 mm, respectively.  For
+      the other two response units, which weight the "new" evaporation
+      value with 10 %,
+
+      ET0
+
+       does deviate from the old value of
+
+      WET0
+
+       by -0.04 mm and +0.04 mm only:
+
+      >>> inputs.pet = 2.0
+      >>> logs.wet0 = 2.0
+      >>> model.calc_et0_wet0_v1()
+      >>> fluxes.et0
+      et0(1.6, 2.4, 1.96, 2.04)
+      >>> logs.wet0
+      wet0([[1.6, 2.4, 1.96, 2.04]])
+
+hydpy.models.lland.lland_model.calc_evpo_v1(self)
+
+   Calculate land use and month specific values of potential
+   evapotranspiration.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      FLn
+
+   Required derived parameter:
+      MOY
+
+   Required flux sequence:
+      ET0
+
+   Calculated flux sequence:
+      EvPo
+
+   Additional requirements:
+      idx_sim
+
+   Basic equation:
+      EvPo = FLn \cdot ET0
+
+   Example:
+
+      For clarity, this is more of a kind of an integration example.
+      Parameter
+
+      FLn
+
+       both depends on time (the actual month) and space (the actual
+      land use).  Firstly, let us define a initialization time period
+      spanning the transition from June to July:
+
+      >>> from hydpy import pub, Timegrid, Timegrids
+      >>> pub.timegrids = Timegrids(Timegrid('30.06.2000',
+      ...                                    '02.07.2000',
+      ...                                    '1d'))
+
+      Secondly, assume that the considered subbasin is differenciated
+      in two HRUs, one of primarily consisting of arable land and the
+      other one of deciduous forests:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(2)
+      >>> lnk(ACKER, LAUBW)
+
+      Thirdly, set the
+
+      FLn
+
+       values, one for the relevant months and land use classes:
+
+      >>> fln.acker_jun = 1.299
+      >>> fln.acker_jul = 1.304
+      >>> fln.laubw_jun = 1.350
+      >>> fln.laubw_jul = 1.365
+
+      Fourthly, the index array connecting the simulation time steps
+      defined above and the month indexes (0...11) can be retrieved
+      from the "pub" module.  This can be done manually more
+      conveniently via its update method:
+
+      >>> derived.moy.update()
+      >>> derived.moy
+      moy(5, 6)
+
+      Finally, the actual method (with its simple equation) is applied
+      as usual:
+
+      >>> fluxes.et0 = 2.0
+      >>> model.idx_sim = 0
+      >>> model.calc_evpo_v1()
+      >>> fluxes.evpo
+      evpo(2.598, 2.7)
+      >>> model.idx_sim = 1
+      >>> model.calc_evpo_v1()
+      >>> fluxes.evpo
+      evpo(2.608, 2.73)
+
+      Reset module "pub" to not interfere the following examples:
+
+      >>> pub.timegrids = None
+
+hydpy.models.lland.lland_model.calc_nbes_inzp_v1(self)
+
+   Calculate stand precipitation and update the interception storage
+   accordingly.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+   Required derived parameter:
+      KInz
+
+   Required flux sequence:
+      NKor
+
+   Calculated flux sequence:
+      NBes
+
+   Updated state sequence:
+      Inzp
+
+   Additional requirements:
+      idx_sim
+
+   Basic equation:
+      NBes = \Bigl \lbrace { {PKor \ | \ Inzp = KInz} \atop {0 \ | \
+      Inzp < KInz} }
+
+   Examples:
+
+      Initialize five HRUs with different land usages:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(5)
+      >>> lnk(SIED_D, FEUCHT, GLETS, FLUSS, SEE)
+
+      Define
+
+      KInz
+
+       values for July the selected land usages directly:
+
+      >>> derived.kinz.sied_d_jul = 2.0
+      >>> derived.kinz.feucht_jul = 1.0
+      >>> derived.kinz.glets_jul = 0.0
+      >>> derived.kinz.fluss_jul = 1.0
+      >>> derived.kinz.see_jul = 1.0
+
+      Now we prepare a
+
+      MOY
+
+       object, that assumes that the first, second, and third
+      simulation time steps are in June, July, and August respectively
+      (we make use of the value defined above for July, but setting
+      the values of parameter
+
+      MOY
+
+       this way allows for a more rigorous testing of proper
+      indexing):
+
+      >>> derived.moy.shape = 3
+      >>> derived.moy = 5, 6, 7
+      >>> model.idx_sim = 1
+
+      The dense settlement (
+
+      SIED_D
+
+      ), the wetland area (
+
+      FEUCHT
+
+      ), and both water areas (
+
+      FLUSS
+
+       and
+
+      SEE
+
+      ) start with a initial interception storage of 1/2 mm, the
+      glacier (
+
+      GLETS
+
+      ) and water areas (
+
+      FLUSS
+
+       and
+
+      SEE
+
+      ) start with 0 mm.  In the first example, actual precipition is
+      1 mm:
+
+      >>> states.inzp = 0.5, 0.5, 0.0, 1.0, 1.0
+      >>> fluxes.nkor = 1.0
+      >>> model.calc_nbes_inzp_v1()
+      >>> states.inzp
+      inzp(1.5, 1.0, 0.0, 0.0, 0.0)
+      >>> fluxes.nbes
+      nbes(0.0, 0.5, 1.0, 0.0, 0.0)
+
+      Only for the settled area, interception capacity is not
+      exceeded, meaning no stand precipitation occurs.  Note that it
+      is common in define zero interception capacities for glacier
+      areas, but not mandatory.  Also note that the
+
+      KInz
+
+      ,
+
+      Inzp
+
+       and
+
+      NKor
+
+       values given for both water areas are ignored completely, and
+
+      Inzp
+
+       and
+
+      NBes
+
+       are simply set to zero.
+
+      If there is no precipitation, there is of course also no stand
+      precipitation and interception storage remains unchanged:
+
+      >>> states.inzp = 0.5, 0.5, 0.0, 0.0, 0.0
+      >>> fluxes.nkor = 0.
+      >>> model.calc_nbes_inzp_v1()
+      >>> states.inzp
+      inzp(0.5, 0.5, 0.0, 0.0, 0.0)
+      >>> fluxes.nbes
+      nbes(0.0, 0.0, 0.0, 0.0, 0.0)
+
+      Interception capacities change discontinuously between
+      consecutive months.  This can result in little stand
+      precipitation events in periods without precipitation:
+
+      >>> states.inzp = 1.0, 0.0, 0.0, 0.0, 0.0
+      >>> derived.kinz.sied_d_jul = 0.6
+      >>> fluxes.nkor = 0.0
+      >>> model.calc_nbes_inzp_v1()
+      >>> states.inzp
+      inzp(0.6, 0.0, 0.0, 0.0, 0.0)
+      >>> fluxes.nbes
+      nbes(0.4, 0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.lland.lland_model.calc_evi_inzp_v1(self)
+
+   Calculate interception evaporation and update the interception
+   storage accordingly.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      TRefT
+
+
+      TRefN
+
+   Required flux sequence:
+      EvPo
+
+   Calculated flux sequence:
+      EvI
+
+   Updated state sequence:
+      Inzp
+
+   Basic equation:
+      EvI = \Bigl \lbrace { {EvPo \ | \ Inzp > 0} \atop {0 \ | \ Inzp
+      = 0} }
+
+   Examples:
+
+      Initialize five HRUs with different combinations of land usage
+      and initial interception storage and apply a value of potential
+      evaporation of 3 mm on each one:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(5)
+      >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER)
+      >>> states.inzp = 2.0, 2.0, 0.0, 2.0, 4.0
+      >>> fluxes.evpo = 3.0
+      >>> model.calc_evi_inzp_v1()
+      >>> states.inzp
+      inzp(0.0, 0.0, 0.0, 0.0, 1.0)
+      >>> fluxes.evi
+      evi(3.0, 3.0, 0.0, 2.0, 3.0)
+
+      For arable land (
+
+      ACKER
+
+      ) and most other land types, interception evaporation (
+
+      EvI
+
+      ) is identical with potential evapotranspiration (
+
+      EvPo
+
+      ), as long as it is met by available intercepted water ([Inzp|).
+      Only water areas (
+
+      FLUSS
+
+       and
+
+      SEE
+
+      ),
+
+      EvI
+
+       is generally equal to
+
+      EvPo
+
+       (but this might be corrected by a method called after
+
+      calc_evi_inzp_v1()
+
+       has been applied) and [Inzp| is set to zero.
+
+hydpy.models.lland.lland_model.calc_sbes_v1(self)
+
+   Calculate the frozen part of stand precipitation.
+
+   Required control parameters:
+      NHRU
+
+
+      TGr
+
+
+      TSp
+
+   Required flux sequences:
+      TKor
+
+
+      NBes
+
+   Calculated flux sequence:
+      SBes
+
+   Examples:
+
+      In the first example, the threshold temperature of seven
+      hydrological response units is 0 °C and the corresponding
+      temperature interval of mixed precipitation 2 °C:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(7)
+      >>> tgr(0.0)
+      >>> tsp(2.0)
+
+      The value of
+
+      NBes
+
+       is zero above 1 °C and equal to the value of
+
+      NBes
+
+       below -1 °C.  Between these temperature values,
+
+      NBes
+
+       decreases linearly:
+
+      >>> fluxes.nbes = 4.0
+      >>> fluxes.tkor = -10.0, -1.0, -0.5, 0.0, 0.5, 1.0, 10.0
+      >>> model.calc_sbes_v1()
+      >>> fluxes.sbes
+      sbes(4.0, 4.0, 3.0, 2.0, 1.0, 0.0, 0.0)
+
+      Note the special case of a zero temperature interval.  With the
+      actual temperature being equal to the threshold temperature, the
+      the value of *sbes* is zero:
+
+      >>> tsp(0.)
+      >>> model.calc_sbes_v1()
+      >>> fluxes.sbes
+      sbes(4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0)
+
+hydpy.models.lland.lland_model.calc_wgtf_v1(self)
+
+   Calculate the potential snowmelt.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      GTF
+
+
+      TRefT
+
+
+      TRefN
+
+
+      RSchmelz
+
+
+      CPWasser
+
+   Required flux sequence:
+      TKor
+
+   Calculated fluxes sequence:
+      WGTF
+
+   Basic equation:
+      WGTF = max(GTF \cdot (TKor - TRefT), 0) +
+      max(\frac{CPWasser}{RSchmelz} \cdot (TKor - TRefN), 0)
+
+   Examples:
+
+      Initialize seven HRUs with identical degree-day factors and
+      temperature thresholds, but different combinations of land use
+      and air temperature:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(7)
+      >>> lnk(ACKER, LAUBW, FLUSS, SEE, ACKER, ACKER, ACKER)
+      >>> gtf(5.0)
+      >>> treft(0.0)
+      >>> trefn(1.0)
+      >>> fluxes.tkor = 2.0, 2.0, 2.0, 2.0, -1.0, 0.0, 1.0
+
+      Compared to most other LARSIM parameters, the specific heat
+      capacity and melt heat capacity of water can be seen as fixed
+      properties:
+
+      >>> cpwasser(4.1868)
+      >>> rschmelz(334.0)
+
+      Note that the values of the degree-day factor are only half as
+      much as the given value, due to the simulation step size being
+      only half as long as the parameter step size:
+
+      >>> gtf
+      gtf(5.0)
+      >>> gtf.values
+      array([ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5])
+
+      After performing the calculation, one can see that the potential
+      melting rate is identical for the first two HRUs (
+
+      ACKER
+
+       and
+
+      LAUBW
+
+      ).  The land use class results in no difference, except for
+      water areas (third and forth HRU,
+
+      FLUSS
+
+       and
+
+      SEE
+
+      ), where no potential melt needs to be calculated.  The last
+      three HRUs (again
+
+      ACKER
+
+      ) show the usual behaviour of the degree day method, when the
+      actual temperature is below (fourth HRU), equal to (fifth HRU)
+      or above (sixths zone) the threshold temperature.  Additionally,
+      the first two zones show the influence of the additional energy
+      intake due to "warm" precipitation.  Obviously, this additional
+      term is quite negligible for common parameterizations, even if
+      lower values for the separate threshold temperature
+
+      TRefT
+
+       would be taken into account:
+
+      >>> model.calc_wgtf_v1()
+      >>> fluxes.wgtf
+      wgtf(5.012535, 5.012535, 0.0, 0.0, 0.0, 0.0, 2.5)
+
+hydpy.models.lland.lland_model.calc_schm_wats_v1(self)
+
+   Calculate the actual amount of water melting within the snow cover.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+   Required flux sequences:
+      SBes
+
+
+      WGTF
+
+   Calculated flux sequence:
+      Schm
+
+   Updated state sequence:
+      WATS
+
+   Basic equations:
+      \frac{dWATS}{dt}  = SBes - Schm Schm = \Bigl \lbrace { {WGTF \ |
+      \ WATS > 0} \atop {0 \ | \ WATS = 0} }
+
+   Examples:
+
+      Initialize two water (
+
+      FLUSS
+
+       and
+
+      SEE
+
+      ) and four arable land (
+
+      ACKER
+
+      ) HRUs.  Assume the same values for the initial amount of frozen
+      water (
+
+      WATS
+
+      ) and the frozen part of stand precipitation (
+
+      SBes
+
+      ), but different values for potential snowmelt (
+
+      WGTF
+
+      ):
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(6)
+      >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
+      >>> states.wats = 2.0
+      >>> fluxes.sbes = 1.0
+      >>> fluxes.wgtf = 1.0, 1.0, 0.0, 1.0, 3.0, 5.0
+      >>> model.calc_schm_wats_v1()
+      >>> states.wats
+      wats(0.0, 0.0, 3.0, 2.0, 0.0, 0.0)
+      >>> fluxes.schm
+      schm(0.0, 0.0, 0.0, 1.0, 3.0, 3.0)
+
+      For the water areas, both the frozen amount of water and actual
+      melt are set to zero.  For all other land use classes, actual
+      melt is either limited by potential melt or the available frozen
+      water, which is the sum of initial frozen water and the frozen
+      part of stand precipitation.
+
+hydpy.models.lland.lland_model.calc_wada_waes_v1(self)
+
+   Calculate the actual water release from the snow cover.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      PWMax
+
+   Required flux sequences:
+      NBes
+
+   Calculated flux sequence:
+      WaDa
+
+   Updated state sequence:
+      WAeS
+
+   Basic equations:
+      \frac{dWAeS}{dt} = NBes - WaDa WAeS \leq PWMax \cdot WATS
+
+   Examples:
+
+      For simplicity, the threshold parameter
+
+      PWMax
+
+       is set to a value of two for each of the six initialized HRUs.
+      Thus, snow cover can hold as much liquid water as it contains
+      frozen water.  Stand precipitation is also always set to the
+      same value, but the initial conditions of the snow cover are
+      varied:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(6)
+      >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
+      >>> pwmax(2.0)
+      >>> fluxes.nbes = 1.0
+      >>> states.wats = 0.0, 0.0, 0.0, 1.0, 1.0, 1.0
+      >>> states.waes = 1.0, 1.0, 0.0, 1.0, 1.5, 2.0
+      >>> model.calc_wada_waes_v1()
+      >>> states.waes
+      waes(0.0, 0.0, 0.0, 2.0, 2.0, 2.0)
+      >>> fluxes.wada
+      wada(1.0, 1.0, 1.0, 0.0, 0.5, 1.0)
+
+      Note the special cases of the first two HRUs of type
+
+      FLUSS
+
+       and
+
+      SEE
+
+      .  For water areas, stand precipitaton
+
+      NBes
+
+       is generally passed to
+
+      WaDa
+
+       and
+
+      WAeS
+
+       is set to zero.  For all other land use classes (of which only
+
+      ACKER
+
+       is selected), only the amount of
+
+      NBes
+
+       exceeding the actual snow holding capacity is passed to
+
+      WaDa
+
+      .
+
+hydpy.models.lland.lland_model.calc_evb_v1(self)
+
+   Calculate the actual water release from the snow cover.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      NFk
+
+
+      GrasRef_R
+
+   Required state sequence:
+      BoWa
+
+   Required flux sequences:
+      EvPo
+
+
+      EvI
+
+   Calculated flux sequence:
+      EvB
+
+   Basic equations:
+      temp = exp(-GrasRef_R \cdot \frac{BoWa}{NFk}) EvB = (EvPo - EvI)
+      \cdot \frac{1 - temp}{1 + temp -2 \cdot exp(-GrasRef_R)}
+
+   Examples:
+
+      Soil evaporation is calculated neither for water nor for sealed
+      areas (see the first three HRUs of type
+
+      FLUSS
+
+      ,
+
+      SEE
+
+      , and
+
+      VERS
+
+      ). All other land use classes are handled in accordance with a
+      recommendation of the set of codes described in ATV-DVWK-M 504
+      (arable land
+
+      ACKER
+
+       has been selected for the last four HRUs arbitrarily):
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(7)
+      >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
+      >>> grasref_r(5.0)
+      >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0)
+      >>> fluxes.evpo = 5.0
+      >>> fluxes.evi = 3.0
+      >>> states.bowa = 50.0, 50.0, 50.0, 0.0, 0.0, 50.0, 100.0
+      >>> model.calc_evb_v1()
+      >>> fluxes.evb
+      evb(0.0, 0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
+
+      In case usable field capacity (
+
+      NFk
+
+      ) is zero, soil evaporation (
+
+      EvB
+
+      ) is generally set to zero (see the forth HRU).  The last three
+      HRUs demonstrate the rise in soil evaporation with increasing
+      soil moisture, which is lessening in the high soil moisture
+      range.
+
+hydpy.models.lland.lland_model.calc_qbb_v1(self)
+
+   Calculate the amount of base flow released from the soil.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      Beta
+
+
+      FBeta
+
+   Required derived parameter:
+      WB
+
+
+      WZ
+
+   Required state sequence:
+      BoWa
+
+   Calculated flux sequence:
+      QBB
+
+   Basic equations:
+      Beta_{eff} = \Bigl \lbrace { {Beta \ | \ BoWa \leq WZ} \atop
+      {Beta \cdot (1+(FBeta-1)\cdot\frac{BoWa-WZ}{NFk-WZ}) \|\ BoWa >
+      WZ} }
+
+      QBB = \Bigl \lbrace { {0 \ | \ BoWa \leq WB} \atop {Beta_{eff}
+      \cdot (BoWa - WB) \|\ BoWa > WB} }
+
+   Examples:
+
+      For water and sealed areas, no base flow is calculated (see the
+      first three HRUs of type
+
+      VERS
+
+      ,
+
+      FLUSS
+
+      , and
+
+      SEE
+
+      ).  No principal distinction is made between the remaining land
+      use classes (arable land
+
+      ACKER
+
+       has been selected for the last five HRUs arbitrarily):
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(8)
+      >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
+      >>> beta(0.04)
+      >>> fbeta(2.0)
+      >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 200.0)
+      >>> derived.wb(10.0)
+      >>> derived.wz(70.0)
+
+      Note the time dependence of parameter
+
+      Beta
+
+      :
+
+      >>> beta
+      beta(0.04)
+      >>> beta.values
+      array([ 0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02])
+
+      In the first example, the actual soil water content
+
+      BoWa
+
+       is set to low values.  For values below the threshold
+
+      WB
+
+      , not percolation occurs.  Above
+
+      WB
+
+       (but below
+
+      WZ
+
+      ),
+
+      QBB
+
+       increases linearly by an amount defined by parameter
+
+      Beta
+
+      :
+
+      >>> states.bowa = 20.0, 20.0, 20.0, 0.0, 0.0, 10.0, 20.0, 20.0
+      >>> model.calc_qbb_v1()
+      >>> fluxes.qbb
+      qbb(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2)
+
+      Note that for the last two HRUs the same amount of base flow
+      generation is determined, in spite of the fact that both exhibit
+      different relative soil moistures.  It is common to modify this
+      "pure absolute dependency" to a "mixed absolute/relative
+      dependency" through defining the values of parameter
+
+      WB
+
+       indirectly via parameter
+
+      RelWB
+
+      .
+
+      In the second example, the actual soil water content
+
+      BoWa
+
+       is set to high values.  For values below threshold
+
+      WZ
+
+      , the discussion above remains valid.  For values above
+
+      WZ
+
+      , percolation shows a nonlinear behaviour when factor
+
+      FBeta
+
+       is set to values larger than one:
+
+      >>> nfk(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 200.0)
+      >>> states.bowa = 0.0, 0.0, 0.0, 60.0, 70.0, 80.0, 100.0, 200.0
+      >>> model.calc_qbb_v1()
+      >>> fluxes.qbb
+      qbb(0.0, 0.0, 0.0, 1.0, 1.2, 1.866667, 3.6, 7.6)
+
+hydpy.models.lland.lland_model.calc_qib1_v1(self)
+
+   Calculate the first inflow component released from the soil.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      NFk
+
+
+      DMin
+
+   Required derived parameter:
+      WB
+
+   Required state sequence:
+      BoWa
+
+   Calculated flux sequence:
+      QIB1
+
+   Basic equation:
+      QIB1 = DMin \cdot \frac{BoWa}{NFk}
+
+   Examples:
+
+      For water and sealed areas, no interflow is calculated (the
+      first three HRUs are of type
+
+      FLUSS
+
+      ,
+
+      SEE
+
+      , and
+
+      VERS
+
+      , respectively). No principal distinction is made between the
+      remaining land use classes (arable land
+
+      ACKER
+
+       has been selected for the last five HRUs arbitrarily):
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(8)
+      >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
+      >>> dmax(10.0)
+      >>> dmin(4.0)
+      >>> nfk(101.0, 101.0, 101.0, 0.0, 101.0, 101.0, 101.0, 202.0)
+      >>> derived.wb(10.0)
+      >>> states.bowa = 10.1, 10.1, 10.1, 0.0, 0.0, 10.0, 10.1, 10.1
+
+      Note the time dependence of parameter
+
+      DMin
+
+      :
+
+      >>> dmin
+      dmin(4.0)
+      >>> dmin.values
+      array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.])
+
+      Compared to the calculation of
+
+      QBB
+
+      , the following results show some relevant differences:
+
+      >>> model.calc_qib1_v1()
+      >>> fluxes.qib1
+      qib1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1)
+
+      Firstly, as demonstrated with the help of the seventh and the
+      eight HRU, the generation of the first interflow component
+
+      QIB1
+
+       depends on relative soil moisture.  Secondly, as demonstrated
+      with the help the sixth and seventh HRU, it starts abruptly
+      whenever the slightest exceedance of the threshold  parameter
+
+      WB
+
+       occurs. Such sharp discontinuouties are a potential source of
+      trouble.
+
+hydpy.models.lland.lland_model.calc_qib2_v1(self)
+
+   Calculate the first inflow component released from the soil.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      NFk
+
+
+      DMin
+
+
+      DMax
+
+   Required derived parameter:
+      WZ
+
+   Required state sequence:
+      BoWa
+
+   Calculated flux sequence:
+      QIB2
+
+   Basic equation:
+      QIB2 = (DMax-DMin) \cdot (\frac{BoWa-WZ}{NFk-WZ})^\frac{3}{2}
+
+   Examples:
+
+      For water and sealed areas, no interflow is calculated (the
+      first three HRUs are of type
+
+      FLUSS
+
+      ,
+
+      SEE
+
+      , and
+
+      VERS
+
+      , respectively). No principal distinction is made between the
+      remaining land use classes (arable land
+
+      ACKER
+
+       has been selected for the last five HRUs arbitrarily):
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(8)
+      >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
+      >>> dmax(10.0)
+      >>> dmin(4.0)
+      >>> nfk(100.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 200.0)
+      >>> derived.wz(50.0)
+      >>> states.bowa = 100.0, 100.0, 100.0, 50.1, 50.0, 75.0, 100.0, 100.0
+
+      Note the time dependence of parameters
+
+      DMin
+
+       (see the example above) and
+
+      DMax
+
+      :
+
+      >>> dmax
+      dmax(10.0)
+      >>> dmax.values
+      array([ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.])
+
+      The following results show that he calculation of
+
+      QIB2
+
+       both resembles those of
+
+      QBB
+
+       and
+
+      QIB1
+
+       in some regards:
+
+      >>> model.calc_qib2_v1()
+      >>> fluxes.qib2
+      qib2(0.0, 0.0, 0.0, 0.0, 0.0, 1.06066, 3.0, 0.57735)
+
+      In the given example, the maximum rate of total interflow
+      generation is 5 mm/12h (parameter
+
+      DMax
+
+      ).  For the seventh zone, which contains a saturated soil, the
+      value calculated for the second interflow component (
+
+      QIB2
+
+      ) is 3 mm/h.  The "missing" value of 2 mm/12h is be calculated
+      by method
+
+      calc_qib1_v1()
+
+      .
+
+      (The fourth zone, which is slightly oversaturated, is only
+      intended to demonstrate that zero division due to
+
+      NFk
+
+       =
+
+      WZ
+
+       is circumvented.)
+
+hydpy.models.lland.lland_model.calc_qdb_v1(self)
+
+   Calculate direct runoff released from the soil.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+
+      NFk
+
+
+      BSf
+
+   Required state sequence:
+      BoWa
+
+   Required flux sequence:
+      WaDa
+
+   Calculated flux sequence:
+      QDB
+
+   Basic equations:
+      QDB = \Bigl \lbrace { {max(Exz, 0) \ | \ SfA \leq 0} \atop
+      {max(Exz + NFk \cdot SfA^{BSf+1}, 0) \ | \ SfA > 0} } SFA = (1 -
+      \frac{BoWa}{NFk})^\frac{1}{BSf+1} - \frac{WaDa}{(BSf+1) \cdot
+      NFk} Exz = (BoWa + WaDa) - NFk
+
+   Examples:
+
+      For water areas (
+
+      FLUSS
+
+       and
+
+      SEE
+
+      ), sealed areas (
+
+      VERS
+
+      ), and areas without any soil storage capacity, all water is
+      completely routed as direct runoff
+
+      QDB
+
+       (see the first four HRUs).  No principal distinction is made
+      between the remaining land use classes (arable land
+
+      ACKER
+
+       has been selected for the last five HRUs arbitrarily):
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(9)
+      >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
+      >>> bsf(0.4)
+      >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
+      >>> fluxes.wada = 10.0
+      >>> states.bowa = (
+      ...     100.0, 100.0, 100.0, 0.0, -0.1, 0.0, 50.0, 100.0, 100.1)
+      >>> model.calc_qdb_v1()
+      >>> fluxes.qdb
+      qdb(10.0, 10.0, 10.0, 10.0, 0.142039, 0.144959, 1.993649, 10.0, 10.1)
+
+      With the common
+
+      BSf
+
+       value of 0.4, the discharge coefficient increases more or less
+      exponentially with soil moisture. For soil moisture values
+      slightly below zero or above usable field capacity, plausible
+      amounts of generated direct runoff are ensured.
+
+hydpy.models.lland.lland_model.calc_bowa_v1(self)
+
+   Update soil moisture and correct fluxes if necessary.
+
+   Required control parameters:
+      NHRU
+
+
+      Lnk
+
+   Required flux sequence:
+      WaDa
+
+   Updated state sequence:
+      BoWa
+
+   Required (and eventually corrected) flux sequences:
+      EvB
+
+
+      QBB
+
+
+      QIB1
+
+
+      QIB2
+
+
+      QDB
+
+   Basic equations:
+      \frac{dBoWa}{dt} = WaDa - EvB - QBB - QIB1 - QIB2 - QDB BoWa
+      \geq 0
+
+   Examples:
+
+      For water areas (
+
+      FLUSS
+
+       and
+
+      SEE
+
+      ) and sealed areas (
+
+      VERS
+
+      ), soil moisture
+
+      BoWa
+
+       is simply set to zero and no flux correction are performed (see
+      the first three HRUs).  No principal distinction is made between
+      the remaining land use classes (arable land
+
+      ACKER
+
+       has been selected for the last four HRUs arbitrarily):
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(7)
+      >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
+      >>> states.bowa = 2.0
+      >>> fluxes.wada = 1.0
+      >>> fluxes.evb = 1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.3
+      >>> fluxes.qbb = 1.0, 1.0, 1.0, 0.0, 0.2, 0.4, 0.6
+      >>> fluxes.qib1 = 1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.9
+      >>> fluxes.qib2 = 1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 1.2
+      >>> fluxes.qdb = 1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.5
+      >>> model.calc_bowa_v1()
+      >>> states.bowa
+      bowa(0.0, 0.0, 0.0, 3.0, 1.5, 0.0, 0.0)
+      >>> fluxes.evb
+      evb(1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.2)
+      >>> fluxes.qbb
+      qbb(1.0, 1.0, 1.0, 0.0, 0.2, 0.4, 0.4)
+      >>> fluxes.qib1
+      qib1(1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.6)
+      >>> fluxes.qib2
+      qib2(1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 0.8)
+      >>> fluxes.qdb
+      qdb(1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.0)
+
+      For the seventh HRU, the original total loss terms would result
+      in a negative soil moisture value.  Hence it is reduced to the
+      total loss term of the sixt HRU, which results exactly in a
+      complete emptying of the soil storage.
+
+hydpy.models.lland.lland_model.calc_qbgz_v1(self)
+
+   Aggregate the amount of base flow released by all "soil type" HRUs
+   and the "net precipitation" above water areas of type
+
+   SEE
+
+   .
+
+   Water areas of type
+
+   SEE
+
+    are assumed to be directly connected with groundwater, but not
+   with the stream network.  This is modelled by adding their
+   (positive or negative) "net input" (
+
+   NKor
+
+   -
+
+   EvI
+
+   ) to the "percolation output" of the soil containing HRUs.
+
+   Required control parameters:
+      Lnk
+
+
+      NHRU
+
+
+      FHRU
+
+   Required flux sequences:
+      QBB
+
+
+      NKor
+
+
+      EvI
+
+   Calculated state sequence:
+      QBGZ
+
+   Basic equation:
+      QBGZ = \Sigma(FHRU \cdot QBB) + \Sigma(FHRU \cdot
+      (NKor_{SEE}-EvI_{SEE}))
+
+   Examples:
+
+      The first example shows that
+
+      QBGZ
+
+       is the area weighted sum of
+
+      QBB
+
+       from "soil type" HRUs like arable land (
+
+      ACKER
+
+      ) and of
+
+      NKor
+
+      -
+
+      EvI
+
+       from water areas of type
+
+      SEE
+
+      .  All other water areas (
+
+      WASSER
+
+       and
+
+      FLUSS
+
+      ) and also sealed surfaces (
+
+      VERS
+
+      ) have no impact on
+
+      QBGZ
+
+      :
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> nhru(6)
+      >>> lnk(ACKER, ACKER, VERS, WASSER, FLUSS, SEE)
+      >>> fhru(0.1, 0.2, 0.1, 0.1, 0.1, 0.4)
+      >>> fluxes.qbb = 2., 4.0, 300.0, 300.0, 300.0, 300.0
+      >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0
+      >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 100.0, 10.0
+      >>> model.calc_qbgz_v1()
+      >>> states.qbgz
+      qbgz(5.0)
+
+      The second example shows that large evaporation values above a
+      HRU of type
+
+      SEE
+
+       can result in negative values of
+
+      QBGZ
+
+      :
+
+      >>> fluxes.evi[5] = 30
+      >>> model.calc_qbgz_v1()
+      >>> states.qbgz
+      qbgz(-3.0)
+
+hydpy.models.lland.lland_model.calc_qigz1_v1(self)
+
+   Aggregate the amount of the first interflow component released by
+   all HRUs.
+
+   Required control parameters:
+      NHRU
+
+
+      FHRU
+
+   Required flux sequence:
+      QIB1
+
+   Calculated state sequence:
+      QIGZ1
+
+   Basic equation:
+      QIGZ1 = \Sigma(FHRU \cdot QIB1)
+
+   Example:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep()
+   >>> nhru(2)
+   >>> fhru(0.75, 0.25)
+   >>> fluxes.qib1 = 1.0, 5.0
+   >>> model.calc_qigz1_v1()
+   >>> states.qigz1
+   qigz1(2.0)
+
+hydpy.models.lland.lland_model.calc_qigz2_v1(self)
+
+   Aggregate the amount of the second interflow component released by
+   all HRUs.
+
+   Required control parameters:
+      NHRU
+
+
+      FHRU
+
+   Required flux sequence:
+      QIB2
+
+   Calculated state sequence:
+      QIGZ2
+
+   Basic equation:
+      QIGZ2 = \Sigma(FHRU \cdot QIB2)
+
+   Example:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep()
+   >>> nhru(2)
+   >>> fhru(0.75, 0.25)
+   >>> fluxes.qib2 = 1.0, 5.0
+   >>> model.calc_qigz2_v1()
+   >>> states.qigz2
+   qigz2(2.0)
+
+hydpy.models.lland.lland_model.calc_qdgz_v1(self)
+
+   Aggregate the amount of total direct flow released by all HRUs.
+
+   Required control parameters:
+      Lnk
+
+
+      NHRU
+
+
+      FHRU
+
+   Required flux sequence:
+      QDB
+
+
+      NKor
+
+
+      EvI
+
+   Calculated flux sequence:
+      QDGZ
+
+   Basic equation:
+      QDGZ = \Sigma(FHRU \cdot QDB) + \Sigma(FHRU \cdot
+      (NKor_{FLUSS}-EvI_{FLUSS}))
+
+   Examples:
+
+      The first example shows that
+
+      QDGZ
+
+       is the area weighted sum of
+
+      QDB
+
+       from "land type" HRUs like arable land (
+
+      ACKER
+
+      ) and sealed surfaces (
+
+      VERS
+
+      ) as well as of
+
+      NKor
+
+      -
+
+      EvI
+
+       from water areas of type
+
+      FLUSS
+
+      .  Water areas of type
+
+      WASSER
+
+       and
+
+      SEE
+
+       have no impact on
+
+      QDGZ
+
+      :
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> nhru(5)
+      >>> lnk(ACKER, VERS, WASSER, SEE, FLUSS)
+      >>> fhru(0.1, 0.2, 0.1, 0.2, 0.4)
+      >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0
+      >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 20.0
+      >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 10.0
+      >>> model.calc_qdgz_v1()
+      >>> fluxes.qdgz
+      qdgz(5.0)
+
+      The second example shows that large evaporation values above a
+      HRU of type
+
+      FLUSS
+
+       can result in negative values of
+
+      QDGZ
+
+      :
+
+      >>> fluxes.evi[4] = 30
+      >>> model.calc_qdgz_v1()
+      >>> fluxes.qdgz
+      qdgz(-3.0)
+
+hydpy.models.lland.lland_model.calc_qdgz1_qdgz2_v1(self)
+
+   Seperate total direct flow into a small and a fast component.
+
+   Required control parameters:
+      A1
+
+
+      A2
+
+   Required flux sequence:
+      QDGZ
+
+   Calculated state sequences:
+      QDGZ1
+
+
+      QDGZ2
+
+   Basic equation:
+      QDGZ2 = \frac{(QDGZ-A2)^2}{QDGZ+A1-A2} QDGZ1 = QDGZ - QDGZ1
+
+   Examples:
+
+      The formula for calculating the amount of the fast component of
+      direct flow is borrowed from the famous curve number approach.
+      Parameter
+
+      A2
+
+       would be the initial loss and parameter
+
+      A1
+
+       the maximum storage, but one should not take this analogy too
+      serious. Instead, with the value of parameter
+
+      A1
+
+       set to zero, parameter
+
+      A2
+
+       just defines the maximum amount of "slow" direct runoff per
+      time step:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> a1(0.0)
+
+      Let us set the value of
+
+      A2
+
+       to 4 mm/d, which is 2 mm/12h with respect to the selected
+      simulation step size:
+
+      >>> a2(4.0)
+      >>> a2
+      a2(4.0)
+      >>> a2.value
+      2.0
+
+      Define a test function and let it calculate
+
+      QDGZ1
+
+       and
+
+      QDGZ1
+
+       for values of
+
+      QDGZ
+
+       ranging from -10 to 100 mm/12h:
+
+      >>> from hydpy import UnitTest
+      >>> test = UnitTest(model,
+      ...                 model.calc_qdgz1_qdgz2_v1,
+      ...                 last_example=6,
+      ...                 parseqs=(fluxes.qdgz,
+      ...                          states.qdgz1,
+      ...                          states.qdgz2))
+      >>> test.nexts.qdgz = -10.0, 0.0, 1.0, 2.0, 3.0, 100.0
+      >>> test()
+      | ex. |  qdgz | qdgz1 | qdgz2 |
+      -------------------------------
+      |   1 | -10.0 | -10.0 |   0.0 |
+      |   2 |   0.0 |   0.0 |   0.0 |
+      |   3 |   1.0 |   1.0 |   0.0 |
+      |   4 |   2.0 |   2.0 |   0.0 |
+      |   5 |   3.0 |   2.0 |   1.0 |
+      |   6 | 100.0 |   2.0 |  98.0 |
+
+      Setting
+
+      A2
+
+       to zero and
+
+      A1
+
+       to 4 mm/d (or 2 mm/12h) results in a smoother transition:
+
+      >>> a2(0.0)
+      >>> a1(4.0)
+      >>> test()
+      | ex. |  qdgz |    qdgz1 |     qdgz2 |
+      --------------------------------------
+      |   1 | -10.0 |    -10.0 |       0.0 |
+      |   2 |   0.0 |      0.0 |       0.0 |
+      |   3 |   1.0 | 0.666667 |  0.333333 |
+      |   4 |   2.0 |      1.0 |       1.0 |
+      |   5 |   3.0 |      1.2 |       1.8 |
+      |   6 | 100.0 | 1.960784 | 98.039216 |
+
+      Alternatively, one can mix these two configurations by setting
+      the values of both parameters to 2 mm/h:
+
+      >>> a2(2.0)
+      >>> a1(2.0)
+      >>> test()
+      | ex. |  qdgz |    qdgz1 |    qdgz2 |
+      -------------------------------------
+      |   1 | -10.0 |    -10.0 |      0.0 |
+      |   2 |   0.0 |      0.0 |      0.0 |
+      |   3 |   1.0 |      1.0 |      0.0 |
+      |   4 |   2.0 |      1.5 |      0.5 |
+      |   5 |   3.0 | 1.666667 | 1.333333 |
+      |   6 | 100.0 |     1.99 |    98.01 |
+
+      Note the similarity of the results for very high values of total
+      direct flow
+
+      QDGZ
+
+       in all three examples, which converge to the sum of the values
+      of parameter
+
+      A1
+
+       and
+
+      A2
+
+      , representing the maximum value of *slow* direct flow
+      generation per simulation step
+
+hydpy.models.lland.lland_model.calc_qbga_v1(self)
+
+   Perform the runoff concentration calculation for base flow.
+
+   The working equation is the analytical solution of the linear
+   storage equation under the assumption of constant change in inflow
+   during the simulation time step.
+
+   Required derived parameter:
+      KB
+
+   Required flux sequence:
+      QBGZ
+
+   Calculated state sequence:
+      QBGA
+
+   Basic equation:
+      QBGA_{neu} = QBGA_{alt} + (QBGZ_{alt}-QBGA_{alt}) \cdot
+      (1-exp(-KB^{-1})) + (QBGZ_{neu}-QBGZ_{alt}) \cdot
+      (1-KB\cdot(1-exp(-KB^{-1})))
+
+   Examples:
+
+      A normal test case:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> derived.kb(0.1)
+      >>> states.qbgz.old = 2.0
+      >>> states.qbgz.new = 4.0
+      >>> states.qbga.old = 3.0
+      >>> model.calc_qbga_v1()
+      >>> states.qbga
+      qbga(3.800054)
+
+      First extreme test case (zero division is circumvented):
+
+      >>> derived.kb(0.0)
+      >>> model.calc_qbga_v1()
+      >>> states.qbga
+      qbga(4.0)
+
+      Second extreme test case (numerical overflow is circumvented):
+
+      >>> derived.kb(1e500)
+      >>> model.calc_qbga_v1()
+      >>> states.qbga
+      qbga(5.0)
+
+hydpy.models.lland.lland_model.calc_qiga1_v1(self)
+
+   Perform the runoff concentration calculation for the first
+   interflow component.
+
+   The working equation is the analytical solution of the linear
+   storage equation under the assumption of constant change in inflow
+   during the simulation time step.
+
+   Required derived parameter:
+      KI1
+
+   Required state sequence:
+      QIGZ1
+
+   Calculated state sequence:
+      QIGA1
+
+   Basic equation:
+      QIGA1_{neu} = QIGA1_{alt} + (QIGZ1_{alt}-QIGA1_{alt}) \cdot
+      (1-exp(-KI1^{-1})) + (QIGZ1_{neu}-QIGZ1_{alt}) \cdot
+      (1-KI1\cdot(1-exp(-KI1^{-1})))
+
+   Examples:
+
+      A normal test case:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> derived.ki1(0.1)
+      >>> states.qigz1.old = 2.0
+      >>> states.qigz1.new = 4.0
+      >>> states.qiga1.old = 3.0
+      >>> model.calc_qiga1_v1()
+      >>> states.qiga1
+      qiga1(3.800054)
+
+      First extreme test case (zero division is circumvented):
+
+      >>> derived.ki1(0.0)
+      >>> model.calc_qiga1_v1()
+      >>> states.qiga1
+      qiga1(4.0)
+
+      Second extreme test case (numerical overflow is circumvented):
+
+      >>> derived.ki1(1e500)
+      >>> model.calc_qiga1_v1()
+      >>> states.qiga1
+      qiga1(5.0)
+
+hydpy.models.lland.lland_model.calc_qiga2_v1(self)
+
+   Perform the runoff concentration calculation for the second
+   interflow component.
+
+   The working equation is the analytical solution of the linear
+   storage equation under the assumption of constant change in inflow
+   during the simulation time step.
+
+   Required derived parameter:
+      KI2
+
+   Required state sequence:
+      QIGZ2
+
+   Calculated state sequence:
+      QIGA2
+
+   Basic equation:
+      QIGA2_{neu} = QIGA2_{alt} + (QIGZ2_{alt}-QIGA2_{alt}) \cdot
+      (1-exp(-KI2^{-1})) + (QIGZ2_{neu}-QIGZ2_{alt}) \cdot
+      (1-KI2\cdot(1-exp(-KI2^{-1})))
+
+   Examples:
+
+      A normal test case:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> derived.ki2(0.1)
+      >>> states.qigz2.old = 2.0
+      >>> states.qigz2.new = 4.0
+      >>> states.qiga2.old = 3.0
+      >>> model.calc_qiga2_v1()
+      >>> states.qiga2
+      qiga2(3.800054)
+
+      First extreme test case (zero division is circumvented):
+
+      >>> derived.ki2(0.0)
+      >>> model.calc_qiga2_v1()
+      >>> states.qiga2
+      qiga2(4.0)
+
+      Second extreme test case (numerical overflow is circumvented):
+
+      >>> derived.ki2(1e500)
+      >>> model.calc_qiga2_v1()
+      >>> states.qiga2
+      qiga2(5.0)
+
+hydpy.models.lland.lland_model.calc_qdga1_v1(self)
+
+   Perform the runoff concentration calculation for "slow" direct
+   runoff.
+
+   The working equation is the analytical solution of the linear
+   storage equation under the assumption of constant change in inflow
+   during the simulation time step.
+
+   Required derived parameter:
+      KD1
+
+   Required state sequence:
+      QDGZ1
+
+   Calculated state sequence:
+      QDGA1
+
+   Basic equation:
+      QDGA1_{neu} = QDGA1_{alt} + (QDGZ1_{alt}-QDGA1_{alt}) \cdot
+      (1-exp(-KD1^{-1})) + (QDGZ1_{neu}-QDGZ1_{alt}) \cdot
+      (1-KD1\cdot(1-exp(-KD1^{-1})))
+
+   Examples:
+
+      A normal test case:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> derived.kd1(0.1)
+      >>> states.qdgz1.old = 2.0
+      >>> states.qdgz1.new = 4.0
+      >>> states.qdga1.old = 3.0
+      >>> model.calc_qdga1_v1()
+      >>> states.qdga1
+      qdga1(3.800054)
+
+      First extreme test case (zero division is circumvented):
+
+      >>> derived.kd1(0.0)
+      >>> model.calc_qdga1_v1()
+      >>> states.qdga1
+      qdga1(4.0)
+
+      Second extreme test case (numerical overflow is circumvented):
+
+      >>> derived.kd1(1e500)
+      >>> model.calc_qdga1_v1()
+      >>> states.qdga1
+      qdga1(5.0)
+
+hydpy.models.lland.lland_model.calc_qdga2_v1(self)
+
+   Perform the runoff concentration calculation for "fast" direct
+   runoff.
+
+   The working equation is the analytical solution of the linear
+   storage equation under the assumption of constant change in inflow
+   during the simulation time step.
+
+   Required derived parameter:
+      KD2
+
+   Required state sequence:
+      QDGZ2
+
+   Calculated state sequence:
+      QDGA2
+
+   Basic equation:
+      QDGA2_{neu} = QDGA2_{alt} + (QDGZ2_{alt}-QDGA2_{alt}) \cdot
+      (1-exp(-KD2^{-1})) + (QDGZ2_{neu}-QDGZ2_{alt}) \cdot
+      (1-KD2\cdot(1-exp(-KD2^{-1})))
+
+   Examples:
+
+      A normal test case:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> derived.kd2(0.1)
+      >>> states.qdgz2.old = 2.0
+      >>> states.qdgz2.new = 4.0
+      >>> states.qdga2.old = 3.0
+      >>> model.calc_qdga2_v1()
+      >>> states.qdga2
+      qdga2(3.800054)
+
+      First extreme test case (zero division is circumvented):
+
+      >>> derived.kd2(0.0)
+      >>> model.calc_qdga2_v1()
+      >>> states.qdga2
+      qdga2(4.0)
+
+      Second extreme test case (numerical overflow is circumvented):
+
+      >>> derived.kd2(1e500)
+      >>> model.calc_qdga2_v1()
+      >>> states.qdga2
+      qdga2(5.0)
+
+hydpy.models.lland.lland_model.calc_q_v1(self)
+
+   Calculate the final runoff.
+
+   Note that, in case there are water areas, their
+
+   NKor
+
+    values are added and their
+
+   EvPo
+
+    values are subtracted from the "potential" runoff value, if
+   possible.  This hold true for
+
+   WASSER
+
+    only and is due to compatibility with the original LARSIM
+   implementation. Using land type
+
+   WASSER
+
+    can result  in problematic modifications of simulated runoff
+   series. It seems advisable to use land type
+
+   FLUSS
+
+    and/or land type
+
+   SEE
+
+    instead.
+
+   Required control parameters:
+      NHRU
+
+
+      FHRU
+
+
+      Lnk
+
+
+      NegQ
+
+   Required flux sequence:
+      NKor
+
+   Updated flux sequence:
+      EvI
+
+   Required state sequences:
+      QBGA
+
+
+      QIGA1
+
+
+      QIGA2
+
+
+      QDGA1
+
+
+      QDGA2
+
+   Calculated flux sequence:
+      Q
+
+   Basic equations:
+      Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 + NKor_{WASSER} -
+      EvI_{WASSER} Q \geq 0
+
+   Examples:
+
+      When there are no water areas in the respective subbasin (we
+      choose arable land
+
+      ACKER
+
+       arbitrarily), the different runoff components are simply summed
+      up:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> nhru(3)
+      >>> lnk(ACKER, ACKER, ACKER)
+      >>> fhru(0.5, 0.2, 0.3)
+      >>> negq(False)
+      >>> states.qbga = 0.1
+      >>> states.qiga1 = 0.3
+      >>> states.qiga2 = 0.5
+      >>> states.qdga1 = 0.7
+      >>> states.qdga2 = 0.9
+      >>> fluxes.nkor = 10.0
+      >>> fluxes.evi = 4.0, 5.0, 3.0
+      >>> model.calc_q_v1()
+      >>> fluxes.q
+      q(2.5)
+      >>> fluxes.evi
+      evi(4.0, 5.0, 3.0)
+
+      The defined values of interception evaporation do not show any
+      impact on the result of the given example, the predefined values
+      for sequence
+
+      EvI
+
+       remain unchanged.  But when the first HRU is assumed to be a
+      water area (
+
+      WASSER
+
+      ), its adjusted precipitaton
+
+      NKor
+
+       value and its interception  evaporation
+
+      EvI
+
+       value are added to and subtracted from
+
+      Q
+
+       respectively:
+
+      >>> control.lnk(WASSER, VERS, NADELW)
+      >>> model.calc_q_v1()
+      >>> fluxes.q
+      q(5.5)
+      >>> fluxes.evi
+      evi(4.0, 5.0, 3.0)
+
+      Note that only 5 mm are added (instead of the
+
+      NKor
+
+       value 10 mm) and that only 2 mm are substracted (instead of the
+
+      EvI
+
+       value 4 mm, as the first HRU`s area only accounts for 50 % of
+      the subbasin area.
+
+      Setting also the land use class of the second HRU to land type
+
+      WASSER
+
+       and resetting
+
+      NKor
+
+       to zero would result in overdrying. To avoid this, both actual
+      water evaporation values stored in sequence
+
+      EvI
+
+       are reduced by the same factor:
+
+      >>> control.lnk(WASSER, WASSER, NADELW)
+      >>> fluxes.nkor = 0.0
+      >>> model.calc_q_v1()
+      >>> fluxes.q
+      q(0.0)
+      >>> fluxes.evi
+      evi(3.333333, 4.166667, 3.0)
+
+      The handling from water areas of type
+
+      FLUSS
+
+       and
+
+      SEE
+
+       differs from those of type
+
+      WASSER
+
+      , as these do receive their net input before the runoff
+      concentration routines are applied.  This should be more
+      realistic in most cases (especially for type
+
+      SEE
+
+       representing lakes not direct connected to the stream network).
+      But it could sometimes result in negative outflow values. This
+      is avoided by simply setting
+
+      Q
+
+       to zero and adding the truncated negative outflow value to the
+
+      EvI
+
+       value of all HRUs of type
+
+      FLUSS
+
+       and
+
+      SEE
+
+      :
+
+      >>> control.lnk(FLUSS, SEE, NADELW)
+      >>> states.qbga = -1.0
+      >>> states.qdga2 = -1.5
+      >>> fluxes.evi = 4.0, 5.0, 3.0
+      >>> model.calc_q_v1()
+      >>> fluxes.q
+      q(0.0)
+      >>> fluxes.evi
+      evi(2.571429, 3.571429, 3.0)
+
+      This adjustment of
+
+      EvI
+
+       is only correct regarding the total water balance.  Neither
+      spatial nor temporal consistency of the resulting
+
+      EvI
+
+       values are assured.  In the most extreme case, even negative
+
+      EvI
+
+       values might occur.  This seems acceptable, as long as the
+      adjustment of
+
+      EvI
+
+       is rarely triggered.  When in doubt about this, check sequences
+
+      EvPo
+
+       and
+
+      EvI
+
+       of HRUs of types
+
+      FLUSS
+
+       and
+
+      SEE
+
+       for possible discrepancies.  Also note that there might occur
+      unnecessary corrections of
+
+      Q
+
+       in case landtype
+
+      WASSER
+
+       is combined with either landtype
+
+      SEE
+
+       or
+
+      FLUSS
+
+      .
+
+      Eventually you might want to avoid correcting
+
+      Q
+
+      . This can be achieved by setting parameter
+
+      NegQ
+
+       to *True*:
+
+      >>> negq(True)
+      >>> fluxes.evi = 4.0, 5.0, 3.0
+      >>> model.calc_q_v1()
+      >>> fluxes.q
+      q(-1.0)
+      >>> fluxes.evi
+      evi(4.0, 5.0, 3.0)
+
+hydpy.models.lland.lland_model.pass_q_v1(self)
+
+   Update the outlet link sequence.
+
+   Required derived parameter:
+      QFactor
+
+   Required flux sequences:
+      Q
+
+   Calculated flux sequence:
+      Q
+
+   Basic equation:
+      Q_{outlets} = QFactor \cdot Q_{fluxes}
+
+Parameter features
+
+Parameter tools
+
+class hydpy.models.lland.lland_parameters.MultiParameter
+
+   Bases:
+
+   hydpy.core.parametertools.ZipParameter
+
+   Base class for handling parameters of the HydPy-L-Land model
+   (potentially) handling multiple values.
+
+   Class
+
+   MultiParameter
+
+    of HydPy-L-Land basically works like class
+
+   MultiParameter
+
+    of HydPy-H-Land, except that keyword arguments specific to
+   HydPy-L-Land are applied (acker, nadelw, wasser..., see module
+
+   lland_constants
+
+   ) and except that parameter
+
+   NHRU
+
+    determines the number of entries:
+
+   >>> from hydpy.models.lland.lland_parameters import MultiParameter
+   >>> from hydpy.models.lland import *
+   >>> parameterstep('1d')
+   >>> mp = MultiParameter()
+   >>> mp.subpars = control
+   >>> mp.shape
+   Traceback (most recent call last):
+   ...
+   RuntimeError: Shape information for parameter `multiparameter` can only be retrieved after it has been defined.  You can do this manually, but usually it is done automatically by defining the value of parameter `nhru` first in each parameter control file.
+
+   REQUIRED_VALUES = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+
+   MODEL_CONSTANTS = {'ACKER': 4, 'BAUMB': 12, 'BODEN': 7, 'FEUCHT': 10, 'FLUSS': 17, 'GLETS': 8, 'GRUE_E': 11, 'GRUE_I': 9, 'LAUBW': 14, 'MISCHW': 15, 'NADELW': 13, 'OBSTB': 6, 'SEE': 18, 'SIED_D': 1, 'SIED_L': 2, 'VERS': 3, 'WASSER': 16, 'WEINB': 5}
+
+   refparameter
+
+      Alias for the associated instance of
+
+      Lnk
+
+      .
+
+   shapeparameter
+
+      Alias for the associated instance of
+
+      NHRU
+
+      .
+
+class hydpy.models.lland.lland_parameters.MultiParameterLand
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Base class for handling parameters of HydPy-L-Land (potentially)
+   handling multiple values relevant for non water HRUs.
+
+   REQUIRED_VALUES = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+
+class hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Base class for handling parameters of HydPy-L-Land (potentially)
+   handling multiple values relevant for non water HRUs without sealed
+   surfaces.
+
+   REQUIRED_VALUES = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+
+class hydpy.models.lland.lland_parameters.LanduseMonthParameter
+
+   Bases:
+
+   hydpy.core.parametertools.KeywordParameter2D
+
+   Base class for parameters which values depend both an the actual
+   land use class and the actual month.
+
+   COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+
+   ROWNAMES = ('sied_d', 'sied_l', 'vers', 'acker', 'weinb', 'obstb', 'boden', 'glets', 'grue_i', 'feucht', 'grue_e', 'baumb', 'nadelw', 'laubw', 'mischw', 'wasser', 'fluss', 'see')
+
+Constants
+
+The HydPy-L-Land model (
+
+lland
+
+) allows for the subdivision of subbasins into hydrological response
+units (hru).  Some processes, e.g. interception, are calculated
+separately for each zone.  This is why some parameters (e.g. the
+usable field capacity
+
+NFk
+
+) and some sequences (e.g. the actual soil water storage
+
+BoWa
+
+) are 1-dimensional.  Each entry represents the value of a different
+hru.
+
+In contrasts to the original LARSIM model, the HydPy-L-Land model
+allows for arbitrary definitions of units.  Nevertheless, the original
+distinction in accordance with sixteen different landuse types is
+still supported.  The parameter
+
+Lnk
+
+ defines which entry of e.g. parameter
+
+NFk
+
+ is related to which land use type via integer values.  Note that for
+the units of the most land use types, the same equations are applied.
+Only units of type
+
+VERS
+
+,
+
+WASSER
+
+,
+
+FLUSS
+
+, and
+
+SEE
+
+ are partly connected to different process equations.
+
+For comprehensibility, this module introduces the relevant integer
+constants. Through performing a wildcard import
+
+>>> from hydpy.models.lland import *
+
+these are available in your local namespace:
+
+>>> (SIED_D, SIED_L, VERS, ACKER, WEINB, OBSTB, BODEN, GLETS, GRUE_I,
+...  FEUCHT, GRUE_E, BAUMB, NADELW, LAUBW, MISCHW, WASSER, FLUSS, SEE)
+(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+
+hydpy.models.lland.lland_constants.SIED_D = 1
+
+   Constant for *Siedlung, dicht* (settlement, dense).
+
+hydpy.models.lland.lland_constants.SIED_L = 2
+
+   Constant for *Siedlung, locker* (settlement, light).
+
+hydpy.models.lland.lland_constants.VERS = 3
+
+   Constant for *versiegelt* (sealed).
+
+hydpy.models.lland.lland_constants.ACKER = 4
+
+   Constant for *Acker* (fields).
+
+hydpy.models.lland.lland_constants.WEINB = 5
+
+   Constant for *Weinbau* (viniculture).
+
+hydpy.models.lland.lland_constants.OBSTB = 6
+
+   Constant for *Obstbau* (intensive orchards).
+
+hydpy.models.lland.lland_constants.BODEN = 7
+
+   Constant for *unbewachsener Boden* (unsealed soil, not overgrown).
+
+hydpy.models.lland.lland_constants.GLETS = 8
+
+   Constant for *Gletscher* (*glacier*).
+
+hydpy.models.lland.lland_constants.GRUE_I = 9
+
+   Constant for *Grünland, intensiv* (intensive pasture).
+
+hydpy.models.lland.lland_constants.FEUCHT = 10
+
+   Constant for *Feuchtflächen* (wetlands).
+
+hydpy.models.lland.lland_constants.GRUE_E = 11
+
+   Constant for *Grünland, extensiv* (extensive pasture).
+
+hydpy.models.lland.lland_constants.BAUMB = 12
+
+   Constant for *lockerer Baumbestand* (sparsely populated forest).
+
+hydpy.models.lland.lland_constants.NADELW = 13
+
+   Constant for *Nadelwald* (coniferous forest).
+
+hydpy.models.lland.lland_constants.LAUBW = 14
+
+   Constant for *Laubwald* (deciduous forest).
+
+hydpy.models.lland.lland_constants.MISCHW = 15
+
+   Constant for *Mischwald* (mixed forest).
+
+hydpy.models.lland.lland_constants.WASSER = 16
+
+   Constant for *Wasser* (water areas).
+
+hydpy.models.lland.lland_constants.FLUSS = 17
+
+   Constant for *Fluss* (river surface).
+
+hydpy.models.lland.lland_constants.SEE = 18
+
+   Constant for *See* (lake surface).
+
+Control parameters
+
+class hydpy.models.lland.lland_control.ControlParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Control parameters of HydPy-L-Land, directly defined by the user.
+
+   The following parameter classes are selected:
+      FT Teileinzugsgebietsfläche (subbasin area) [km²].
+
+      NHRU Anzahl der Hydrotope (number of hydrological response
+      units) [-].
+
+      Lnk Landnutzungsklasse (land use class) [-].
+
+      FHRU Flächenanteile der Hydrotope (area percentages of the
+      respective HRUs) [-].
+
+      HNN Höhe über Normal-Null (height above sea level) [m].
+
+      KG Niederschlagskorrekturfaktor (adjustment factor for
+      precipitation) [-].
+
+      KT Temperaturkorrektursummand (adjustment summand for air
+      temperature) [°C].
+
+      KE Grasreferenzverdunstungskorrekturfaktor (adjustment factor
+      for reference evapotranspiration) [-].
+
+      KF Küstenfaktor ("coast factor" of Turc-Wendling's evaporation
+      equation [-].
+
+      WfET0 Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung
+      (temporal weighting factor for reference evapotranspiration).
+
+      FLn Landnutzungsabhängiger Verdunstungsfaktor (factor for
+      adjusting reference evapotranspiration to different land use
+      classes) [-].
+
+      HInz Interzeptionskapazität bezogen auf die Blattoberfläche
+      (interception capacity normalized to the leaf surface area)
+      [mm].
+
+      LAI Blattflächenindex (leaf area index) [-].
+
+      TRefT Lufttemperaturgrenzwert des grundlegenden Grad-Tag-
+      Verfahrens (air temperature threshold of the degree-day method)
+      [°C].
+
+      TRefN Niederschlagstemperaturgrenzwert des erweiterten Grad-Tag-
+      Verfahrens (precipitation temperature threshold of the degree-
+      day method) [°C].
+
+      TGr Temperaturgrenzwert flüssiger/fester Niederschlag (threshold
+      temperature liquid/frozen precipitation) [°C].
+
+      TSp Temperaturspanne flüssiger/fester Niederschlag (temperature
+      range with mixed precipitation) [°C].
+
+      GTF Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T].
+
+      RSchmelz Spezifische Schmelzwärme von Wasser (specific melt heat
+      of water) [J/g].
+
+      CPWasser Spezifische Wärmekapazität von Wasser (specific heat
+      capacity of water) [J/g].
+
+      PWMax Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio
+      of the total and the frozen water equivalent stored in the snow
+      cover) [-].
+
+      GrasRef_R Bodenfeuchte-Verdunstung-Parameter (soil moisture-
+      dependent evaporation factor) [-].
+
+      NFk Nutzbare Feldkapazität (usable field capacity) [mm].
+
+      RelWZ Relative Mindestbodenfeuchte für die Interflowentstehung
+      (threshold value of relative soil moisture for interflow
+      generation) [-].
+
+      RelWB Relative Mindestbodenfeuchte für die
+      Basisabflussentstehung (threshold value of relative soil
+      moisture for base flow generation) [-].
+
+      Beta Drainageindex des tiefen Bodenspeichers (storage
+      coefficient for releasing base flow from the lower soil
+      compartment) [1/T].
+
+      FBeta Faktor zur Erhöhung der Perkolation im Grobporenbereich
+      (factor for increasing percolation under wet conditions) [-].
+
+      DMax Drainageindex des oberen Bodenspeichers (additional flux
+      rate for releasing interflow from the upper soil compartment)
+      [mm/T].
+
+      DMin Drainageindex des mittleren Bodenspeichers (flux rate for
+      releasing interflow from the middle soil compartment) [mm/T].
+
+      BSf Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for
+      the relation between the avarage soil moisture and the relative
+      saturated area of a subbasin) [-].
+
+      A1 Parameter für die kontinuierliche Aufteilung der
+      Direktabflusskomponenten (threshold value for the continuous
+      seperation of direct runoff in a slow and a fast component)
+      [mm/d]
+
+      A2 Parameter für die diskontinuierliche Aufteilung der
+      Direktabflusskomponenten (threshold value for the discontinuous
+      seperation of direct runoff in a slow and a fast component)
+      [mm/d]
+
+      TInd Fließzeitindex (factor related to the time of
+      concentration) [T].
+
+      EQB Kalibrierfaktor für die Basisabflusskonzentration (factor
+      for adjusting the concentration time of baseflow). [-].
+
+      EQI1 Kalibrierfaktor für die "untere"
+      Zwischenabflusskonzentration (factor for adjusting the
+      concentration time of the first interflow component) [-].
+
+      EQI2 Kalibrierfaktor für die "obere"
+      Zwischenabflusskonzentration (factor for adjusting the
+      concentration time of the second interflow component) [-].
+
+      EQD1 Kalibrierfaktor für die langsamere
+      Direktabflusskonzentration (factor for adjusting the
+      concentration time of the slower component of direct runoff).
+      [-].
+
+      EQD2 Kalibrierfaktor für die schnellere
+      Direktabflusskonzentration (factor for adjusting the
+      concentration time of the faster component of direct runoff).
+      [-].
+
+      NegQ Option: sind negative Abflüsse erlaubt (flag that indicated
+      wether negative discharge values are allowed or not) [-].
+
+class hydpy.models.lland.lland_control.FT
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Teileinzugsgebietsfläche (subbasin area) [km²].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (1e-10, None)
+
+class hydpy.models.lland.lland_control.NHRU
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Anzahl der Hydrotope (number of hydrological response units) [-].
+
+   Note that
+
+   NHRU
+
+    determines the length of most 1-dimensional HydPy-L-Land
+   parameters and sequences as well the shape of 2-dimensional log
+   sequences with a predefined length of one axis (see
+
+   WET0
+
+   ).  This required that the value of the respective
+
+   NHRU
+
+    instance is set before any of the values of these 1-dimensional
+   parameters or sequences are set.  Changing the value of the
+
+   NHRU
+
+    instance necessitates setting their values again.
+
+   Examples:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep('1d')
+   >>> nhru(5)
+   >>> control.kg.shape
+   (5,)
+   >>> fluxes.tkor.shape
+   (5,)
+   >>> logs.wet0.shape
+   (1, 5)
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (1, None)
+
+class hydpy.models.lland.lland_control.FHRU
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Flächenanteile der Hydrotope (area percentages of the respective
+   HRUs) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.lland.lland_control.Lnk
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Landnutzungsklasse (land use class) [-].
+
+   For increasing legibility, the HydPy-L-Land constants are used for
+   string representions of
+
+   Lnk
+
+    instances:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep('1d')
+   >>> nhru(4)
+   >>> lnk(ACKER, ACKER, WASSER, MISCHW)
+   >>> lnk.values
+   array([ 4,  4, 16, 15])
+   >>> lnk
+   lnk(ACKER, ACKER, WASSER, MISCHW)
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (1, 18)
+
+   compress_repr()
+
+      Returns a list which contains a string representation with land
+      uses being defined by the constants
+
+      SIED_D
+
+      ,
+
+      SIED_L
+
+      ...
+
+class hydpy.models.lland.lland_control.HNN
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Höhe über Normal-Null (height above sea level) [m].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+class hydpy.models.lland.lland_control.KG
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Niederschlagskorrekturfaktor (adjustment factor for precipitation)
+   [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 1.0
+
+class hydpy.models.lland.lland_control.KT
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Temperaturkorrektursummand (adjustment summand for air temperature)
+   [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   INIT = 0.0
+
+class hydpy.models.lland.lland_control.KE
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Grasreferenzverdunstungskorrekturfaktor (adjustment factor for
+   reference evapotranspiration) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 1.0
+
+class hydpy.models.lland.lland_control.KF
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Küstenfaktor ("coast factor" of Turc-Wendling's evaporation
+   equation [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.6, 1.0)
+
+   INIT = 1.0
+
+class hydpy.models.lland.lland_control.WfET0
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal
+   weighting factor for reference evapotranspiration).
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, 1.0)
+
+class hydpy.models.lland.lland_control.FLn
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.LanduseMonthParameter
+
+   Landnutzungsabhängiger Verdunstungsfaktor (factor for adjusting
+   reference evapotranspiration to different land use classes) [-].
+
+   NDIM = 2
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 1.0
+
+class hydpy.models.lland.lland_control.HInz
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Interzeptionskapazität bezogen auf die Blattoberfläche
+   (interception capacity normalized to the leaf surface area) [mm].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 0.2
+
+class hydpy.models.lland.lland_control.LAI
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.LanduseMonthParameter
+
+   Blattflächenindex (leaf area index) [-].
+
+   NDIM = 2
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 5.0
+
+class hydpy.models.lland.lland_control.TRefT
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterLand
+
+   Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens (air
+   temperature threshold of the degree-day method) [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   INIT = 0.0
+
+class hydpy.models.lland.lland_control.TRefN
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterLand
+
+   Niederschlagstemperaturgrenzwert des erweiterten Grad-Tag-
+   Verfahrens (precipitation temperature threshold of the degree-day
+   method) [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   INIT = 0.0
+
+class hydpy.models.lland.lland_control.TGr
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterLand
+
+   Temperaturgrenzwert flüssiger/fester Niederschlag (threshold
+   temperature liquid/frozen precipitation) [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, None)
+
+   INIT = 0.0
+
+class hydpy.models.lland.lland_control.TSp
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterLand
+
+   Temperaturspanne flüssiger/fester Niederschlag (temperature range
+   with mixed precipitation) [°C].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 0.0
+
+class hydpy.models.lland.lland_control.GTF
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterLand
+
+   Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+   INIT = 3.0
+
+class hydpy.models.lland.lland_control.RSchmelz
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Spezifische Schmelzwärme von Wasser (specific melt heat of water)
+   [J/g].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 334.0
+
+class hydpy.models.lland.lland_control.CPWasser
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Spezifische Wärmekapazität von Wasser (specific heat capacity of
+   water) [J/g].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 4.1868
+
+class hydpy.models.lland.lland_control.PWMax
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterLand
+
+   Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
+   total and the frozen water equivalent stored in the snow cover)
+   [-].
+
+   In addition to the
+
+   parametertools
+
+    call method, it is possible to set the value of parameter
+
+   PWMax
+
+    in accordance to the keyword arguments *rhot0* and *rhodkrit*.
+
+   Basic Equation:
+      PWMax = \frac{1.474 \cdot rhodkrit} {rhot0 + 0.474 \cdot
+      rhodkrit}
+
+   Example:
+
+      Using the common values for both *rhot0* and *rhodkrit*...
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep()
+      >>> nhru(1)
+      >>> lnk(ACKER)
+      >>> pwmax(rhot0=0.2345, rhodkrit=0.42)
+
+      ...results in:
+
+      >>> pwmax
+      pwmax(1.427833)
+
+      This is also the default value of
+
+      PWMax
+
+      , meaning the relative portion of liquid water in the snow cover
+      cannot exceed 30 %.
+
+      Additional error messages try to clarify how to pass parameters:
+
+      >>> pwmax(rhot0=0.2345)
+      Traceback (most recent call last):
+      ...
+      ValueError: For the calculating parameter `pwmax`, both keyword arguments `rhot0` and `rhodkrit` are required.
+
+      >>> pwmax(rho_t_0=0.2345)
+      Traceback (most recent call last):
+      ...
+      ValueError: Parameter `pwmax` can be set by directly passing a single value or a list of values, by assigning single values to landuse keywords, or by calculating a value based on the keyword arguments `rhot0` and `rhodkrit`.
+
+      Passing landuse specific parameter values is also supported (but
+      not in combination with *rhot0* and *rhodkrit*):
+
+      >>> pwmax(acker=2.0, vers=3.0)
+      >>> pwmax
+      pwmax(2.0)
+
+      The "normal" input error management still works:
+
+      >>> pwmax()
+      Traceback (most recent call last):
+      ...
+      ValueError: For parameter pwmax of element ? neither a positional nor a keyword argument is given.
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (1.0, None)
+
+   INIT = 1.4278333871488538
+
+class hydpy.models.lland.lland_control.GrasRef_R
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Bodenfeuchte-Verdunstung-Parameter (soil moisture-dependent
+   evaporation factor) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 5.0
+
+class hydpy.models.lland.lland_control.NFk
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Nutzbare Feldkapazität (usable field capacity) [mm].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 100.0
+
+class hydpy.models.lland.lland_control.RelWZ
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
+   value of relative soil moisture for interflow generation) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (None, 1.0)
+
+   INIT = 0.8
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with RelWB \leq RelWZ.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(3)
+      >>> relwb.values = .5
+      >>> relwz(0.2, .5, .8)
+      >>> relwz
+      relwz(0.5, 0.5, 0.8)
+
+class hydpy.models.lland.lland_control.RelWB
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Relative Mindestbodenfeuchte für die Basisabflussentstehung
+   (threshold value of relative soil moisture for base flow
+   generation) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 0.05
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with RelWB \leq RelWZ.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(3)
+      >>> relwz.values = .5
+      >>> relwb(0.2, .5, .8)
+      >>> relwb
+      relwb(0.2, 0.5, 0.5)
+
+class hydpy.models.lland.lland_control.Beta
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Drainageindex des tiefen Bodenspeichers (storage coefficient for
+   releasing base flow from the lower soil compartment) [1/T].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+   INIT = 0.01
+
+class hydpy.models.lland.lland_control.FBeta
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Faktor zur Erhöhung der Perkolation im Grobporenbereich (factor for
+   increasing percolation under wet conditions) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (1.0, None)
+
+   INIT = 1.0
+
+class hydpy.models.lland.lland_control.DMin
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Drainageindex des mittleren Bodenspeichers (flux rate for releasing
+   interflow from the middle soil compartment) [mm/T].
+
+   In addition to the
+
+   MultiParameterSoil
+
+    call method, it is possible to set the value of parameter
+
+   DMin
+
+    in accordance to the keyword argument *r_dmin* due to
+   compatibility reasons with the original LARSIM implemetation.
+
+   Basic Equation:
+      Dmin = 0.024192 \cdot r_dmin
+
+   Example:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(1)
+      >>> lnk(ACKER)
+      >>> dmax(10.) # to prevent trimming of dmin, see below
+      >>> dmin(r_dmin=10.0)
+      >>> dmin
+      dmin(0.24192)
+
+      Note the additional dependence of the parameter value on the
+      relation between the *parameterstep* and the actual
+      *simulationstep*:
+
+      >>> dmin.values
+      array([ 0.12096])
+
+      A wrong keyword results in the right answer:
+
+      >>> dmin(rdmin=10.0)
+      Traceback (most recent call last):
+      ...
+      NotImplementedError: The value(s) of parameter dmin of element ? could not be set based on the given keyword arguments.
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+   INIT = 0.0
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with DMin \leq DMax.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(5)
+      >>> dmax.values = 2.
+      >>> dmin(-2., 0., 2., 4., 6.)
+      >>> dmin
+      dmin(0.0, 0.0, 2.0, 4.0, 4.0)
+
+class hydpy.models.lland.lland_control.DMax
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Drainageindex des oberen Bodenspeichers (additional flux rate for
+   releasing interflow from the upper soil compartment) [mm/T].
+
+   In addition to the
+
+   MultiParameterSoil
+
+    call method, it is possible to set the value of parameter
+
+   DMax
+
+    in accordance to the keyword argument *r_dmax* due to
+   compatibility reasons with the original LARSIM implemetation.
+
+   Basic Equation:
+      Dmax = 2.4192 \cdot r_dmax
+
+   Example:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(1)
+      >>> lnk(ACKER)
+      >>> dmin(0.) # to prevent trimming of dmax, see below
+      >>> dmax(r_dmax=10.0)
+      >>> dmax
+      dmax(24.192)
+
+      Note the additional dependence of the parameter value on the
+      relation between the *parameterstep* and the actual
+      *simulationstep*:
+
+      >>> dmax.values
+      array([ 12.096])
+
+      A wrong keyword results in the right answer:
+
+      >>> dmax(rdmax=10.0)
+      Traceback (most recent call last):
+      ...
+      NotImplementedError: The value(s) of parameter dmax of element ? could not be set based on the given keyword arguments.
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (None, None)
+
+   INIT = 1.0
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with DMax \geq DMin.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> nhru(3)
+      >>> dmin.values = 2.
+      >>> dmax(2., 4., 6.)
+      >>> dmax
+      dmax(4.0, 4.0, 6.0)
+
+class hydpy.models.lland.lland_control.BSf
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameterSoil
+
+   Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
+   relation between the avarage soil moisture and the relative
+   saturated area of a subbasin) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 0.4
+
+class hydpy.models.lland.lland_control.A1
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Parameter für die kontinuierliche Aufteilung der
+   Direktabflusskomponenten (threshold value for the continuous
+   seperation of direct runoff in a slow and a fast component) [mm/d]
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+   INIT = inf
+
+class hydpy.models.lland.lland_control.A2
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Parameter für die diskontinuierliche Aufteilung der
+   Direktabflusskomponenten (threshold value for the discontinuous
+   seperation of direct runoff in a slow and a fast component) [mm/d]
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = True
+
+   SPAN = (0.0, None)
+
+   INIT = 0.0
+
+class hydpy.models.lland.lland_control.TInd
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Fließzeitindex (factor related to the time of concentration) [T].
+
+   In addition to the
+
+   SingleParameter
+
+    call method, it is possible to set the value of parameter
+
+   TInd
+
+    in accordance to the keyword arguments *tal* (talweg, [km]), *hot*
+   (higher reference altitude, [m]), and *hut* (lower reference
+   altitude, [m]).  This is supposed to decrease the time of runoff
+   concentration in small and/or steep catchments.  Note that
+
+   TInd
+
+    does not only affect direct runoff, but interflow and base flow as
+   well.  Hence it seems advisable to use this regionalization
+   strategy with caution.
+
+   Basic Equation:
+      TInd[h] = (0.868 \cdot \frac{Tal^3}{HOT-HUT})^{0.385}
+
+   Examples:
+
+      Using typical values:
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> simulationstep('12h')
+      >>> tind(tal=5.0, hot=210.0, hut=200.0)
+      >>> tind
+      tind(0.104335)
+
+      Note that this result is related to the selected parameter step
+      size of one day.  The value related to the selected simulation
+      step size of 12 hours is:
+
+      >>> from hydpy import round_
+      >>> round_(tind.value)
+      0.20867
+
+      Unplausible input values lead to the following exceptions:
+
+      >>> tind(tal=5.0, hot=200.0, hut=200.0)
+      Traceback (most recent call last):
+      ...
+      ValueError: For the alternative calculation of parameter `tind`, the value assigned to keyword argument `tal` must be greater then zero and the one of `hot` must be greater than the one of `hut`.  However, for element ?, the values `5.0`, `200.0` and `200.0` were given respectively.
+
+      >>> tind(tal=0.0, hot=210.0, hut=200.0)
+      Traceback (most recent call last):
+      ...
+      ValueError: For the alternative calculation of parameter `tind`, the value assigned to keyword argument `tal` must be greater then zero and the one of `hot` must be greater than the one of `hut`.  However, for element ?, the values `0.0`, `210.0` and `200.0` were given respectively.
+
+      However, it is hard to define exact bounds for the value of
+
+      TInd
+
+       itself.  Whenever it is below 0.001 or above 1000 days, the
+      following warning is given:
+
+      >>> tind(tal=0.001, hot=210.0, hut=200.0)
+      Traceback (most recent call last):
+      ...
+      UserWarning: Due to the given values for the keyword arguments `tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of element `?` has been set to an unrealistic value of `0.000134 hours`.
+
+      Additionally, exceptions for missing (or wrong) keywords are
+      implemented
+
+      >>> tind(tal=5.0, hot=210.0)
+      Traceback (most recent call last):
+      ...
+      ValueError: For the alternative calculation of parameter `tind`, values for all three keyword keyword arguments `tal`, `hot`, and `hut` must be given.
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = False
+
+   SPAN = (0.0, None)
+
+   INIT = 1.0
+
+class hydpy.models.lland.lland_control.EQB
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Kalibrierfaktor für die Basisabflusskonzentration (factor for
+   adjusting the concentration time of baseflow). [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 5000.0
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with EQI1 \leq EQB.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> eqi1.value = 2.
+      >>> eqb(1.)
+      >>> eqb
+      eqb(2.0)
+      >>> eqb(2.)
+      >>> eqb
+      eqb(2.0)
+      >>> eqb(3.)
+      >>> eqb
+      eqb(3.0)
+
+class hydpy.models.lland.lland_control.EQI1
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Kalibrierfaktor für die "untere" Zwischenabflusskonzentration
+   (factor for adjusting the concentration time of the first interflow
+   component) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 2000.0
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with EQI2 \leq EQI1 \leq EQB.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> eqb.value = 3.
+      >>> eqi2.value = 1.
+      >>> eqi1(0.)
+      >>> eqi1
+      eqi1(1.0)
+      >>> eqi1(1.)
+      >>> eqi1
+      eqi1(1.0)
+      >>> eqi1(2.)
+      >>> eqi1
+      eqi1(2.0)
+      >>> eqi1(3.)
+      >>> eqi1
+      eqi1(3.0)
+      >>> eqi1(4.)
+      >>> eqi1
+      eqi1(3.0)
+
+class hydpy.models.lland.lland_control.EQI2
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Kalibrierfaktor für die "obere" Zwischenabflusskonzentration
+   (factor for adjusting the concentration time of the second
+   interflow component) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 1000.0
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with EQD \leq EQI2 \leq EQI1.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> eqi1.value = 3.
+      >>> eqd1.value = 1.
+      >>> eqi2(0.)
+      >>> eqi2
+      eqi2(1.0)
+      >>> eqi2(1.)
+      >>> eqi2
+      eqi2(1.0)
+      >>> eqi2(2.)
+      >>> eqi2
+      eqi2(2.0)
+      >>> eqi2(3.)
+      >>> eqi2
+      eqi2(3.0)
+      >>> eqi2(4.)
+      >>> eqi2
+      eqi2(3.0)
+
+class hydpy.models.lland.lland_control.EQD1
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Kalibrierfaktor für die langsamere Direktabflusskonzentration
+   (factor for adjusting the concentration time of the slower
+   component of direct runoff). [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 100.0
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with EQD2 \leq EQD1 \leq EQI2.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> eqi2.value = 3.
+      >>> eqd2.value = 1.
+      >>> eqd1(0.)
+      >>> eqd1
+      eqd1(1.0)
+      >>> eqd1(1.)
+      >>> eqd1
+      eqd1(1.0)
+      >>> eqd1(2.)
+      >>> eqd1
+      eqd1(2.0)
+      >>> eqd1(3.)
+      >>> eqd1
+      eqd1(3.0)
+      >>> eqd1(4.)
+      >>> eqd1
+      eqd1(3.0)
+
+class hydpy.models.lland.lland_control.EQD2
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Kalibrierfaktor für die schnellere Direktabflusskonzentration
+   (factor for adjusting the concentration time of the faster
+   component of direct runoff). [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = 50.0
+
+   trim(lower=None, upper=None)
+
+      Trim upper values in accordance with EQD2 \leq EQD1.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> eqd1.value = 3.
+      >>> eqd2(2.)
+      >>> eqd2
+      eqd2(2.0)
+      >>> eqd2(3.)
+      >>> eqd2
+      eqd2(3.0)
+      >>> eqd2(4.)
+      >>> eqd2
+      eqd2(3.0)
+
+class hydpy.models.lland.lland_control.NegQ
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Option: sind negative Abflüsse erlaubt (flag that indicated wether
+   negative discharge values are allowed or not) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.bool"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   INIT = False
+
+Derived parameters
+
+class hydpy.models.lland.lland_derived.DerivedParameters(pars, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.parametertools.SubParameters
+
+   Derived parameters of HydPy-H-Land, indirectly defined by the user.
+
+   The following parameter classes are selected:
+      MOY References the "global" month of the year index array [-].
+
+      KInz Interzeptionskapazität bezogen auf die Bodenoberfläche
+      (interception capacity normalized to the soil surface area)
+      [mm].
+
+      WB Absolute Mindestbodenfeuchte für die Basisabflussentstehung
+      (threshold value of absolute soil moisture for base flow
+      generation) [-].
+
+      WZ Absolute Mindestbodenfeuchte für die Interflowentstehung
+      (threshold value of absolute soil moisture for interflow
+      generation) [-].
+
+      KB Konzentrationszeit des Basisabflusses (concentration time of
+      baseflow) [-].
+
+      KI1 Konzentrationszeit des "unteren" Zwischenabflusses
+      (concentration time of the first interflow component) [-].
+
+      KI2 Konzentrationszeit des "oberen" Zwischenabflusses"
+      (concentration time of the second interflow component) [-].
+
+      KD1 Konzentrationszeit des "langsamen" Direktabflusses
+      (concentration time of the slower component of direct runoff)
+      [-].
+
+      KD2 Konzentrationszeit des "schnellen" Direktabflusses
+      (concentration time of the faster component of direct runoff)
+      [-].
+
+      QFactor Factor for converting mm/stepsize to m³/s.
+
+class hydpy.models.lland.lland_derived.MOY
+
+   Bases:
+
+   hydpy.core.parametertools.IndexParameter
+
+   References the "global" month of the year index array [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.int"
+
+   TIME = None
+
+   SPAN = (0, 11)
+
+   update()
+
+class hydpy.models.lland.lland_derived.KInz
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.LanduseMonthParameter
+
+   Interzeptionskapazität bezogen auf die Bodenoberfläche
+   (interception capacity normalized to the soil surface area) [mm].
+
+   NDIM = 2
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.WB
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Absolute Mindestbodenfeuchte für die Basisabflussentstehung
+   (threshold value of absolute soil moisture for base flow
+   generation) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.WZ
+
+   Bases:
+
+   hydpy.models.lland.lland_parameters.MultiParameter
+
+   Absolute Mindestbodenfeuchte für die Interflowentstehung (threshold
+   value of absolute soil moisture for interflow generation) [-].
+
+   NDIM = 1
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.KB
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Konzentrationszeit des Basisabflusses (concentration time of
+   baseflow) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.KI1
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Konzentrationszeit des "unteren" Zwischenabflusses (concentration
+   time of the first interflow component) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.KI2
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Konzentrationszeit des "oberen" Zwischenabflusses" (concentration
+   time of the second interflow component) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.KD1
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Konzentrationszeit des "langsamen" Direktabflusses (concentration
+   time of the slower component of direct runoff) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.KD2
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Konzentrationszeit des "schnellen" Direktabflusses (concentration
+   time of the faster component of direct runoff) [-].
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+class hydpy.models.lland.lland_derived.QFactor
+
+   Bases:
+
+   hydpy.core.parametertools.SingleParameter
+
+   Factor for converting mm/stepsize to m³/s.
+
+   NDIM = 0
+
+   TYPE
+
+      alias of "builtins.float"
+
+   TIME = None
+
+   SPAN = (0.0, None)
+
+   update()
+
+Sequence features
+
+Input sequences
+
+class hydpy.models.lland.lland_inputs.InputSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequences
+
+   Input sequences of the HydPy-L-Land model.
+
+   The following sequence classes are selected:
+      Nied Niederschlag (precipitation) [mm].
+
+      TemL Lufttemperatur (air temperature) [°C].
+
+      Glob Globalstrahlung (global radiation) [W/m²].
+
+      PET Potenzielle Verdunstung (potential evapotranspiration) [mm].
+
+class hydpy.models.lland.lland_inputs.Nied
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Niederschlag (precipitation) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_inputs.TemL
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Lufttemperatur (air temperature) [°C].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_inputs.Glob
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Globalstrahlung (global radiation) [W/m²].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_inputs.PET
+
+   Bases:
+
+   hydpy.core.sequencetools.InputSequence
+
+   Potenzielle Verdunstung (potential evapotranspiration) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+Flux sequences
+
+class hydpy.models.lland.lland_fluxes.FluxSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequences
+
+   Flux sequences of the HydPy-L-Land model.
+
+   The following sequence classes are selected:
+      NKor Korrigierter Niederschlag (corrected precipitation) [mm].
+
+      TKor Korrigierte Lufttemperatur (corrected air temperature)
+      [°C].
+
+      ET0 Grasreferenzverdunstung (reference evapotranspiration) [mm].
+
+      EvPo Potenzielle Evaporation/Evapotranspiration (potential
+      evaporation/evapotranspiration) [mm].
+
+      SBes Schneeanteil Bestandsniederschlag (frozen stand
+      precipitation) [mm].
+
+      NBes Gesamter Bestandsniederschlag (total stand precipitation)
+      [mm].
+
+      EvI Tatsächliche Interzeptionsverdunstung (actual evaporation of
+      intercepted water) [mm].
+
+      EvB Tatsächliche Bodenverdunstung (actual evaporation of soil
+      water) [mm].
+
+      WGTF Potenzielle Schneeschmelze (maximum amount of frozen water
+      that could be melted) [mm].
+
+      Schm Tatsächliche Schneeschmelze (actual amount of water melting
+      within the snow cover) [mm].
+
+      WaDa Wasserdargebot (water reaching the soil routine) [mm].
+
+      QDB Direktabfluss-Abgabe aus dem Bodenspeicher (direct runoff
+      release from the soil storage) [mm].
+
+      QIB1 Erste Komponente der Interflow-Abgabe aus dem Bodenspeicher
+      (first component of the interflow release from the soil storage)
+      [mm].
+
+      QIB2 Zweite Komponente der Interflow-Abgabe aus dem
+      Bodenspeicher (second component of the interflow release from
+      the soil storage) [mm].
+
+      QBB Basisabfluss-Abgabe aus dem Bodenspeicher (base flow release
+      from the soil storage) [mm].
+
+      QDGZ Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total
+      inflow into both storage compartments for direct runoff) [mm].
+
+      Q Gesamtabfluss des Teilgebiets (runoff at the catchment outlet)
+      [mm].
+
+class hydpy.models.lland.lland_fluxes.NKor
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Korrigierter Niederschlag (corrected precipitation) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.TKor
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Korrigierte Lufttemperatur (corrected air temperature) [°C].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.ET0
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Grasreferenzverdunstung (reference evapotranspiration) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.EvPo
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Potenzielle Evaporation/Evapotranspiration (potential
+   evaporation/evapotranspiration) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.NBes
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Gesamter Bestandsniederschlag (total stand precipitation) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.SBes
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Schneeanteil Bestandsniederschlag (frozen stand precipitation)
+   [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.EvI
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Tatsächliche Interzeptionsverdunstung (actual evaporation of
+   intercepted water) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.EvB
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Tatsächliche Bodenverdunstung (actual evaporation of soil water)
+   [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.WGTF
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Potenzielle Schneeschmelze (maximum amount of frozen water that
+   could be melted) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.Schm
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Tatsächliche Schneeschmelze (actual amount of water melting within
+   the snow cover) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.WaDa
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Wasserdargebot (water reaching the soil routine) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.QDB
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Direktabfluss-Abgabe aus dem Bodenspeicher (direct runoff release
+   from the soil storage) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.QIB1
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Erste Komponente der Interflow-Abgabe aus dem Bodenspeicher (first
+   component of the interflow release from the soil storage) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.QIB2
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Zweite Komponente der Interflow-Abgabe aus dem Bodenspeicher
+   (second component of the interflow release from the soil storage)
+   [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.QBB
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Basisabfluss-Abgabe aus dem Bodenspeicher (base flow release from
+   the soil storage) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.QDGZ
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total inflow
+   into both storage compartments for direct runoff) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_fluxes.Q
+
+   Bases:
+
+   hydpy.core.sequencetools.FluxSequence
+
+   Gesamtabfluss des Teilgebiets (runoff at the catchment outlet)
+   [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+State sequences
+
+class hydpy.models.lland.lland_states.StateSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequences
+
+   State sequences of the HydPy-L-Land model.
+
+   The following sequence classes are selected:
+      Inzp Interzeptionsspeicherung (interception storage) [mm].
+
+      WATS Wasseräquivalent Trockenschnee (frozen water equivalent of
+      the snow cover) [mm].
+
+      WAeS Wasseräquivalent Gesamtschnee (total water equivalent of
+      the snow cover) [mm].
+
+      BoWa Bodenwasserspeicherung (soil water storage) [mm].
+
+      QDGZ1 Zufluss in den trägeren Direktabfluss-Gebietsspeicher
+      (inflow into the less responsive storage compartment for direct
+      runoff) [mm].
+
+      QDGZ2 Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher
+      (inflow into the more responsive storage compartment for direct
+      runoff) [mm].
+
+      QIGZ1 "Zufluss in den ersten Zwischenabfluss-Gebietsspeicher
+      (inflow into the first storage compartment for interflow) [mm].
+
+      QIGZ2 Zufluss in den zweiten Zwischenabfluss-Gebietsspeicher
+      (inflow into the second storage compartment for interflow) [mm].
+
+      QBGZ Zufluss in den Basisabfluss-Gebietsspeicher (inflow into
+      the storage compartment for base flow) [mm].
+
+      QDGA1 Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher
+      (outflow from the less responsive storage compartment for direct
+      runoff) [mm].
+
+      QDGA2 Abfluss aus dem dynamischeren Direktabfluss-
+      Gebietsspeicher (outflow from the more responsive storage
+      compartment for direct runoff) [mm].
+
+      QIGA1 Abfluss aus dem "unteren" Zwischenabfluss-Gebietsspeicher
+      (outflow from the storage compartment for the first interflow
+      component) [mm].
+
+      QIGA2 Abfluss aus dem "oberen" Zwischenabfluss-Gebietsspeicher
+      (outflow from the storage compartment for the second interflow
+      component) [mm].
+
+      QBGA Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from
+      the storage compartment for base flow) [mm].
+
+class hydpy.models.lland.lland_states.Inzp
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Interzeptionsspeicherung (interception storage) [mm].
+
+   Note that
+
+   Inzp
+
+    of HydPy-L implements no specialized trim method (as opposed to
+
+   Ic
+
+    of
+
+   hland
+
+   ).  This is due the discontinuous evolution of
+
+   KInz
+
+    in time.  In accordance with the original LARSIM implementation,
+
+   Inzp
+
+    can be temporarily overfilled during rain periods whenever
+
+   KInz
+
+    drops rapidly between two months. A specialized trim method would
+   just make the excess water vanish. But in HydPy-L, the excess water
+   becomes
+
+   NBes
+
+    in the first simulation step of the new month.
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.lland.lland_states.WATS
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Wasseräquivalent Trockenschnee (frozen water equivalent of the snow
+   cover) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+   trim(lower=None, upper=None)
+
+      Trim values in accordance with WAeS \leq PWMax \cdot WATS, or at
+      least in accordance with if WATS \geq 0.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(7)
+      >>> pwmax(2.0)
+      >>> states.waes = -1., 0., 1., -1., 5., 10., 20.
+      >>> states.wats(-1., 0., 0., 5., 5., 5., 5.)
+      >>> states.wats
+      wats(0.0, 0.0, 0.5, 5.0, 5.0, 5.0, 10.0)
+
+class hydpy.models.lland.lland_states.WAeS
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Wasseräquivalent Gesamtschnee (total water equivalent of the snow
+   cover) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+   trim(lower=None, upper=None)
+
+      Trim values in accordance with WAeS \leq PWMax \cdot WATS.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(7)
+      >>> pwmax(2.)
+      >>> states.wats = 0., 0., 0., 5., 5., 5., 5.
+      >>> states.waes(-1., 0., 1., -1., 5., 10., 20.)
+      >>> states.waes
+      waes(0.0, 0.0, 0.0, 0.0, 5.0, 10.0, 10.0)
+
+class hydpy.models.lland.lland_states.BoWa
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Bodenwasserspeicherung (soil water storage) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+   trim(lower=None, upper=None)
+
+      Trim values in accordance with BoWa \leq NFk.
+
+      >>> from hydpy.models.lland import *
+      >>> parameterstep('1d')
+      >>> nhru(5)
+      >>> nfk(200.)
+      >>> states.bowa(-100.,0., 100., 200., 300.)
+      >>> states.bowa
+      bowa(0.0, 0.0, 100.0, 200.0, 200.0)
+
+class hydpy.models.lland.lland_states.QDGZ1
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow into
+   the less responsive storage compartment for direct runoff) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.lland.lland_states.QDGZ2
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow
+   into the more responsive storage compartment for direct runoff)
+   [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+class hydpy.models.lland.lland_states.QIGZ1
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   "Zufluss in den ersten Zwischenabfluss-Gebietsspeicher (inflow into
+   the first storage compartment for interflow) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.lland.lland_states.QIGZ2
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Zufluss in den zweiten Zwischenabfluss-Gebietsspeicher (inflow into
+   the second storage compartment for interflow) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.lland.lland_states.QBGZ
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Zufluss in den Basisabfluss-Gebietsspeicher (inflow into the
+   storage compartment for base flow) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+class hydpy.models.lland.lland_states.QDGA1
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow
+   from the less responsive storage compartment for direct runoff)
+   [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.lland.lland_states.QDGA2
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher
+   (outflow from the more responsive storage compartment for direct
+   runoff) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+class hydpy.models.lland.lland_states.QIGA1
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Abfluss aus dem "unteren" Zwischenabfluss-Gebietsspeicher (outflow
+   from the storage compartment for the first interflow component)
+   [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.lland.lland_states.QIGA2
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Abfluss aus dem "oberen" Zwischenabfluss-Gebietsspeicher (outflow
+   from the storage compartment for the second interflow component)
+   [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (0.0, None)
+
+class hydpy.models.lland.lland_states.QBGA
+
+   Bases:
+
+   hydpy.core.sequencetools.StateSequence
+
+   Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
+   storage compartment for base flow) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+   SPAN = (None, None)
+
+Log sequences
+
+class hydpy.models.lland.lland_logs.LogSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LogSequences
+
+   Log sequences of the HydPy-L-Land model.
+
+   The following sequence classes are selected:
+      WET0 Zeitlich gewichtete Grasreferenzverdunstung (temporally
+      weighted reference evapotranspiration) [mm].
+
+class hydpy.models.lland.lland_logs.WET0
+
+   Bases:
+
+   hydpy.core.sequencetools.LogSequence
+
+   Zeitlich gewichtete Grasreferenzverdunstung (temporally weighted
+   reference evapotranspiration) [mm].
+
+   Log sequence
+
+   WET0
+
+    is generally initialized with a length of one on the first axis:
+
+   >>> from hydpy.models.lland import *
+   >>> parameterstep()
+   >>> logs.wet0.shape = 3
+   >>> logs.wet0.shape
+   (1, 3)
+
+   NDIM = 2
+
+   NUMERIC = False
+
+   shape
+
+      A tuple containing the lengths in all dimensions of the sequence
+      values at a specific time point.  Note that setting a new shape
+      results in a loss of the actual values of the respective
+      sequence. For 0-dimensional sequences an empty tuple is
+      returned.
+
+Outlet sequences
+
+class hydpy.models.lland.lland_outlets.OutletSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequences
+
+   Downstream link sequences of the HydPy-L-Land model.
+
+   The following sequence classes are selected:
+      Q Runoff [m³/s].
+
+class hydpy.models.lland.lland_outlets.Q
+
+   Bases:
+
+   hydpy.core.sequencetools.LinkSequence
+
+   Runoff [m³/s].
+
+   NDIM = 0
+
+   NUMERIC = False
+
+Aide sequences
+
+class hydpy.models.lland.lland_aides.AideSequences(seqs, cls_fastaccess=None, cymodel=None)
+
+   Bases:
+
+   hydpy.core.sequencetools.AideSequences
+
+   Aide sequences of the HydPy-L-Land model.
+
+   The following sequence classes are selected:
+      SfA Sättigungsflächen-Aktivität (activity of the saturated
+      surface) [mm].
+
+      Exz Bodenfeuchteüberschuss (excess of soil water) [mm].
+
+      BVl Berechneter Bodenwasserverlust (calculated amount of water
+      that should be released from the soil) [mm].
+
+      MVl Möglicher Bodenwasserverlust (maximum amount of water
+      released that can be released from the soil) [mm].
+
+      RVl Relation von MVl und BVl (ratio of MVl and BVl) [-].
+
+      EPW Potenzielle Evaporation/Evapotranspiration von Wasserflächen
+      (potential evaporation/evapotranspiration combined from all
+      water areas) [mm].
+
+class hydpy.models.lland.lland_aides.SfA
+
+   Bases:
+
+   hydpy.core.sequencetools.AideSequence
+
+   Sättigungsflächen-Aktivität (activity of the saturated surface)
+   [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_aides.Exz
+
+   Bases:
+
+   hydpy.core.sequencetools.AideSequence
+
+   Bodenfeuchteüberschuss (excess of soil water) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_aides.BVl
+
+   Bases:
+
+   hydpy.core.sequencetools.AideSequence
+
+   Berechneter Bodenwasserverlust (calculated amount of water that
+   should be released from the soil) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_aides.MVl
+
+   Bases:
+
+   hydpy.core.sequencetools.AideSequence
+
+   Möglicher Bodenwasserverlust (maximum amount of water released that
+   can be released from the soil) [mm].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_aides.RVl
+
+   Bases:
+
+   hydpy.core.sequencetools.AideSequence
+
+   Relation von MVl und BVl (ratio of MVl and BVl) [-].
+
+   NDIM = 1
+
+   NUMERIC = False
+
+class hydpy.models.lland.lland_aides.EPW
+
+   Bases:
+
+   hydpy.core.sequencetools.AideSequence
+
+   Potenzielle Evaporation/Evapotranspiration von Wasserflächen
+   (potential evaporation/evapotranspiration combined from all water
+   areas) [mm].
+
+   NDIM = 0
+
+   NUMERIC = False

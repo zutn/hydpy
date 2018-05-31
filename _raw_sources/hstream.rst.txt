@@ -1,0 +1,17 @@
+.. |C1| replace:: :class:`~hydpy.models.hstream.hstream_derived.C1`
+.. |C2| replace:: :class:`~hydpy.models.hstream.hstream_derived.C2`
+.. |C3| replace:: :class:`~hydpy.models.hstream.hstream_derived.C3`
+.. |Damp| replace:: :class:`~hydpy.models.hstream.hstream_control.Damp`
+.. |DerivedParameters| replace:: :class:`~hydpy.models.hstream.hstream_derived.DerivedParameters`
+.. |Lag| replace:: :class:`~hydpy.models.hstream.hstream_control.Lag`
+.. |NmbSegments| replace:: :class:`~hydpy.models.hstream.hstream_derived.NmbSegments`
+.. |QJoints| replace:: :class:`~hydpy.models.hstream.hstream_states.QJoints`
+
+.. _hstream:
+
+hstream
+=======
+
+.. automodule:: hydpy.models.hstream
+    :members:
+    :show-inheritance:

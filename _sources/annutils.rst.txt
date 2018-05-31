@@ -1,0 +1,8 @@
+annutils
+
+This Cython module implements the performance-critical methods of the
+Python module
+
+anntools
+
+.

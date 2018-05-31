@@ -1,0 +1,464 @@
+modeltools
+
+This module implements tools for the development of hydrological
+models.
+
+Module
+
+modeltools
+
+ implements the following members:
+
+   Model Base class for all hydrological models.
+
+   NumConstsELS no description available
+
+   NumVarsELS no description available
+
+   ModelELS no description available
+
+
+class hydpy.core.modeltools.Model
+
+   Bases: "hydpy.core.modeltools._MetaModel"
+
+   Base class for all hydrological models.
+
+   NUMERICAL = False
+
+   connect()
+
+      Connect the link sequences of the actual model.
+
+   doit(idx)
+
+   run()
+
+   load_data()
+
+   save_data(idx)
+
+   update_inlets()
+
+   update_outlets()
+
+   update_receivers(idx)
+
+   update_senders(idx)
+
+   new2old()
+
+      Assign the new/final state values of the actual time step to the
+      new/initial state values of the next time step.  Needs to be
+      overwritten in Cython mode.
+
+   idx_sim
+
+      Index of the actual simulation time step.
+
+class hydpy.core.modeltools.NumConstsELS
+
+   Bases:
+
+   object
+
+class hydpy.core.modeltools.NumVarsELS
+
+   Bases:
+
+   object
+
+class hydpy.core.modeltools.ModelELS
+
+   Bases:
+
+   hydpy.core.modeltools.Model
+
+   NUMERICAL = True
+
+   doit(idx)
+
+   solve()
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> k(0.0)
+      >>> solver.abserrormax = 1e-2
+      >>> solver.reldtmin = 1e-4
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(1.0)
+      >>> fluxes.q
+      q(0.0)
+      >>> model.numvars.idx_method
+      2
+      >>> model.numvars.dt
+      1.0
+      >>> model.numvars.nmb_calls
+      2
+
+      >>> k(0.1)
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.905)
+      >>> fluxes.q
+      q(0.095)
+      >>> model.numvars.idx_method
+      2
+      >>> model.numvars.nmb_calls
+      2
+
+      >>> import numpy
+      >>> from hydpy import round_
+      >>> round_(numpy.exp(-k))
+      0.904837
+
+      >>> solver.abserrormax = 1e-3
+
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.904833)
+      >>> fluxes.q
+      q(0.095167)
+      >>> model.numvars.idx_method
+      3
+      >>> model.numvars.nmb_calls
+      4
+
+      >>> solver.abserrormax = 1e-4
+
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.904837)
+      >>> fluxes.q
+      q(0.095163)
+      >>> model.numvars.idx_method
+      4
+      >>> model.numvars.nmb_calls
+      7
+
+      >>> solver.abserrormax = 1e-12
+
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.904837)
+      >>> fluxes.q
+      q(0.095163)
+      >>> model.numvars.idx_method
+      8
+      >>> model.numvars.nmb_calls
+      29
+
+      >>> solver.abserrormax = 1e-2
+
+      >>> k(0.5)
+
+      >>> round_(numpy.exp(-k))
+      0.606531
+
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.606771)
+      >>> fluxes.q
+      q(0.393229)
+      >>> model.numvars.idx_method
+      4
+      >>> model.numvars.nmb_calls
+      7
+
+      >>> k(2.0)
+
+      >>> round_(numpy.exp(-k))
+      0.135335
+
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.134658)
+      >>> fluxes.q
+      q(0.865342)
+      >>> model.numvars.nmb_calls
+      22
+
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.018929)
+      >>> fluxes.q
+      q(0.115728)
+      >>> model.numvars.nmb_calls
+      13
+
+      >>> k(4.0)
+
+      >>> round_(numpy.exp(-k))
+      0.018316
+
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.019774)
+      >>> fluxes.q
+      q(0.980226)
+      >>> round_(model.numvars.dt)
+      0.3
+      >>> model.numvars.nmb_calls
+      44
+
+      >>> from hydpy import reverse_model_wildcard_import
+      >>> reverse_model_wildcard_import()
+
+      >>> from hydpy.models.test_v2 import *
+      >>> parameterstep()
+      >>> k(0.5)
+      >>> solver.abserrormax = 1e-2
+      >>> solver.reldtmin = 1e-4
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(0.5)
+      >>> fluxes.q
+      q(0.5)
+      >>> model.numvars.idx_method
+      2
+      >>> model.numvars.dt
+      1.0
+      >>> model.numvars.nmb_calls
+      2
+
+      >>> k(2.0)
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(-0.006827)
+      >>> fluxes.q
+      q(1.006827)
+      >>> model.numvars.nmb_calls
+      58
+
+      >>> k(2.1)
+      >>> states.s(1.0)
+      >>> model.numvars.nmb_calls = 0
+      >>> model.solve()
+      >>> states.s
+      s(-0.00072)
+      >>> fluxes.q
+      q(1.00072)
+      >>> model.numvars.nmb_calls
+      50
+
+   calculate_single_terms()
+
+      Apply all methods stored in the hidden attribute
+      *_PART_ODE_METHODS*.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> k(0.25)
+      >>> states.s = 1.0
+      >>> model.calculate_single_terms()
+      >>> fluxes.q
+      q(0.25)
+
+   calculate_full_terms()
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> k(0.25)
+      >>> states.s.old = 1.0
+      >>> fluxes.q = 0.25
+      >>> model.calculate_full_terms()
+      >>> states.s.old
+      1.0
+      >>> states.s.new
+      0.75
+
+   get_point_states()
+
+      Load the states corresponding to the actual stage.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> states.s.old = 2.0
+      >>> states.s.new = 2.0
+      >>> model.numvars.idx_stage = 2
+      >>> points = numpy.asarray(states.fastaccess._s_points)
+      >>> points[:4] = 0.0, 0.0, 1.0, 0.0
+      >>> model.get_point_states()
+      >>> states.s.old
+      2.0
+      >>> states.s.new
+      1.0
+
+   set_point_states()
+
+      Save the states corresponding to the actual stage.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> states.s.old = 2.0
+      >>> states.s.new = 1.0
+      >>> model.numvars.idx_stage = 2
+      >>> points = numpy.asarray(states.fastaccess._s_points)
+      >>> points[:] = 0.
+      >>> model.set_point_states()
+      >>> from hydpy import round_
+      >>> round_(points[:4])
+      0.0, 0.0, 1.0, 0.0
+
+   set_result_states()
+
+      Save the final states of the actual method.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> states.s.old = 2.0
+      >>> states.s.new = 1.0
+      >>> model.numvars.idx_method = 2
+      >>> results = numpy.asarray(states.fastaccess._s_results)
+      >>> results[:] = 0.0
+      >>> model.set_result_states()
+      >>> from hydpy import round_
+      >>> round_(results[:4])
+      0.0, 0.0, 1.0, 0.0
+
+   get_sum_fluxes()
+
+      Get the sum of the fluxes calculated so far.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> fluxes.q = 0.0
+      >>> fluxes.fastaccess._q_sum = 1.0
+      >>> model.get_sum_fluxes()
+      >>> fluxes.q
+      q(1.0)
+
+   set_point_fluxes()
+
+      Save the fluxes corresponding to the actual stage.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> fluxes.q = 1.
+      >>> model.numvars.idx_stage = 2
+      >>> points = numpy.asarray(fluxes.fastaccess._q_points)
+      >>> points[:] = 0.
+      >>> model.set_point_fluxes()
+      >>> from hydpy import round_
+      >>> round_(points[:4])
+      0.0, 0.0, 1.0, 0.0
+
+   set_result_fluxes()
+
+      Save the final fluxes of the actual method.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> fluxes.q = 1.
+      >>> model.numvars.idx_method = 2
+      >>> results = numpy.asarray(fluxes.fastaccess._q_results)
+      >>> results[:] = 0.
+      >>> model.set_result_fluxes()
+      >>> from hydpy import round_
+      >>> round_(results[:4])
+      0.0, 0.0, 1.0, 0.0
+
+   integrate_fluxes()
+
+      Perform a dot multiplication between the fluxes and the A
+      coefficients associated with the different stages of the actual
+      method.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> model.numvars.idx_method = 2
+      >>> model.numvars.idx_stage = 1
+      >>> model.numvars.dt = 0.5
+      >>> points = numpy.asarray(fluxes.fastaccess._q_points)
+      >>> points[:4] = 15., 2., -999., 0.
+      >>> model.integrate_fluxes()
+      >>> from hydpy import round_
+      >>> from hydpy import pub
+      >>> round_(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
+      0.375, 0.125
+      >>> fluxes.q
+      q(2.9375)
+
+   reset_sum_fluxes()
+
+      Set the sum of the fluxes calculated so far to zero.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> fluxes.fastaccess._q_sum = 5.
+      >>> model.reset_sum_fluxes()
+      >>> fluxes.fastaccess._q_sum
+      0.0
+
+   addup_fluxes()
+
+      Add up the sum of the fluxes calculated so far.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> fluxes.fastaccess._q_sum = 1.0
+      >>> fluxes.q(2.0)
+      >>> model.addup_fluxes()
+      >>> fluxes.fastaccess._q_sum
+      3.0
+
+   calculate_error()
+
+      Estimate the numerical error based on the fluxes calculated by
+      the current and the last method.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> model.numvars.idx_method = 2
+      >>> results = numpy.asarray(fluxes.fastaccess._q_results)
+      >>> results[:4] = 0., 3., 4., 0.
+      >>> model.calculate_error()
+      >>> from hydpy import round_
+      >>> round_(model.numvars.error)
+      1.0
+
+   extrapolate_error()
+
+      Estimate the numerical error to be expected when applying all
+      methods available based on the results of the current and the
+      last method.
+
+      Note that this expolation strategy cannot be applied on the
+      first method.  If the current method is the first one, *-999.9*
+      is returned.
+
+      >>> from hydpy.models.test_v1 import *
+      >>> parameterstep()
+      >>> model.numvars.error = 1e-2
+      >>> model.numvars.last_error = 1e-1
+      >>> model.numvars.idx_method = 10
+      >>> model.extrapolate_error()
+      >>> from hydpy import round_
+      >>> round_(model.numvars.extrapolated_error)
+      0.01
+      >>> model.numvars.idx_method = 9
+      >>> model.extrapolate_error()
+      >>> round_(model.numvars.extrapolated_error)
+      0.001

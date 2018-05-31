@@ -1,0 +1,17 @@
+.. |AttributeNotReady| replace:: :class:`~hydpy.core.exceptiontools.AttributeNotReady`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |IsReady| replace:: :class:`~hydpy.core.exceptiontools.IsReady`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |OptionalModuleNotAvailable| replace:: :class:`~hydpy.core.exceptiontools.OptionalModuleNotAvailable`
+.. |dependent_property| replace:: :func:`~hydpy.core.exceptiontools.dependent_property`
+.. |property| replace:: :class:`property`
+.. |protected_property| replace:: :func:`~hydpy.core.exceptiontools.protected_property`
+
+.. _exceptiontools:
+
+exceptiontools
+==============
+
+.. automodule:: hydpy.core.exceptiontools
+    :members:
+    :show-inheritance:

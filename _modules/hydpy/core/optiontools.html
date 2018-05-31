@@ -1,0 +1,302 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>hydpy.core.optiontools &#8212; HydPy 2.1-dev documentation</title>
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.optiontools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements classes that help to manage global HydPy options.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from the Python standard library</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="k">import</span> <span class="n">autodoctools</span>
+
+
+<span class="k">class</span> <span class="nc">_Context</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">option</span> <span class="o">=</span> <span class="n">option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">old_value</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">nothing</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">optional</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">type_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">old_value</span>
+
+
+<span class="k">class</span> <span class="nc">_IntContext</span><span class="p">(</span><span class="n">_Context</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">option</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_FloatContext</span><span class="p">(</span><span class="n">_Context</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">option</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_StrContext</span><span class="p">(</span><span class="n">_Context</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">option</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">option</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_Option</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">TYPE2CONTEXT</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">:</span> <span class="n">_IntContext</span><span class="p">,</span>
+                    <span class="nb">bool</span><span class="p">:</span> <span class="n">_IntContext</span><span class="p">,</span>
+                    <span class="nb">float</span><span class="p">:</span> <span class="n">_FloatContext</span><span class="p">,</span>
+                    <span class="nb">str</span><span class="p">:</span> <span class="n">_StrContext</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">nothing</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nothing</span> <span class="o">=</span> <span class="n">nothing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TYPE2CONTEXT</span>
+
+    <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TYPE2CONTEXT</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">type_</span><span class="p">](</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__doc__</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">nothing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nothing</span>
+        <span class="k">return</span> <span class="n">context</span>
+
+    <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span>
+
+
+<div class="viewcode-block" id="Options"><a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.Options">[docs]</a><span class="k">class</span> <span class="nc">Options</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Singleton class for `global` options placed in module |pub|.</span>
+
+<span class="sd">    Note that Most options are simple True/False or 0/1 flags.</span>
+
+<span class="sd">    You can change all options in two ways.  By using the `with` statement,</span>
+<span class="sd">    you make sure that the change is undone after leaving the corresponding</span>
+<span class="sd">    code block (even if an error occurs):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.pub import options</span>
+<span class="sd">    &gt;&gt;&gt; options.printprogress = 0</span>
+<span class="sd">    &gt;&gt;&gt; options.printprogress</span>
+<span class="sd">    0</span>
+<span class="sd">    &gt;&gt;&gt; with options.printprogress(True):</span>
+<span class="sd">    ...     print(options.printprogress)</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; options.printprogress</span>
+<span class="sd">    0</span>
+
+<span class="sd">    Alternatively, you can change all options via simple assignements:</span>
+
+<span class="sd">    &gt;&gt;&gt; options.printprogress = True</span>
+<span class="sd">    &gt;&gt;&gt; options.printprogress</span>
+<span class="sd">    1</span>
+
+<span class="sd">    But then you might have to keep in mind to undo the change later:</span>
+
+<span class="sd">    &gt;&gt;&gt; options.printprogress</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; options.printprogress = False</span>
+<span class="sd">    &gt;&gt;&gt; options.printprogress</span>
+<span class="sd">    0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">checkseries</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether an error shall be raised</span>
+<span class="sd">    when e.g. an incomplete input time series, not spanning the whole</span>
+<span class="sd">    initialization time period, is loaded.&quot;&quot;&quot;</span>
+
+    <span class="n">ellipsis</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="o">-</span><span class="mi">999</span><span class="p">,</span> <span class="o">-</span><span class="mi">999</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Ellipsis points are used to shorten the string representations</span>
+<span class="sd">    of iterable HydPy objects containing many entries.  Set a value</span>
+<span class="sd">    to define the maximum number of entries before and behind ellipsis</span>
+<span class="sd">    points.  Set it to zero, if no ellipsis points should be drawn at</span>
+<span class="sd">    all.  Set it to -999 (the default value) to rely on the default</span>
+<span class="sd">    values of the respective iterables.&quot;&quot;&quot;</span>
+    <span class="n">ellipsis</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="nb">int</span>
+
+    <span class="n">fastcython</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether Cythonization shall be</span>
+<span class="sd">    configured in a fast but unsafe (True) or in a slow but safe (False)</span>
+<span class="sd">    mode.  The fast mode is the default.  Setting this flag to False</span>
+<span class="sd">    can be helpful when the implementation of new models or other</span>
+<span class="sd">    Cython related features introduces errors that do not result in</span>
+<span class="sd">    informative error messages.&quot;&quot;&quot;</span>
+
+    <span class="n">printprogress</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether information about the progress</span>
+<span class="sd">    of certain processes shall be printed to the standard output or not.</span>
+<span class="sd">    The default is `True`.&quot;&quot;&quot;</span>
+
+    <span class="n">printincolor</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether information shall be printed</span>
+<span class="sd">    in color eventually or not. The default is `True`.&quot;&quot;&quot;</span>
+
+    <span class="n">reprcomments</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicationg whether comments shall be included</span>
+<span class="sd">    in string representations of some classes of the HydPy framework or</span>
+<span class="sd">    not.  The default is `False`.&quot;&quot;&quot;</span>
+
+    <span class="n">reprdigits</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="o">-</span><span class="mi">999</span><span class="p">,</span> <span class="o">-</span><span class="mi">999</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Required precision of string representations of floating point</span>
+<span class="sd">    numbers, defined as the minimum number of digits to be reproduced</span>
+<span class="sd">    by the string representation (see function |repr_|).&quot;&quot;&quot;</span>
+
+    <span class="n">skipdoctests</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether documetation tests shall be</span>
+<span class="sd">    performed under certain situations.  Applying tests increases</span>
+<span class="sd">    reliabilty and is thus the default.&quot;&quot;&quot;</span>
+
+    <span class="n">usecython</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether Cython models (True) or pure</span>
+<span class="sd">    Python models (False) shall be applied if possible.  Using Cython</span>
+<span class="sd">    models is more time efficient and thus the default.&quot;&quot;&quot;</span>
+
+    <span class="n">usedefaultvalues</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether parameters values shall be</span>
+<span class="sd">    initialized with standard values or not.&quot;&quot;&quot;</span>
+
+    <span class="n">dirverbose</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicationg whether the listboxes for the member</span>
+<span class="sd">    selection of the classes of the HydPy framework should be complete</span>
+<span class="sd">    (True) or restrictive (False).  The latter is more viewable and hence</span>
+<span class="sd">    the default.&quot;&quot;&quot;</span>
+
+    <span class="n">warnmissingcontrolfile</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether only a warning shall be raised</span>
+<span class="sd">    when a required control file is missing, or an exception.&quot;&quot;&quot;</span>
+
+    <span class="n">warnmissingobsfile</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether a warning shall be raised</span>
+<span class="sd">    when a requested observation sequence demanded by a node instance</span>
+<span class="sd">    is missing.&quot;&quot;&quot;</span>
+
+    <span class="n">warnmissingsimfile</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether a warning shall be raised</span>
+<span class="sd">    when a requested simulation sequence demanded by a node instance</span>
+<span class="sd">    is missing.&quot;&quot;&quot;</span>
+
+    <span class="n">warnsimulationstep</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether a warning shall be raised</span>
+<span class="sd">    when function |simulationstep| called for the first time.&quot;&quot;&quot;</span>
+
+    <span class="n">warntrim</span> <span class="o">=</span> <span class="n">_Option</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag indicating whether a warning shall be raised</span>
+<span class="sd">    whenever certain values needed to be trimmed due to violating</span>
+<span class="sd">    certain boundaries. Such warnings increase safety and are thus</span>
+<span class="sd">    the default is `True`.  However, to cope with the limited precision</span>
+<span class="sd">    of floating point numbers only those violations beyond a small</span>
+<span class="sd">    tolerance value are reported (see function |trim|).  Warnings</span>
+<span class="sd">    with identical information are reported only once.&quot;&quot;&quot;</span></div>
+
+
+<span class="nd">@autodoctools</span><span class="o">.</span><span class="n">make_autodoc_optional</span>
+<span class="k">def</span> <span class="nf">_prepare_docstrings</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Assign docstrings to the corresponding attributes of class `Options`</span>
+<span class="sd">     to make them available in the interactive mode of Python.&quot;&quot;&quot;</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">Options</span><span class="p">)</span>
+    <span class="n">docstrings</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&quot;&quot;&#39;</span><span class="p">)[</span><span class="mi">3</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">attributes</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                  <span class="k">if</span> <span class="s1">&#39;_Option(&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">docstring</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">docstrings</span><span class="p">):</span>
+        <span class="n">Options</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">docstring</span>
+
+
+<span class="n">_prepare_docstrings</span><span class="p">()</span>
+
+<span class="n">autodoctools</span><span class="o">.</span><span class="n">autodoc_module</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 2.1-dev documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Christoph Tyralla.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

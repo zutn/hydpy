@@ -1,0 +1,44 @@
+.. |ConditionManager| replace:: :class:`~hydpy.core.filetools.ConditionManager`
+.. |ConditionSequence.reset| replace:: :func:`~hydpy.core.sequencetools.ConditionSequence.reset`
+.. |ConditionSequence| replace:: :class:`~hydpy.core.sequencetools.ConditionSequence`
+.. |IOSequence.adjust_short_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.adjust_short_series`
+.. |IOSequence.load_ext| replace:: :func:`~hydpy.core.sequencetools.IOSequence.load_ext`
+.. |IOSequences.activate_disk| replace:: :func:`~hydpy.core.sequencetools.IOSequences.activate_disk`
+.. |IOSequences.activate_ram| replace:: :func:`~hydpy.core.sequencetools.IOSequences.activate_ram`
+.. |IOSequences.close_files| replace:: :func:`~hydpy.core.sequencetools.IOSequences.close_files`
+.. |IOSequences.deactivate_disk| replace:: :func:`~hydpy.core.sequencetools.IOSequences.deactivate_disk`
+.. |IOSequences.deactivate_ram| replace:: :func:`~hydpy.core.sequencetools.IOSequences.deactivate_ram`
+.. |IOSequences.open_files| replace:: :func:`~hydpy.core.sequencetools.IOSequences.open_files`
+.. |IOSequences| replace:: :class:`~hydpy.core.sequencetools.IOSequences`
+.. |InputSequences.load_data| replace:: :func:`~hydpy.core.sequencetools.InputSequences.load_data`
+.. |InputSequences| replace:: :class:`~hydpy.core.sequencetools.InputSequences`
+.. |LogSequence| replace:: :class:`~hydpy.core.sequencetools.LogSequence`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Options.checkseries| replace:: :const:`~hydpy.core.optiontools.Options.checkseries`
+.. |Options.usedefaultvalues| replace:: :const:`~hydpy.core.optiontools.Options.usedefaultvalues`
+.. |OutputSequencesABC| replace:: :class:`~hydpy.core.abctools.OutputSequencesABC`
+.. |Sequence.values| replace:: :const:`~hydpy.core.sequencetools.Sequence.values`
+.. |Sequences| replace:: :class:`~hydpy.core.sequencetools.Sequences`
+.. |Sequence| replace:: :class:`~hydpy.core.sequencetools.Sequence`
+.. |StateSequence.new| replace:: :const:`~hydpy.core.sequencetools.StateSequence.new`
+.. |StateSequence| replace:: :class:`~hydpy.core.sequencetools.StateSequence`
+.. |SubSequences| replace:: :class:`~hydpy.core.sequencetools.SubSequences`
+.. |bool| replace:: :class:`bool`
+.. |int| replace:: :class:`int`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |str| replace:: :class:`str`
+.. |trim| replace:: :func:`~hydpy.core.variabletools.trim`
+.. |variabletools| replace:: :mod:`~hydpy.core.variabletools`
+.. |io.open| replace:: :func:`~io.open`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+.. |sequencetools.FastAccess| replace:: :class:`~hydpy.core.sequencetools.FastAccess`
+
+.. _sequencetools:
+
+sequencetools
+=============
+
+.. automodule:: hydpy.core.sequencetools
+    :members:
+    :show-inheritance:
